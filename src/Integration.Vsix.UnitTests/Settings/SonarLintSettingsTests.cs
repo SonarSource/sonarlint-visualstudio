@@ -421,6 +421,48 @@ public class SonarLintSettingsTests
         value.Should().Be(CredentialStoreType.Default);
     }
 
+    [TestMethod]
+    public void PragmaRuleSeverity_DefaultValue_ShouldBeWarn()
+    {
+        store.GetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.PragmaRuleSeverity), (int)PragmaRuleSeverity.Warn).Returns((int)PragmaRuleSeverity.Warn);
+
+        testSubject.PragmaRuleSeverity.Should().Be(PragmaRuleSeverity.Warn);
+        store.Received().GetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.PragmaRuleSeverity), (int)PragmaRuleSeverity.Warn);
+    }
+
+    [TestMethod]
+    [DataRow(PragmaRuleSeverity.None)]
+    [DataRow(PragmaRuleSeverity.Info)]
+    [DataRow(PragmaRuleSeverity.Warn)]
+    public void PragmaRuleSeverity_Should(PragmaRuleSeverity value)
+    {
+        store.GetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.PragmaRuleSeverity), (int)PragmaRuleSeverity.Warn).Returns((int)value);
+
+        testSubject.PragmaRuleSeverity.Should().Be(value);
+
+        store.Received().GetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.PragmaRuleSeverity), (int)PragmaRuleSeverity.Warn);
+    }
+
+    [TestMethod]
+    [DataRow(PragmaRuleSeverity.None)]
+    [DataRow(PragmaRuleSeverity.Info)]
+    [DataRow(PragmaRuleSeverity.Warn)]
+    public void PragmaRuleSeverity_SetValue_SetsCorrectly(PragmaRuleSeverity value)
+    {
+        testSubject.PragmaRuleSeverity = value;
+
+        store.Received().SetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.PragmaRuleSeverity), (int)value);
+    }
+
+    [TestMethod]
+    public void PragmaRuleSeverity_WhenDisposed_ReturnsDefault()
+    {
+        MockComDetachedTestSubject();
+        testSubject.PragmaRuleSeverity = PragmaRuleSeverity.Info;
+        var value = testSubject.PragmaRuleSeverity;
+        value.Should().Be(PragmaRuleSeverity.Warn);
+    }
+
     private void MockComDetachedTestSubject()
     {
         var comException = new InvalidComObjectException("COM object that has been separated from its underlying RCW cannot be used.");

@@ -738,6 +738,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C# Unused pragma disable analysis severity:.
+        /// </summary>
+        public static string PragmaAnalysisSeverityLabel {
+            get {
+                return ResourceManager.GetString("PragmaAnalysisSeverityLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Note: The IDE must be restarted for this setting to be applied..
         /// </summary>
         public static string RestartIdeToApplyOptionLabel {

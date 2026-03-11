@@ -65,7 +65,7 @@ public class SLCoreRuleMetaDataProviderTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<SLCoreRuleMetaDataProvider, IRuleMetaDataProvider>(
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreRuleMetaDataProvider, ISLCoreRuleMetaDataProvider>(
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<IRuleInfoConverter>(),

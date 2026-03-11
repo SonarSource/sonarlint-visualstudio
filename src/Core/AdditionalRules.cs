@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+namespace SonarLint.VisualStudio.Core;
 
-internal class RoslynProjectAnalysisRequest(ProjectAnalysisRequestScope scope, IReadOnlyCollection<IRoslynAnalysisCommand> analysisCommands, IReadOnlyCollection<IRoslynAnalysisCommand> additionalCommands)
+public static class AdditionalRules
 {
-    public ProjectAnalysisRequestScope Scope { get; } = scope;
-    public IReadOnlyCollection<IRoslynAnalysisCommand> AnalysisCommands { get; } = analysisCommands;
-    public IReadOnlyCollection<IRoslynAnalysisCommand> AdditionalCommands { get; } = additionalCommands;
+    public const string UnusedPragmaRuleKey = "SQ0079";
 }

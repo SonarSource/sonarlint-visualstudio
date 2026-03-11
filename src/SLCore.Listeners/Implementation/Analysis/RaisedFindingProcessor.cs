@@ -36,6 +36,7 @@ internal interface IRaisedFindingProcessor
 [method: ImportingConstructor]
 internal class RaisedFindingProcessor(
     IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter,
+    IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage,
     IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
     ILogger logger)
     : IRaisedFindingProcessor
@@ -70,8 +71,13 @@ internal class RaisedFindingProcessor(
             var localPath = fileUri.LocalPath;
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create([localPath]);
             var raisedIssues = fileAndIssues.Value ?? [];
-            findingsPublisher.Publish(localPath,
-                raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, raisedIssues));
+            var mainIssues = raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, raisedIssues);
+            var additionalIssues = additionalAnalysisIssueStorage.Get(localPath);
+            if (additionalIssues.Count > 0)
+            {
+                mainIssues = mainIssues.Concat(additionalIssues);
+            }
+            findingsPublisher.Publish(localPath, mainIssues);
             analysisStatusNotifier.AnalysisProgressed(parameters.analysisId, raisedIssues.Count, findingsPublisher.FindingsType, parameters.isIntermediatePublication);
         }
     }

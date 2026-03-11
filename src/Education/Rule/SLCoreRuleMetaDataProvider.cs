@@ -27,7 +27,9 @@ using SonarLint.VisualStudio.Core.ConfigurationScope;
 
 namespace SonarLint.VisualStudio.Education.Rule;
 
-[Export(typeof(IRuleMetaDataProvider))]
+internal interface ISLCoreRuleMetaDataProvider : IRuleMetaDataProvider;
+
+[Export(typeof(ISLCoreRuleMetaDataProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class SLCoreRuleMetaDataProvider(
@@ -35,7 +37,7 @@ internal class SLCoreRuleMetaDataProvider(
     IActiveConfigScopeTracker activeConfigScopeTracker,
     IRuleInfoConverter ruleInfoConverter,
     ILogger logger)
-    : IRuleMetaDataProvider
+    : ISLCoreRuleMetaDataProvider
 {
     /// <inheritdoc />
     public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, Guid? issueId = null)

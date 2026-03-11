@@ -36,20 +36,56 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
     private readonly ILogger analyzerExceptionLogger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerExceptionLogContext);
 
     public async Task<IRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
-        RoslynProjectAnalysisRequest projectAnalysisRequest,
+        ProjectAnalysisRequestScope scope,
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
-        var project = projectAnalysisRequest.Project;
+        var project = scope.Project;
+        var compilation = await project.GetCompilationAsync(token);
+        var configuration = sonarRoslynAnalysisConfigurations[compilation.Language];
+
+        return BuildCompilationWithAnalyzers(project, compilation, configuration, scope.TargetFilePaths);
+    }
+
+    public async Task<(IRoslynCompilationWithAnalyzersWrapper mainCompilation, IRoslynCompilationWithAnalyzersWrapper? additionalCompilation)> GetProjectCompilationsAsync(
+        ProjectAnalysisRequestScope scope,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> mainConfigurations,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> additionalConfigurations,
+        CancellationToken token)
+    {
+        var project = scope.Project;
         var compilation = await project.GetCompilationAsync(token);
 
-        var analysisConfigurationForLanguage = sonarRoslynAnalysisConfigurations[compilation.Language];
+        var mainConfiguration = mainConfigurations[compilation.Language];
+        var additionalConfiguration = GetAdditionalConfiguration(additionalConfigurations, compilation);
 
-        return ApplyAnalyzersAndAdditionalFile(
-            ApplyDiagnosticOptions(project, compilation, analysisConfigurationForLanguage, projectAnalysisRequest.TargetFilePaths),
-            project,
-            analysisConfigurationForLanguage);
+        return (BuildCompilationWithAnalyzers(project, compilation, mainConfiguration, scope.TargetFilePaths),
+            additionalConfiguration is not null
+                ? BuildCompilationWithAnalyzers(project, compilation, additionalConfiguration.Value, scope.TargetFilePaths)
+                : null);
     }
+
+    private static RoslynAnalysisConfiguration? GetAdditionalConfiguration(
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> additionalConfigurations,
+        IRoslynCompilationWrapper compilation)
+    {
+        if (additionalConfigurations.TryGetValue(compilation.Language, out var configuration))
+        {
+            return configuration;
+        }
+
+        return null;
+    }
+
+    private IRoslynCompilationWithAnalyzersWrapper BuildCompilationWithAnalyzers(
+        IRoslynProjectWrapper project,
+        IRoslynCompilationWrapper compilation,
+        RoslynAnalysisConfiguration configuration,
+        ImmutableHashSet<string> targetFilePaths) =>
+        ApplyAnalyzersAndAdditionalFile(
+            ApplyDiagnosticOptions(project, compilation, configuration, targetFilePaths),
+            project,
+            configuration);
 
     private IRoslynCompilationWithAnalyzersWrapper ApplyAnalyzersAndAdditionalFile(
         IRoslynCompilationWrapper compilation,
@@ -67,7 +103,7 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
             OnAnalyzerException,
             true,
             false,
-            false);
+            true);
 
         return compilation
             .WithAnalyzers(analysisConfigurationForLanguage.Analyzers, compilationWithAnalyzersOptions, analysisConfigurationForLanguage);
@@ -86,7 +122,9 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
         return compilation.WithOptions(compilationOptions);
     }
 
-    private static ImmutableDictionary<string, ReportDiagnostic> OverrideQualityProfileWithProjectSettings(IRoslynProjectWrapper project, ImmutableDictionary<string, ReportDiagnostic> analysisConfigurationForLanguage)
+    private static ImmutableDictionary<string, ReportDiagnostic> OverrideQualityProfileWithProjectSettings(
+        IRoslynProjectWrapper project,
+        ImmutableDictionary<string, ReportDiagnostic> analysisConfigurationForLanguage)
     {
         if (project.SpecificDiagnosticOptions is null)
         {

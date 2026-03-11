@@ -33,6 +33,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private bool isFocusOnNewCodeEnabled;
     private bool isShowBuildErrorNotificationEnabled;
     private CredentialStoreType credentialStoreType;
+    private PragmaRuleSeverity pragmaRuleSeverity;
     private readonly ISonarLintSettings slSettings;
     private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater;
     private readonly IBrowserService browserService;
@@ -40,6 +41,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     public ICommand OpenSettingsFileCommand { get; }
     public IEnumerable<DaemonLogLevel> DaemonLogLevels { get; } = Enum.GetValues(typeof(DaemonLogLevel)).Cast<DaemonLogLevel>();
     public IEnumerable<CredentialStoreType> CredentialStoreTypes { get; } = Enum.GetValues(typeof(CredentialStoreType)).Cast<CredentialStoreType>();
+    public IEnumerable<PragmaRuleSeverity> PragmaRuleSeverities { get; } = Enum.GetValues(typeof(PragmaRuleSeverity)).Cast<PragmaRuleSeverity>();
 
     public string JreLocation
     {
@@ -111,6 +113,16 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         }
     }
 
+    public PragmaRuleSeverity PragmaRuleSeverity
+    {
+        get => pragmaRuleSeverity;
+        set
+        {
+            pragmaRuleSeverity = value;
+            RaisePropertyChanged();
+        }
+    }
+
     public GeneralOptionsDialogControlViewModel(
         ISonarLintSettings slSettings,
         IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater,
@@ -130,6 +142,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         IsFocusOnNewCodeEnabled = focusOnNewCodeServiceUpdater.Current.IsEnabled;
         IsShowBuildErrorNotificationEnabled = slSettings.IsShowBuildErrorNotificationEnabled;
         CredentialStoreType = slSettings.CredentialStoreType;
+        PragmaRuleSeverity = slSettings.PragmaRuleSeverity;
     }
 
     private void FocusOnNewCodeServiceUpdaterOnChanged(object sender, NewCodeStatusChangedEventArgs e) => IsFocusOnNewCodeEnabled = e.NewStatus.IsEnabled;
@@ -142,6 +155,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.ShowCloudRegion = ShowCloudRegion;
         slSettings.IsShowBuildErrorNotificationEnabled = IsShowBuildErrorNotificationEnabled;
         slSettings.CredentialStoreType = CredentialStoreType;
+        slSettings.PragmaRuleSeverity = PragmaRuleSeverity;
         focusOnNewCodeServiceUpdater.SetPreference(IsFocusOnNewCodeEnabled);
     }
 
