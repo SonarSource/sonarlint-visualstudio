@@ -83,6 +83,12 @@ internal sealed class SonarLintSettings : ISonarLintSettings, IDisposable
         set => SetValue(nameof(CredentialStoreType), (int)value);
     }
 
+    public PragmaRuleSeverity PragmaRuleSeverity
+    {
+        get => (PragmaRuleSeverity)GetValueOrDefault(nameof(PragmaRuleSeverity), (int)PragmaRuleSeverity.Warn);
+        set => SetValue(nameof(PragmaRuleSeverity), (int)value);
+    }
+
     public void Dispose() => disposed = true;
 
     internal bool GetValueOrDefault(string key, bool defaultValue)

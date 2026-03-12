@@ -738,6 +738,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C# Unused pragma suppression analysis severity:.
+        /// </summary>
+        public static string PragmaAnalysisSeverityLabel {
+            get {
+                return ResourceManager.GetString("PragmaAnalysisSeverityLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Detects unused #pragma warning disable and restore directives that do not suppress any issues raised by Sonar analyzers. Similar to IDE0079, but applies specifically to Sonar rules.
+        ///Set the severity level for how these findings are reported, or choose None to disable this analysis. TreatWarningsAsErrors is respected by this rule..
+        /// </summary>
+        public static string PragmaAnalysisSeverityTooltip {
+            get {
+                return ResourceManager.GetString("PragmaAnalysisSeverityTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Note: The IDE must be restarted for this setting to be applied..
         /// </summary>
         public static string RestartIdeToApplyOptionLabel {

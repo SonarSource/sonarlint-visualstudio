@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,11 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
-internal class RoslynProjectAnalysisRequest(ProjectAnalysisRequestScope scope, IReadOnlyCollection<IRoslynAnalysisCommand> analysisCommands, IReadOnlyCollection<IRoslynAnalysisCommand> additionalCommands)
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
+
+internal class CurrentAnalysisIssuesStore : ICurrentAnalysisIssuesStore
 {
-    public ProjectAnalysisRequestScope Scope { get; } = scope;
-    public IReadOnlyCollection<IRoslynAnalysisCommand> AnalysisCommands { get; } = analysisCommands;
-    public IReadOnlyCollection<IRoslynAnalysisCommand> AdditionalCommands { get; } = additionalCommands;
+    private ImmutableArray<Diagnostic> diagnostics = ImmutableArray.Create<Diagnostic>();
+
+    public ImmutableArray<Diagnostic> GetAll() => diagnostics;
+
+    public void Add(Diagnostic diagnostic)
+    {
+        if (!diagnostic.IsSuppressed)
+        {
+            return; // at the moment, we only care about suppressed diagnostics
+        }
+        diagnostics = diagnostics.Add(diagnostic);
+    }
 }

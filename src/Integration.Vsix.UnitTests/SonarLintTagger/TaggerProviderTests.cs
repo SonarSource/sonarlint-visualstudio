@@ -463,10 +463,21 @@ public class TaggerProviderTests
     private TaggerProvider CreateAndInitializeTestSubject()
     {
         initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<TaggerProvider>(threadHandling, logger);
-        var taggerProvider = new TaggerProvider(
-            mockSonarErrorDataSource, dummyDocumentFactoryService, serviceProvider,
-            mockSonarLanguageRecognizer, mockAnalysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
-            mockTaggableBufferIndicator, fileStateManager, analyzer, logger, initializationProcessorFactory, canonicalFilePathProvider, threadHandling);
+        var taggerProvider = new TaggerProvider(mockSonarErrorDataSource,
+            dummyDocumentFactoryService,
+            serviceProvider,
+            mockSonarLanguageRecognizer,
+            mockAnalysisRequester,
+            vsProjectInfoProvider,
+            issueConsumerFactory,
+            issueConsumerStorage,
+            mockTaggableBufferIndicator,
+            fileStateManager,
+            analyzer,
+            logger,
+            initializationProcessorFactory,
+            canonicalFilePathProvider,
+            threadHandling);
         taggerProvider.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return taggerProvider;
     }

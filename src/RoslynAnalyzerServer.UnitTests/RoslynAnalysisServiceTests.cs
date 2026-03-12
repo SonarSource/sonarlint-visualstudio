@@ -20,6 +20,7 @@
 
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -37,7 +38,7 @@ public class RoslynAnalysisServiceTests
     private static readonly List<ActiveRuleDto> DefaultActiveRules = new() { new ActiveRuleDto("sample-rule-id", new Dictionary<string, string> { { "paramKey", "paramValue" } }) };
     private static readonly Dictionary<string, string> DefaultAnalysisProperties = new() { { "sonar.cs.any", "any" } };
     private static readonly Dictionary<RoslynLanguage, RoslynAnalysisConfiguration> DefaultAnalysisConfigurations = new() { { Language.CSharp, new RoslynAnalysisConfiguration() } };
-    private static readonly List<RoslynProjectAnalysisRequest> DefaultProjectAnalysisRequests = new() { new RoslynProjectAnalysisRequest(Substitute.For<IRoslynProjectWrapper>(), [], []) };
+    private static readonly List<RoslynProjectAnalysisRequest> DefaultProjectAnalysisRequests = new() { new RoslynProjectAnalysisRequest(new ProjectAnalysisRequestScope(Substitute.For<IRoslynProjectWrapper>(), []), [], []) };
     private static readonly List<RoslynIssue> DefaultIssues = new() { new RoslynIssue("sample-rule-id", new RoslynIssueLocation("any", new FileUri("file:///C:/any.cs"), new RoslynIssueTextRange(1, 1, 1, 1))) };
     private static readonly AnalyzerInfoDto DefaultAnalyzerInfoDto = new(false, false);
     private IRoslynSolutionAnalysisCommandProvider analysisCommandProvider = null!;
@@ -46,6 +47,7 @@ public class RoslynAnalysisServiceTests
     private IRoslynAnalysisEngine analysisEngine = null!;
     private IRoslynWorkspaceWrapper workspace = null!;
     private IRoslynQuickFixStorageWriter quickFixStorageWriter = null!;
+    private IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage = null!;
     private RoslynAnalysisService testSubject = null!;
 
     [TestInitialize]
@@ -56,8 +58,9 @@ public class RoslynAnalysisServiceTests
         analysisConfigurationProvider = Substitute.For<IRoslynAnalysisConfigurationProvider>();
         analysisCommandProvider = Substitute.For<IRoslynSolutionAnalysisCommandProvider>();
         quickFixStorageWriter = Substitute.For<IRoslynQuickFixStorageWriter>();
+        additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
 
-        testSubject = new RoslynAnalysisService(workspace, analysisEngine, quickFixStorageWriter, analysisConfigurationProvider, analysisCommandProvider);
+        testSubject = new RoslynAnalysisService(workspace, analysisEngine, quickFixStorageWriter, additionalAnalysisIssueStorage, analysisConfigurationProvider, analysisCommandProvider);
     }
 
     [TestMethod]
@@ -66,6 +69,7 @@ public class RoslynAnalysisServiceTests
             MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>(),
             MefTestHelpers.CreateExport<IRoslynAnalysisEngine>(),
             MefTestHelpers.CreateExport<IRoslynQuickFixStorageWriter>(),
+            MefTestHelpers.CreateExport<IAdditionalAnalysisIssueStorage>(),
             MefTestHelpers.CreateExport<IRoslynAnalysisConfigurationProvider>(),
             MefTestHelpers.CreateExport<IRoslynSolutionAnalysisCommandProvider>());
 
@@ -85,6 +89,8 @@ public class RoslynAnalysisServiceTests
 
         quickFixStorageWriter.Received().Clear(filePaths[0]);
         quickFixStorageWriter.Received().Clear(filePaths[1]);
+        additionalAnalysisIssueStorage.Received().Remove(filePaths[0]);
+        additionalAnalysisIssueStorage.Received().Remove(filePaths[1]);
         issues.Should().BeSameAs(DefaultIssues);
     }
 

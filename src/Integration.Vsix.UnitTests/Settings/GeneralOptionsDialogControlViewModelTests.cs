@@ -249,4 +249,27 @@ public class GeneralOptionsDialogControlViewModelTests
         testSubject.SaveSettings();
         settings.Received().CredentialStoreType = expectedType;
     }
+
+    [TestMethod]
+    [DataRow(PragmaRuleSeverity.None)]
+    [DataRow(PragmaRuleSeverity.Info)]
+    [DataRow(PragmaRuleSeverity.Warn)]
+    public void Ctor_SetsPragmaRuleSeverityToValueFromSettings(PragmaRuleSeverity expectedSeverity)
+    {
+        settings.PragmaRuleSeverity.Returns(expectedSeverity);
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
+
+        testSubject.PragmaRuleSeverity.Should().Be(expectedSeverity);
+    }
+
+    [TestMethod]
+    [DataRow(PragmaRuleSeverity.None)]
+    [DataRow(PragmaRuleSeverity.Info)]
+    [DataRow(PragmaRuleSeverity.Warn)]
+    public void SaveSettings_SavesPragmaRuleSeverityToSettings(PragmaRuleSeverity expectedSeverity)
+    {
+        testSubject.PragmaRuleSeverity = expectedSeverity;
+        testSubject.SaveSettings();
+        settings.Received().PragmaRuleSeverity = expectedSeverity;
+    }
 }

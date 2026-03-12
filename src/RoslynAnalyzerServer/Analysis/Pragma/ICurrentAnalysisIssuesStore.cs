@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
-internal class RoslynProjectAnalysisRequest(ProjectAnalysisRequestScope scope, IReadOnlyCollection<IRoslynAnalysisCommand> analysisCommands, IReadOnlyCollection<IRoslynAnalysisCommand> additionalCommands)
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
+
+internal interface ICurrentAnalysisIssuesStore
 {
-    public ProjectAnalysisRequestScope Scope { get; } = scope;
-    public IReadOnlyCollection<IRoslynAnalysisCommand> AnalysisCommands { get; } = analysisCommands;
-    public IReadOnlyCollection<IRoslynAnalysisCommand> AdditionalCommands { get; } = additionalCommands;
+    ImmutableArray<Diagnostic> GetAll();
+    void Add(Diagnostic diagnostic);
 }

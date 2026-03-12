@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -19,20 +19,12 @@
  */
 
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
-internal interface IRoslynProjectCompilationProvider
+internal interface IPragmaSuppressionAnalysisConfigurationFactory
 {
-    Task<IRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
-        ProjectAnalysisRequestScope scope,
-        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
-        CancellationToken token);
-
-    Task<(IRoslynCompilationWithAnalyzersWrapper mainCompilation, IRoslynCompilationWithAnalyzersWrapper? additionalCompilation)> GetProjectCompilationsAsync(
-        ProjectAnalysisRequestScope scope,
-        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> mainConfigurations,
-        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> additionalConfigurations,
-        CancellationToken token);
+    IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> Create(
+        ICurrentAnalysisIssuesStore currentAnalysisIssuesStore,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations);
 }
