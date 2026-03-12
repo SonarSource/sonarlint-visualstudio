@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.SupportedLanguages;
 public interface IPluginStatusesStore
 {
     IReadOnlyCollection<PluginStatusDto> GetAll();
-    void Update(string configurationScopeId, IEnumerable<PluginStatusDto> pluginStatuses);
+    void Update(string configurationScopeId, IEnumerable<PluginStatusDto> newPluginStatuses);
 
     event EventHandler PluginStatusesChanged;
 }
