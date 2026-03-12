@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Plugin;
 using SonarLint.VisualStudio.SLCore.NodeJS.Notifications;
+using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 
@@ -29,20 +31,23 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 public class PluginListenerTests
 {
     private IUnsupportedNodeVersionNotificationService notificationService;
+    private IPluginStatusesStore pluginStatusesStore;
     private PluginListener testSubject;
 
     [TestInitialize]
     public void SetUp()
     {
         notificationService = Substitute.For<IUnsupportedNodeVersionNotificationService>();
-        testSubject = new PluginListener(notificationService);
+        pluginStatusesStore = Substitute.For<IPluginStatusesStore>();
+        testSubject = new PluginListener(notificationService, pluginStatusesStore);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<PluginListener, ISLCoreListener>(
-            MefTestHelpers.CreateExport<IUnsupportedNodeVersionNotificationService>());
+            MefTestHelpers.CreateExport<IUnsupportedNodeVersionNotificationService>(),
+            MefTestHelpers.CreateExport<IPluginStatusesStore>());
     }
 
     [TestMethod]
@@ -67,5 +72,19 @@ public class PluginListenerTests
         testSubject.DidSkipLoadingPlugin(new DidSkipLoadingPluginParams(default, Language.JAVA, SkipReason.UNSATISFIED_JRE, "min", "cur"));
 
         notificationService.DidNotReceiveWithAnyArgs().Show(default, default, default);
+    }
+
+    [TestMethod]
+    public void DidChangePluginStatuses_CallsStoreUpdate()
+    {
+        var configScopeId = "scope1";
+        var pluginStatuses = new List<PluginStatusDto>
+        {
+            new("Java", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null)
+        };
+
+        testSubject.DidChangePluginStatuses(new DidChangePluginStatusesParams(configScopeId, pluginStatuses));
+
+        pluginStatusesStore.Received(1).Update(configScopeId, pluginStatuses);
     }
 }

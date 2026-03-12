@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -31,6 +31,7 @@ public class DidChangePluginStatusesParamsTests
     public void Deserialized_AsExpected()
     {
         var expected = new DidChangePluginStatusesParams(
+            configurationScopeId: "configScope1",
             pluginStatuses:
             [
                 new PluginStatusDto(
@@ -49,6 +50,7 @@ public class DidChangePluginStatusesParamsTests
 
         const string serialized = """
                                   {
+                                    configurationScopeId: "configScope1",
                                     pluginStatuses: [
                                       {
                                         pluginName: "Java",
