@@ -58,7 +58,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly IEsLintBridgeLocator esLintBridgeLocator;
     private readonly INodeLocationProvider nodeLocator;
     private readonly IThreadHandling threadHandling;
-    public Task ShutdownTask => SLCoreRpc.ShutdownTask;
+    public Task ShutdownTask => SLCoreRpc.ShutdownTask;// todo nre??
     private ISLCoreRpc SLCoreRpc { get; set; }
 
     internal SLCoreInstanceHandle(

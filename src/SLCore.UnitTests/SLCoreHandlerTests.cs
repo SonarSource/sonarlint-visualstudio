@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -43,20 +43,19 @@ public class SLCoreHandlerTests
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreHandler>();
     }
 
-
     [TestMethod]
     public void EnableSloop_LaunchesSloopInTheBackgroundAndWaits()
     {
         var neverCompletedTaskSource = new TaskCompletionSource<bool>();
         var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out var threadHandling);
-        instanceHandler.StartInstanceAsync().Returns(neverCompletedTaskSource.Task);
+        instanceHandler.StartInstanceAsync(Arg.Any<CancellationToken>()).Returns(neverCompletedTaskSource.Task);
 
         testSubject.EnableSloop();
 
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-            instanceHandler.StartInstanceAsync();
+            instanceHandler.StartInstanceAsync(Arg.Any<CancellationToken>());
         });
         notificationService.DidNotReceiveWithAnyArgs().Show(default);
     }
@@ -66,13 +65,13 @@ public class SLCoreHandlerTests
     {
         var lifeCycleTaskSource = new TaskCompletionSource<bool>();
         var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out _);
-        instanceHandler.StartInstanceAsync().Returns(lifeCycleTaskSource.Task);
+        instanceHandler.StartInstanceAsync(Arg.Any<CancellationToken>()).Returns(lifeCycleTaskSource.Task);
         instanceHandler.When(x => x.Dispose()).Do(_ => lifeCycleTaskSource.SetResult(true));
 
         testSubject.EnableSloop();
         testSubject.Dispose();
 
-        instanceHandler.Received(1).StartInstanceAsync();
+        instanceHandler.Received(1).StartInstanceAsync(Arg.Any<CancellationToken>());
         notificationService.DidNotReceiveWithAnyArgs().Show(default);
     }
 
@@ -85,8 +84,22 @@ public class SLCoreHandlerTests
         var act = () => testSubject.EnableSloop();
 
         act.Should().ThrowExactly<ObjectDisposedException>();
-        instanceHandler.DidNotReceiveWithAnyArgs().StartInstanceAsync();
+        instanceHandler.DidNotReceiveWithAnyArgs().StartInstanceAsync(default);
         threadHandling.DidNotReceiveWithAnyArgs().RunOnBackgroundThread(default(Func<Task<int>>));
+        notificationService.DidNotReceiveWithAnyArgs().Show(default);
+    }
+
+    [TestMethod]
+    public void EnableSloop_CalledTwice_SecondCallIsNoOp()
+    {
+        var neverCompletedTaskSource = new TaskCompletionSource<bool>();
+        var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out var threadHandling);
+        instanceHandler.StartInstanceAsync(Arg.Any<CancellationToken>()).Returns(neverCompletedTaskSource.Task);
+
+        testSubject.EnableSloop();
+        testSubject.EnableSloop();
+
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
         notificationService.DidNotReceiveWithAnyArgs().Show(default);
     }
 
@@ -106,7 +119,7 @@ public class SLCoreHandlerTests
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
             for (int i = 0; i < maxStartsBeforeManual; i++)
             {
-                instanceHandler.StartInstanceAsync();
+                instanceHandler.StartInstanceAsync(Arg.Any<CancellationToken>());
             }
             notificationService.Show(Arg.Is<Action>(a => a != null));
         });
@@ -123,6 +136,48 @@ public class SLCoreHandlerTests
     }
 
     [TestMethod]
+    public void ForceRestartSloop_Disposed_Throws()
+    {
+        var testSubject = CreateTestSubject(out _, out _, out _);
+        testSubject.Dispose();
+
+        var act = () => testSubject.ForceRestartSloop();
+
+        act.Should().ThrowExactly<ObjectDisposedException>();
+    }
+
+    [TestMethod]
+    public void ForceRestartSloop_CancelsActiveRun_AndRestartsOnBackgroundThread()
+    {
+        var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out var threadHandling, 1);
+        SetUpInstanceHandler(instanceHandler);
+
+        testSubject.EnableSloop();
+        instanceHandler.ClearReceivedCalls();
+        notificationService.ClearReceivedCalls();
+
+        testSubject.ForceRestartSloop();
+
+        instanceHandler.Received(1).StartInstanceAsync(Arg.Any<CancellationToken>());
+        notificationService.Received(1).Show(Arg.Is<Action>(a => a != null));
+    }
+
+    [TestMethod]
+    public void ForceRestartSloop_ResetsInitiatedStartAtCount()
+    {
+        var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out _, 3);
+        SetUpInstanceHandler(instanceHandler);
+
+        testSubject.EnableSloop();
+        var totalStartsAfterFirstRun = instanceHandler.CurrentStartNumber;
+        totalStartsAfterFirstRun.Should().Be(3);
+
+        testSubject.ForceRestartSloop();
+
+        instanceHandler.Received(6).StartInstanceAsync(Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
     [DataRow(1)]
     [DataRow(3)]
     [DataRow(10)]
@@ -135,29 +190,19 @@ public class SLCoreHandlerTests
         testSubject.EnableSloop();
         for (int i = 0; i < manualRestartsCount; i++)
         {
-            var resetActon = (Action)notificationService.ReceivedCalls().Last().GetArguments().First();
-            resetActon();
+            var resetAction = (Action)notificationService.ReceivedCalls().Last().GetArguments().First();
+            resetAction();
         }
 
-        Received.InOrder(() =>
-        {
-            for (int i = 0; i < manualRestartsCount + 1; i++)
-            {
-                threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-                for (int j = 0; j < maxStartsBeforeManual; j++)
-                {
-                    instanceHandler.StartInstanceAsync();
-                }
-                notificationService.Show(Arg.Is<Action>(a => a != null));
-            }
-        });
+        instanceHandler.Received(maxStartsBeforeManual * (manualRestartsCount + 1)).StartInstanceAsync(Arg.Any<CancellationToken>());
+        notificationService.Received(manualRestartsCount + 1).Show(Arg.Is<Action>(a => a != null));
     }
 
     private static void SetUpInstanceHandler(ISLCoreInstanceHandler instanceHandler)
     {
         var currentRun = 0;
         instanceHandler.CurrentStartNumber.Returns(_ => currentRun);
-        instanceHandler.StartInstanceAsync().Returns(_ =>
+        instanceHandler.StartInstanceAsync(Arg.Any<CancellationToken>()).Returns(_ =>
         {
             currentRun++;
             return Task.CompletedTask;

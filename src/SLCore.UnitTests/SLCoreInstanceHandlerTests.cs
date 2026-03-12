@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -53,10 +53,10 @@ public class SLCoreInstanceHandlerTests
         var slCoreHandler = CreateTestSubject(out var factory, out var threadHandling, out var logger, out _, out _);
         SetUpHandleFactory(factory, out var handle, out _);
 
-        var task = slCoreHandler.StartInstanceAsync();
+        var task = slCoreHandler.StartInstanceAsync(CancellationToken.None);
 
         slCoreHandler.CurrentStartNumber.Should().Be(1);
-        slCoreHandler.currentInstanceHandle.Should().BeSameAs(handle);
+        slCoreHandler.CurrentInstanceHandle.Should().BeSameAs(handle);
         logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance, SLCoreStrings.SLCoreHandler_StartingInstance);
         Received.InOrder(() =>
         {
@@ -71,8 +71,8 @@ public class SLCoreInstanceHandlerTests
     public void StartInstance_AlreadyStarted_Throws()
     {
         var slCoreHandler = CreateTestSubject(out _, out _, out _, out _, out _);
-        slCoreHandler.currentInstanceHandle = Substitute.For<ISLCoreInstanceHandle>();
-        var act = () => slCoreHandler.StartInstanceAsync();
+        slCoreHandler.CurrentInstanceHandle = Substitute.For<ISLCoreInstanceHandle>();
+        var act = () => slCoreHandler.StartInstanceAsync(CancellationToken.None);
 
         act.Should().Throw<InvalidOperationException>().WithMessage(SLCoreStrings.SLCoreHandler_InstanceAlreadyRunning);
 
@@ -85,10 +85,10 @@ public class SLCoreInstanceHandlerTests
         var slCoreHandler = CreateTestSubject(out var factory, out _, out var logger, out _, out _);
         factory.CreateInstance().Throws(new Exception());
 
-        var task = slCoreHandler.StartInstanceAsync();
+        var task = slCoreHandler.StartInstanceAsync(CancellationToken.None);
 
         slCoreHandler.CurrentStartNumber.Should().Be(1);
-        slCoreHandler.currentInstanceHandle.Should().BeNull();
+        slCoreHandler.CurrentInstanceHandle.Should().BeNull();
         logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_CreatingInstance);
         logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_CreatingInstanceError);
         logger.AssertPartialOutputStringExists("[DEBUG] System.Exception");
@@ -100,12 +100,12 @@ public class SLCoreInstanceHandlerTests
         var slCoreHandler = CreateTestSubject(out var factory, out var threadHandling, out var logger, out var activeConfigScopeTracker, out _);
         SetUpHandleFactory(factory, out var handle, out var handleLifetimeTaskSource);
 
-        var task = slCoreHandler.StartInstanceAsync();
+        var task = slCoreHandler.StartInstanceAsync(CancellationToken.None);
         handleLifetimeTaskSource.SetResult(true);
         await task;
 
         slCoreHandler.CurrentStartNumber.Should().Be(1);
-        slCoreHandler.currentInstanceHandle.Should().BeNull();
+        slCoreHandler.CurrentInstanceHandle.Should().BeNull();
         logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance, SLCoreStrings.SLCoreHandler_StartingInstance, SLCoreStrings.SLCoreHandler_InstanceDied);
         Received.InOrder(() =>
         {
@@ -124,14 +124,14 @@ public class SLCoreInstanceHandlerTests
         var slCoreHandler = CreateTestSubject(out var factory, out _, out var logger, out _, out _);
         SetUpHandleFactory(factory, out _, out var handleLifetimeTaskSource);
 
-        var task1 = slCoreHandler.StartInstanceAsync();
+        var task1 = slCoreHandler.StartInstanceAsync(CancellationToken.None);
         handleLifetimeTaskSource.SetResult(true);
         await task1;
         SetUpHandleFactory(factory, out var newHandle, out _);
-        var task2 = slCoreHandler.StartInstanceAsync();
+        var task2 = slCoreHandler.StartInstanceAsync(CancellationToken.None);
 
         slCoreHandler.CurrentStartNumber.Should().Be(2);
-        slCoreHandler.currentInstanceHandle.Should().BeSameAs(newHandle);
+        slCoreHandler.CurrentInstanceHandle.Should().BeSameAs(newHandle);
         logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance,
             SLCoreStrings.SLCoreHandler_StartingInstance,
             SLCoreStrings.SLCoreHandler_InstanceDied,
@@ -146,10 +146,10 @@ public class SLCoreInstanceHandlerTests
         SetUpHandleFactory(factory, out var handle, out _);
         handle.When(x => x.InitializeAsync()).Do(_ => throw new Exception());
 
-        var task = slCoreHandler.StartInstanceAsync();
+        var task = slCoreHandler.StartInstanceAsync(CancellationToken.None);
 
         slCoreHandler.CurrentStartNumber.Should().Be(1);
-        slCoreHandler.currentInstanceHandle.Should().BeNull();
+        slCoreHandler.CurrentInstanceHandle.Should().BeNull();
         logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_CreatingInstance);
         logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_StartingInstance);
         logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_StartingInstanceError);
@@ -166,12 +166,44 @@ public class SLCoreInstanceHandlerTests
     }
 
     [TestMethod]
+    public void StartInstance_CancellationRequestedAfterCreation_ReturnsWithoutLaunching()
+    {
+        var slCoreHandler = CreateTestSubject(out var factory, out _, out var logger, out _, out _);
+        SetUpHandleFactory(factory, out var handle, out _);
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var task = slCoreHandler.StartInstanceAsync(cts.Token);
+
+        slCoreHandler.CurrentStartNumber.Should().Be(0);
+        slCoreHandler.CurrentInstanceHandle.Should().BeNull();
+        handle.DidNotReceive().InitializeAsync();
+    }
+
+    [TestMethod]
+    public async Task StartInstance_CancellationDuringShutdownWait_ExitsGracefully()
+    {
+        var slCoreHandler = CreateTestSubject(out var factory, out _, out var logger, out var activeConfigScopeTracker, out _);
+        SetUpHandleFactory(factory, out var handle, out _);
+        var cts = new CancellationTokenSource();
+
+        var task = slCoreHandler.StartInstanceAsync(cts.Token);
+        cts.Cancel();
+        await task;
+
+        slCoreHandler.CurrentInstanceHandle.Should().BeNull();
+        logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_InstanceDied);
+        handle.Received().Dispose();
+        activeConfigScopeTracker.Received().Reset();
+    }
+
+    [TestMethod]
     public async Task Dispose_DisposesLatestHandle()
     {
         var slCoreHandler = CreateTestSubject(out var factory, out _, out var logger, out var scopeTracker, out var connectionTracker);
         SetUpHandleFactory(factory, out var handle, out var handleLifetimeTaskSource);
         handle.When(slCoreHandle => slCoreHandle.Dispose()).Do(_ => handleLifetimeTaskSource.SetResult(true));
-        var task = slCoreHandler.StartInstanceAsync();
+        var task = slCoreHandler.StartInstanceAsync(CancellationToken.None);
 
         slCoreHandler.Dispose();
         await task;
@@ -191,7 +223,7 @@ public class SLCoreInstanceHandlerTests
         var slCoreHandler = CreateTestSubject(out _, out _, out _, out _, out _);
 
         slCoreHandler.Dispose();
-        var act = async () => await slCoreHandler.StartInstanceAsync();
+        var act = async () => await slCoreHandler.StartInstanceAsync(CancellationToken.None);
 
         await act.Should().ThrowAsync<ObjectDisposedException>();
     }

@@ -30,6 +30,8 @@ public interface ISLCoreHandler : IDisposable
 {
     void EnableSloop();
 
+    void ForceRestartSloop();
+
     void ShowNotificationIfNeeded();
 }
 
@@ -43,16 +45,21 @@ internal sealed class SLCoreHandler : ISLCoreHandler
     private readonly int maxStartsBeforeUserNotification;
     private int initiatedStartAtCount = 0;
     private bool disposed;
+    private CancellationTokenSource? activeRunTokenSource;
+    private readonly object lockObject = new();
+    private Task? activeRun;
 
     [ImportingConstructor]
-    public SLCoreHandler(ISLCoreInstanceHandler slCoreInstanceHandler,
+    public SLCoreHandler(
+        ISLCoreInstanceHandler slCoreInstanceHandler,
         ISloopRestartFailedNotificationService notificationService,
         IThreadHandling threadHandling)
         : this(slCoreInstanceHandler, notificationService, 2, threadHandling)
     {
     }
 
-    internal /* for testing */ SLCoreHandler(ISLCoreInstanceHandler slCoreInstanceHandler,
+    internal SLCoreHandler(
+        ISLCoreInstanceHandler slCoreInstanceHandler,
         ISloopRestartFailedNotificationService notificationService,
         int maxStartsBeforeUserNotification,
         IThreadHandling threadHandling)
@@ -70,44 +77,87 @@ internal sealed class SLCoreHandler : ISLCoreHandler
 
     public void EnableSloop()
     {
-        if (disposed)
+        var thisRunTokenSource = new CancellationTokenSource();
+        var thisRunToken = thisRunTokenSource.Token;
+        var taskCompletionSource = new TaskCompletionSource<int>();
+
+        lock (lockObject)
         {
-            throw new ObjectDisposedException(nameof(SLCoreHandler));
+            ThrowIfDisposed();
+
+            if (activeRun != null)
+            {
+                return; // already active
+            }
+
+            activeRunTokenSource = thisRunTokenSource;
+            activeRun = threadHandling.RunOnBackgroundThread(() => LaunchSlCoreLoopOnRunOnBackgroundThreadAsync(thisRunToken, taskCompletionSource));
+        }
+    }
+
+    private async Task LaunchSlCoreLoopOnRunOnBackgroundThreadAsync(CancellationToken thisRunToken, TaskCompletionSource<int> tcs)
+    {
+        while (!disposed && !thisRunToken.IsCancellationRequested)
+        {
+            if (ReachedAutoRestartLimit())
+            {
+                notificationService.Show(ForceRestartSloop);
+                break;
+            }
+            await slCoreInstanceHandler.StartInstanceAsync(thisRunToken);
+        }
+
+        tcs.TrySetResult(0);
+    }
+
+    public void ForceRestartSloop()
+    {
+        Task? runToAwait;
+        lock (lockObject)
+        {
+            ThrowIfDisposed();
+
+            activeRunTokenSource?.Cancel();
+            activeRunTokenSource?.Dispose();
+            activeRunTokenSource = null;
+            runToAwait = activeRun;
+            activeRun = null;
+            initiatedStartAtCount = slCoreInstanceHandler.CurrentStartNumber;
         }
 
         threadHandling.RunOnBackgroundThread(async () =>
         {
-            while (!disposed && !ShouldNotifyUser())
+            if (runToAwait != null)
             {
-                await slCoreInstanceHandler.StartInstanceAsync();
+                await threadHandling.RunAsync(() => runToAwait);
             }
-
-            if (!disposed)
-            {
-                notificationService.Show(InitiateStart);
-            }
-
+            EnableSloop();
             return 0;
         }).Forget();
     }
 
-    public void ShowNotificationIfNeeded()
+    private void ThrowIfDisposed()
     {
-        if (!disposed && ShouldNotifyUser())
+        if (disposed)
         {
-            notificationService.Show(InitiateStart);
+            throw new ObjectDisposedException(nameof(SLCoreHandler));
         }
     }
 
-    private bool ShouldNotifyUser()
+    public void ShowNotificationIfNeeded()
     {
-        return slCoreInstanceHandler.CurrentStartNumber - initiatedStartAtCount >= maxStartsBeforeUserNotification;
+        if (!disposed && ReachedAutoRestartLimit())
+        {
+            notificationService.Show(ForceRestartSloop);
+        }
     }
 
-    private void InitiateStart()
+    private bool ReachedAutoRestartLimit()
     {
-        initiatedStartAtCount = slCoreInstanceHandler.CurrentStartNumber;
-        EnableSloop();
+        lock (lockObject)
+        {
+            return slCoreInstanceHandler.CurrentStartNumber - initiatedStartAtCount >= maxStartsBeforeUserNotification;
+        }
     }
 
     public void Dispose()
