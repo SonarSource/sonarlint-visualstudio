@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Commands
             RegisterCommand(CommonGuids.SonarLintMenuCommandSet, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
             RegisterCommand(CommonGuids.SonarLintMenuCommandSet, SolutionSettingsCommand.Id, new SolutionSettingsCommand(asyncServiceProvider as IServiceProvider));
-            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, SupportedLanguagesCommand.Id, new SupportedLanguagesCommand(pluginStatusesStore, threadHandling));
+            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, SupportedLanguagesCommand.Id, new SupportedLanguagesCommand(pluginStatusesStore, threadHandling, connectedModeManager));
 
             // Help menu buttons
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowLogsCommand.Id, new ShowLogsCommand(outputWindowService));
