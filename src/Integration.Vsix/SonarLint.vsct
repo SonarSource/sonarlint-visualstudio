@@ -36,6 +36,12 @@
       <Group guid="SonarLintCmdSet" id="SonarLintCommandsGroup" priority="0x0101">
         <Parent guid="SonarLintCmdSet" id="SonarLintMenu" />
       </Group>
+      <Group guid="SonarLintCmdSet" id="SonarLintDebugGroup" priority="0x0150">
+        <Parent guid="SonarLintCmdSet" id="SonarLintMenu" />
+      </Group>
+      <Group guid="SonarLintCmdSet" id="DebugMenuGroup">
+        <Parent guid="SonarLintCmdSet" id="DebugMenu" />
+      </Group>
       <Group guid="SonarLintCmdSet" id="SonarLintHelpGroup" priority="0x0200">
         <Parent guid="SonarLintCmdSet" id="SonarLintMenu" />
       </Group>
@@ -53,6 +59,15 @@
         <Parent guid="SonarLintCmdSet" id="SonarLintHelpGroup"/>
         <Strings>
           <ButtonText>Help</ButtonText>
+        </Strings>
+      </Menu>
+
+      <Menu guid="SonarLintCmdSet" id="DebugMenu">
+        <Parent guid="SonarLintCmdSet" id="SonarLintDebugGroup"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Debug and Development Tools</ButtonText>
         </Strings>
       </Menu>
 
@@ -75,6 +90,18 @@
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Solution Settings</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="SonarLintCmdSet" id="OpenRuleDescriptionCommand" priority="0x100">
+        <Parent guid="SonarLintCmdSet" id="DebugMenuGroup"/>
+        <Strings>
+          <ButtonText>Open Rule Description...</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="SonarLintCmdSet" id="RestartSLCoreCommand" priority="0x101">
+        <Parent guid="SonarLintCmdSet" id="DebugMenuGroup"/>
+        <Strings>
+          <ButtonText>Restart SLCore</ButtonText>
         </Strings>
       </Button>
       <Button guid="SonarLintCmdSet" id="SupportedLanguagesCommand" priority="0x999A">
@@ -102,6 +129,11 @@
       <IDSymbol name="SupportedLanguagesCommand" value="0x1029"/>
       <IDSymbol name="SonarLintHelpGroup" value="0x1026"/>
       <IDSymbol name="SonarLintConnectedModeGroup" value="0x1027"/>
+      <IDSymbol name="SonarLintDebugGroup" value="0x1030"/>
+      <IDSymbol name="DebugMenu" value="0x102A"/>
+      <IDSymbol name="DebugMenuGroup" value="0x102B"/>
+      <IDSymbol name="OpenRuleDescriptionCommand" value="0x102C"/>
+      <IDSymbol name="RestartSLCoreCommand" value="0x102D"/>
     </GuidSymbol>
   </Symbols>
   

@@ -25,8 +25,10 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.DebugMenu;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.SLCore;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -57,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Menus
             RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager));
+            await AddDebugToolsMenuAsync(asyncServiceProvider);
 
             // Commands
             RegisterCommand(CommonGuids.SonarLintMenuCommandSet, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
@@ -71,6 +74,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Connected mode buttons
             RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(activeSolutionBoundTracker, connectedModeManager));
+        }
+
+        private async Task AddDebugToolsMenuAsync(IAsyncServiceProvider asyncServiceProvider)
+        {
+            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, DebugMenuCommand.Id, new DebugMenuCommand());
+#if DEBUG
+            var educationService = await asyncServiceProvider.GetMefServiceAsync<IEducation>();
+            var slCoreHandler = await asyncServiceProvider.GetMefServiceAsync<ISLCoreHandler>();
+            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, OpenRuleDescriptionCommand.Id, new OpenRuleDescriptionCommand(educationService));
+            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, RestartSLCoreCommand.Id, new RestartSLCoreCommand(slCoreHandler));
+#endif
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)

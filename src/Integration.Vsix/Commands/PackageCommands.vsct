@@ -32,7 +32,7 @@
         </Strings>
       </Menu>
     </Menus>
-    
+
     <Buttons>
       <Button guid="guidCmdSet" id="cmdidProjectExcludePropertyToggle" type="Button" priority="0x100">
         <Parent guid="guidCmdSet" id="groupidProjectProperties"/>
@@ -76,7 +76,7 @@
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_XPROJ_MULTIPROJ"/>
     </CommandPlacement>
   </CommandPlacements>
-  
+
   <Symbols>
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
@@ -84,11 +84,11 @@
       <IDSymbol name="groupidProjectSonarLint" value="0x800"/>
       <IDSymbol name="groupidProjectProperties" value="0x801"/>
       <IDSymbol name="groupidProjectTestPropertyOptions" value="0x802"/>
-      
+
       <!-- Menus -->
       <IDSymbol name="menuidProjectSonarLint" value="0x850"/>
       <IDSymbol name="menuidProjectTestProperty" value="0x851"/>
-      
+
       <!-- Commands -->
       <IDSymbol name="cmdidProjectExcludePropertyToggle" value="0x101"/>
       <IDSymbol name="cmdidProjectTestPropertyAutoOption" value="0x102"/>
@@ -97,5 +97,5 @@
     </GuidSymbol>
 
   </Symbols>
-  
+
 </CommandTable>
