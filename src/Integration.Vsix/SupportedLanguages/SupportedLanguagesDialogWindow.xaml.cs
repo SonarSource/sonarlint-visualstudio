@@ -20,6 +20,8 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
@@ -28,17 +30,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 [ExcludeFromCodeCoverage]
 internal sealed partial class SupportedLanguagesDialogWindow : Window
 {
+    private readonly IConnectedModeUIManager connectedModeUIManager;
+
     public SupportedLanguageDialogViewModel ViewModel { get; }
 
-    public SupportedLanguagesDialogWindow(IPluginStatusesStore pluginStatusesStore, Core.IThreadHandling threadHandling)
+    public SupportedLanguagesDialogWindow(IPluginStatusesStore pluginStatusesStore, Core.IThreadHandling threadHandling, IConnectedModeUIManager connectedModeUIManager)
     {
+        this.connectedModeUIManager = connectedModeUIManager;
         ViewModel = new SupportedLanguageDialogViewModel(pluginStatusesStore, threadHandling);
         InitializeComponent();
     }
 
     private void SetUpConnection_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("Set up connection clicked", "Debug");
+        connectedModeUIManager.ShowManageBindingDialogAsync().Forget();
     }
 
     private void RetryButton_Click(object sender, RoutedEventArgs e)
