@@ -128,7 +128,7 @@ internal sealed class SLCoreInstanceHandler(
             return;
         }
         CurrentInstanceHandle?.Dispose();
-        CurrentInstanceHandle = null; // todo
+        CurrentInstanceHandle = null;
         activeConfigScopeTracker?.Reset();
     }
 
