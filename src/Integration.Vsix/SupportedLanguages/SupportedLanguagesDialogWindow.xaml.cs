@@ -32,12 +32,12 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
 {
     private readonly IConnectedModeUIManager connectedModeUIManager;
 
-    public SupportedLanguageDialogViewModel ViewModel { get; }
+    public SupportedLanguagesDialogViewModel ViewModel { get; }
 
     public SupportedLanguagesDialogWindow(IPluginStatusesStore pluginStatusesStore, Core.IThreadHandling threadHandling, IConnectedModeUIManager connectedModeUIManager)
     {
         this.connectedModeUIManager = connectedModeUIManager;
-        ViewModel = new SupportedLanguageDialogViewModel(pluginStatusesStore, threadHandling);
+        ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling);
         InitializeComponent();
     }
 

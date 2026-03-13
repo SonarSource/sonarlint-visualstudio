@@ -6,7 +6,7 @@ using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 
-internal class SupportedLanguageDialogViewModel : ViewModelBase
+internal class SupportedLanguagesDialogViewModel : ViewModelBase, IDisposable
 {
     private static readonly HashSet<PluginStateDto> DisplayedStates =
     [
@@ -29,7 +29,7 @@ internal class SupportedLanguageDialogViewModel : ViewModelBase
             .Select(p => p.pluginName)
             .Distinct());
 
-    public SupportedLanguageDialogViewModel(IPluginStatusesStore pluginStatusesStore, IThreadHandling threadHandling)
+    public SupportedLanguagesDialogViewModel(IPluginStatusesStore pluginStatusesStore, IThreadHandling threadHandling)
     {
         this.pluginStatusesStore = pluginStatusesStore;
         this.threadHandling = threadHandling;
@@ -40,6 +40,8 @@ internal class SupportedLanguageDialogViewModel : ViewModelBase
 
         pluginStatusesStore.PluginStatusesChanged += OnPluginStatusesChanged;
     }
+
+    public void Dispose() => pluginStatusesStore.PluginStatusesChanged -= OnPluginStatusesChanged;
 
     private void OnPluginStatusesChanged(object sender, EventArgs e)
     {
