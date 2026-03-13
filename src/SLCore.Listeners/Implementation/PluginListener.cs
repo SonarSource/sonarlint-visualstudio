@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -19,7 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Plugin;
 using SonarLint.VisualStudio.SLCore.NodeJS.Notifications;
@@ -31,11 +31,15 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 public class PluginListener : IPluginListener
 {
     private readonly IUnsupportedNodeVersionNotificationService unsupportedNodeVersionNotificationService;
+    private readonly IPluginStatusesStore pluginStatusesStore;
 
     [ImportingConstructor]
-    public PluginListener(IUnsupportedNodeVersionNotificationService unsupportedNodeVersionNotificationService)
+    public PluginListener(
+        IUnsupportedNodeVersionNotificationService unsupportedNodeVersionNotificationService,
+        IPluginStatusesStore pluginStatusesStore)
     {
         this.unsupportedNodeVersionNotificationService = unsupportedNodeVersionNotificationService;
+        this.pluginStatusesStore = pluginStatusesStore;
     }
 
     public void DidSkipLoadingPlugin(DidSkipLoadingPluginParams parameters)
@@ -46,6 +50,8 @@ public class PluginListener : IPluginListener
         }
     }
 
-    [ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-2870 Display data from SLCore and handle updates
-    public void DidChangePluginStatuses(DidChangePluginStatusesParams parameters) => throw new NotImplementedException();
+    public void DidChangePluginStatuses(DidChangePluginStatusesParams parameters)
+    {
+        pluginStatusesStore.Update(parameters.configScopeId, parameters.pluginStatuses);
+    }
 }
