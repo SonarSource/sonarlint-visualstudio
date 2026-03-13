@@ -39,15 +39,15 @@ public interface ISLCoreHandler : IDisposable
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class SLCoreHandler : ISLCoreHandler
 {
+    private readonly object lockObject = new();
     private readonly ISloopRestartFailedNotificationService notificationService;
     private readonly ISLCoreInstanceHandler slCoreInstanceHandler;
     private readonly IThreadHandling threadHandling;
     private readonly int maxStartsBeforeUserNotification;
     private int initiatedStartAtCount = 0;
-    private bool disposed;
     private CancellationTokenSource? activeRunTokenSource;
-    private readonly object lockObject = new();
     private Task? activeRun;
+    private bool disposed;
 
     [ImportingConstructor]
     public SLCoreHandler(
@@ -79,7 +79,6 @@ internal sealed class SLCoreHandler : ISLCoreHandler
     {
         var thisRunTokenSource = new CancellationTokenSource();
         var thisRunToken = thisRunTokenSource.Token;
-        var taskCompletionSource = new TaskCompletionSource<int>();
 
         lock (lockObject)
         {
@@ -91,23 +90,21 @@ internal sealed class SLCoreHandler : ISLCoreHandler
             }
 
             activeRunTokenSource = thisRunTokenSource;
-            activeRun = threadHandling.RunOnBackgroundThread(() => LaunchSlCoreLoopOnRunOnBackgroundThreadAsync(thisRunToken, taskCompletionSource));
+            activeRun = threadHandling.RunOnBackgroundThread(() => LaunchSlCoreLoopOnRunOnBackgroundThreadAsync(thisRunToken));
         }
     }
 
-    private async Task LaunchSlCoreLoopOnRunOnBackgroundThreadAsync(CancellationToken thisRunToken, TaskCompletionSource<int> tcs)
+    private async Task LaunchSlCoreLoopOnRunOnBackgroundThreadAsync(CancellationToken thisRunToken)
     {
         while (!disposed && !thisRunToken.IsCancellationRequested)
         {
             if (ReachedAutoRestartLimit())
             {
                 notificationService.Show(ForceRestartSloop);
-                break;
+                return;
             }
             await slCoreInstanceHandler.StartInstanceAsync(thisRunToken);
         }
-
-        tcs.TrySetResult(0);
     }
 
     public void ForceRestartSloop()
