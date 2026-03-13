@@ -20,11 +20,12 @@
 
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
-namespace SonarLint.VisualStudio.Education.SupportedLanguages;
+namespace SonarLint.VisualStudio.Integration.SupportedLanguages;
 
 public interface IPluginStatusesStore
 {
     IReadOnlyCollection<PluginStatusDto> GetAll();
+    void Update(string configurationScopeId, IEnumerable<PluginStatusDto> newPluginStatuses);
 
     event EventHandler PluginStatusesChanged;
 }
