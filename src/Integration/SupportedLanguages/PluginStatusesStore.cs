@@ -65,7 +65,7 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
         }
     }
 
-    public void Update(string? configurationScopeId, IEnumerable<PluginStatusDto> newPluginStatuses)
+    public void Update(string configurationScopeId, IEnumerable<PluginStatusDto> newPluginStatuses)
     {
         lock (lockObject)
         {

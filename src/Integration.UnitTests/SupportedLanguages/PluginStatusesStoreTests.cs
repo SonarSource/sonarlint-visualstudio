@@ -223,7 +223,7 @@ public class PluginStatusesStoreTests
         pluginSLCoreService.DidNotReceive().GetPluginStatusesAsync(Arg.Any<GetPluginStatusesParams>());
     }
 
-    private void SetCurrentConfigScope(string? scopeId)
+    private void SetCurrentConfigScope(string scopeId)
     {
         if (scopeId == null)
         {
