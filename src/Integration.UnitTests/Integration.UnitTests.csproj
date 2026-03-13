@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Integration\Integration.csproj" />
+    <ProjectReference Include="..\SLCore\SLCore.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 </Project>
