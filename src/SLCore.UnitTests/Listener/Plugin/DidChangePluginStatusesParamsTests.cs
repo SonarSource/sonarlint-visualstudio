@@ -31,7 +31,7 @@ public class DidChangePluginStatusesParamsTests
     public void Deserialized_AsExpected()
     {
         var expected = new DidChangePluginStatusesParams(
-            configurationScopeId: "configScope1",
+            configScopeId: "configScope1",
             pluginStatuses:
             [
                 new PluginStatusDto(
@@ -50,7 +50,7 @@ public class DidChangePluginStatusesParamsTests
 
         const string serialized = """
                                   {
-                                    configurationScopeId: "configScope1",
+                                    configScopeId: "configScope1",
                                     pluginStatuses: [
                                       {
                                         pluginName: "Java",

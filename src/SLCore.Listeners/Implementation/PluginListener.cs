@@ -52,6 +52,6 @@ public class PluginListener : IPluginListener
 
     public void DidChangePluginStatuses(DidChangePluginStatusesParams parameters)
     {
-        pluginStatusesStore.Update(parameters.configurationScopeId, parameters.pluginStatuses);
+        pluginStatusesStore.Update(parameters.configScopeId, parameters.pluginStatuses);
     }
 }

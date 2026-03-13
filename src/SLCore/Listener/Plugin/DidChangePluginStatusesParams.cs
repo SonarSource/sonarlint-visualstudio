@@ -22,4 +22,4 @@ using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Plugin;
 
-public record DidChangePluginStatusesParams(string? configurationScopeId, List<PluginStatusDto> pluginStatuses);
+public record DidChangePluginStatusesParams(string? configScopeId, List<PluginStatusDto> pluginStatuses);
