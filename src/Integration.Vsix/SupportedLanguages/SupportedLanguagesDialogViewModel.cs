@@ -6,7 +6,7 @@ using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 
-internal class SupportedLanguagesDialogViewModel : ViewModelBase, IDisposable
+internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDisposable
 {
     private static readonly HashSet<PluginStateDto> DisplayedStates =
     [
