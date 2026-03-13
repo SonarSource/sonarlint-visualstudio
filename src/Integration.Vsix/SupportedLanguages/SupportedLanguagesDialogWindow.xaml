@@ -162,7 +162,7 @@
                         <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
                         <Setter TargetName="StatusText" Property="Text" Value="Failed" />
                         <Setter TargetName="StatusText" Property="Foreground" Value="Red" />
-                        <Setter TargetName="RetryButton" Property="Visibility" Value="Visible" />
+                        <!--<Setter TargetName="RetryButton" Property="Visibility" Value="Visible" />-->
                     </DataTrigger>
                     <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.SYNCED}">
                         <Setter TargetName="StatusDot" Property="Fill" Value="Green" />
@@ -250,7 +250,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="LANGUAGE" Binding="{Binding pluginName}" Width="*" />
                     <DataGridTemplateColumn Header="STATUS" CellTemplate="{StaticResource StatusCellTemplate}" Width="*" />
-                    <DataGridTemplateColumn Header="VERSION" CellTemplate="{StaticResource VersionCellTemplate}" Width="*" />
+                    <!--<DataGridTemplateColumn Header="VERSION" CellTemplate="{StaticResource VersionCellTemplate}" Width="*" />-->
                     <DataGridTemplateColumn Header="SOURCE" CellTemplate="{StaticResource SourceCellTemplate}" Width="*" />
                 </DataGrid.Columns>
             </DataGrid>

@@ -34,16 +34,18 @@ internal class SupportedLanguagesCommand : VsCommandBase
 
     private readonly IPluginStatusesStore pluginStatusesStore;
     private readonly IThreadHandling threadHandling;
+    private readonly IConnectedModeUIManager connectedModeUIManager;
 
-    public SupportedLanguagesCommand(IPluginStatusesStore pluginStatusesStore, IThreadHandling threadHandling)
+    public SupportedLanguagesCommand(IPluginStatusesStore pluginStatusesStore, IThreadHandling threadHandling, IConnectedModeUIManager connectedModeUIManager)
     {
         this.pluginStatusesStore = pluginStatusesStore;
         this.threadHandling = threadHandling;
+        this.connectedModeUIManager = connectedModeUIManager;
     }
 
     protected override void InvokeInternal()
     {
-        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow(pluginStatusesStore, threadHandling);
+        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow(pluginStatusesStore, threadHandling, connectedModeUIManager);
         supportedLanguagesWindow.ShowDialog(Application.Current.MainWindow);
     }
 }
