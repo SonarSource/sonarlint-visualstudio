@@ -234,4 +234,10 @@
   <data name="ActiveSolutionTracker_DummySolutionIgnored" xml:space="preserve">
     <value>Dummy solution encountered, ignoring...</value>
   </data>
+  <data name="PluginStatuses_LogContext" xml:space="preserve">
+    <value>Plugin Statuses</value>
+  </data>
+  <data name="PluginStatuses_FailedToFetchPluginStatuses" xml:space="preserve">
+    <value>Failed to fetch plugin statuses: {0}</value>
+  </data>
 </root>

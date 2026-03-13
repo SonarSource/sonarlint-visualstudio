@@ -19,6 +19,7 @@
  */
 
 using NSubstitute.ExceptionExtensions;
+using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
@@ -50,7 +51,13 @@ public class PluginStatusesStoreTests
         threadHandling = new NoOpThreadHandler();
         logger = new TestLogger();
 
-        testSubject = CreateTestSubject();
+        testSubject = new(activeConfigScopeTracker, slCoreServiceProvider, threadHandling, logger);
+        SetCurrentConfigScope(ConfigScopeId);
+        slCoreServiceProvider.TryGetTransientService(out Arg.Any<IPluginSLCoreService>()).Returns(info =>
+        {
+            info[0] = pluginSLCoreService;
+            return true;
+        });
     }
 
     [TestMethod]
@@ -80,7 +87,6 @@ public class PluginStatusesStoreTests
     [TestMethod]
     public void GetAll_ReturnsACopy()
     {
-        SetCurrentConfigScope(ConfigScopeId);
         var pluginStatuses = CreatePluginStatuses();
         testSubject.Update(ConfigScopeId, pluginStatuses);
 
@@ -94,7 +100,6 @@ public class PluginStatusesStoreTests
     [TestMethod]
     public void Update_WhenConfigScopeMatches_StoresPluginStatuses()
     {
-        SetCurrentConfigScope(ConfigScopeId);
         var pluginStatuses = CreatePluginStatuses();
 
         testSubject.Update(ConfigScopeId, pluginStatuses);
@@ -105,7 +110,6 @@ public class PluginStatusesStoreTests
     [TestMethod]
     public void Update_WhenConfigScopeMatches_ReplacesPluginStatuses()
     {
-        SetCurrentConfigScope(ConfigScopeId);
         testSubject.Update(ConfigScopeId, CreatePluginStatuses());
 
         var newStatuses = new List<PluginStatusDto>
@@ -121,7 +125,6 @@ public class PluginStatusesStoreTests
     [TestMethod]
     public void Update_WhenConfigScopeMatches_RaisesEvent()
     {
-        SetCurrentConfigScope(ConfigScopeId);
         var eventHandler = Substitute.For<EventHandler>();
         testSubject.PluginStatusesChanged += eventHandler;
 
@@ -146,7 +149,7 @@ public class PluginStatusesStoreTests
     [TestMethod]
     public void Update_WhenCurrentScopeIsNull_DoesNotStoreAndDoesNotRaiseEvent()
     {
-        activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
+        SetCurrentConfigScope(null);
         var eventHandler = Substitute.For<EventHandler>();
         testSubject.PluginStatusesChanged += eventHandler;
 
@@ -159,8 +162,6 @@ public class PluginStatusesStoreTests
     [TestMethod]
     public void ConfigurationScopeChanged_FetchesPluginStatusesFromSLCore()
     {
-        SetCurrentConfigScope(ConfigScopeId);
-        SetUpServiceProvider();
         var pluginStatuses = CreatePluginStatuses();
         pluginSLCoreService.GetPluginStatusesAsync(Arg.Is<GetPluginStatusesParams>(p => p.configurationScopeId == ConfigScopeId))
             .Returns(new GetPluginStatusesResponse(pluginStatuses));
@@ -173,8 +174,6 @@ public class PluginStatusesStoreTests
     [TestMethod]
     public void ConfigurationScopeChanged_RaisesPluginStatusesChangedEvent()
     {
-        SetCurrentConfigScope(ConfigScopeId);
-        SetUpServiceProvider();
         pluginSLCoreService.GetPluginStatusesAsync(Arg.Any<GetPluginStatusesParams>())
             .Returns(new GetPluginStatusesResponse(CreatePluginStatuses()));
         var eventHandler = Substitute.For<EventHandler>();
@@ -186,19 +185,21 @@ public class PluginStatusesStoreTests
     }
 
     [TestMethod]
-    public void ConfigurationScopeChanged_WhenCurrentScopeIsNull_DoesNotFetch()
+    public void ConfigurationScopeChanged_WhenCurrentScopeIsNull_FetchesWithNullScopeId()
     {
-        activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
+        SetCurrentConfigScope(null);
+        var pluginStatuses = CreatePluginStatuses();
+        pluginSLCoreService.GetPluginStatusesAsync(Arg.Is<GetPluginStatusesParams>(p => p.configurationScopeId == null))
+            .Returns(new GetPluginStatusesResponse(pluginStatuses));
 
         RaiseConfigScopeChanged();
 
-        slCoreServiceProvider.DidNotReceive().TryGetTransientService(out Arg.Any<IPluginSLCoreService>());
+        testSubject.GetAll().Should().BeEquivalentTo(pluginStatuses);
     }
 
     [TestMethod]
     public void ConfigurationScopeChanged_WhenServiceNotAvailable_DoesNotThrow()
     {
-        SetCurrentConfigScope(ConfigScopeId);
         slCoreServiceProvider.TryGetTransientService(out Arg.Any<IPluginSLCoreService>()).Returns(info =>
         {
             info[0] = null;
@@ -214,8 +215,6 @@ public class PluginStatusesStoreTests
     [TestMethod]
     public void ConfigurationScopeChanged_WhenFetchThrows_DoesNotThrow()
     {
-        SetCurrentConfigScope(ConfigScopeId);
-        SetUpServiceProvider();
         pluginSLCoreService.GetPluginStatusesAsync(Arg.Any<GetPluginStatusesParams>())
             .ThrowsAsync(new Exception("fetch failed"));
 
@@ -228,8 +227,6 @@ public class PluginStatusesStoreTests
     [TestMethod]
     public void Dispose_UnsubscribesFromConfigScopeChanged()
     {
-        SetCurrentConfigScope(ConfigScopeId);
-        SetUpServiceProvider();
         pluginSLCoreService.GetPluginStatusesAsync(Arg.Any<GetPluginStatusesParams>())
             .Returns(new GetPluginStatusesResponse(CreatePluginStatuses()));
 
@@ -239,18 +236,17 @@ public class PluginStatusesStoreTests
         pluginSLCoreService.DidNotReceive().GetPluginStatusesAsync(Arg.Any<GetPluginStatusesParams>());
     }
 
-    private PluginStatusesStore CreateTestSubject() =>
-        new(activeConfigScopeTracker, slCoreServiceProvider, threadHandling, logger);
-
-    private void SetCurrentConfigScope(string scopeId) =>
-        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(scopeId));
-
-    private void SetUpServiceProvider() =>
-        slCoreServiceProvider.TryGetTransientService(out Arg.Any<IPluginSLCoreService>()).Returns(info =>
+    private void SetCurrentConfigScope(string? scopeId)
+    {
+        if (scopeId == null)
         {
-            info[0] = pluginSLCoreService;
-            return true;
-        });
+            activeConfigScopeTracker.Current.ReturnsNull();
+        }
+        else
+        {
+            activeConfigScopeTracker.Current.Returns(new ConfigurationScope(scopeId));
+        }
+    }
 
     private void RaiseConfigScopeChanged() =>
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(new ConfigurationScopeChangedEventArgs(true));

@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Plugin;
@@ -38,7 +40,7 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private readonly object lockObject = new();
-    private List<PluginStatusDto> pluginStatuses = [];
+    private ImmutableList<PluginStatusDto> pluginStatuses = ImmutableList<PluginStatusDto>.Empty;
 
     [ImportingConstructor]
     public PluginStatusesStore(
@@ -50,7 +52,7 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.slCoreServiceProvider = slCoreServiceProvider;
         this.threadHandling = threadHandling;
-        this.logger = logger.ForVerboseContext(nameof(PluginStatusesStore));
+        this.logger = logger.ForContext(Strings.PluginStatuses_LogContext);
 
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += OnCurrentConfigurationScopeChanged;
     }
@@ -59,11 +61,11 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
     {
         lock (lockObject)
         {
-            return pluginStatuses.ToList();
+            return pluginStatuses;
         }
     }
 
-    public void Update(string configurationScopeId, IEnumerable<PluginStatusDto> newPluginStatuses)
+    public void Update(string? configurationScopeId, IEnumerable<PluginStatusDto> newPluginStatuses)
     {
         lock (lockObject)
         {
@@ -73,7 +75,7 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
                 return;
             }
 
-            pluginStatuses = newPluginStatuses.ToList();
+            pluginStatuses = newPluginStatuses.ToImmutableList();
         }
 
         RaisePluginStatusesChanged();
@@ -88,37 +90,26 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
 
     private async Task FetchPluginStatusesAsync()
     {
-        ConfigurationScope currentScope = activeConfigScopeTracker.Current;
-        if (currentScope is not { Id: { } scopeId })
-        {
-            return;
-        }
-
         if (!slCoreServiceProvider.TryGetTransientService(out IPluginSLCoreService pluginService))
         {
-            logger.LogVerbose("SLCore service is not available");
+            logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
             return;
         }
 
         try
         {
-            GetPluginStatusesResponse response = await pluginService.GetPluginStatusesAsync(new GetPluginStatusesParams(scopeId));
+            GetPluginStatusesResponse response = await pluginService.GetPluginStatusesAsync(new GetPluginStatusesParams(activeConfigScopeTracker.Current?.Id));
 
             lock (lockObject)
             {
-                if (activeConfigScopeTracker.Current?.Id != scopeId)
-                {
-                    return;
-                }
-
-                pluginStatuses = response.pluginStatuses ?? [];
+                pluginStatuses = response.pluginStatuses.ToImmutableList();
             }
 
             RaisePluginStatusesChanged();
         }
         catch (Exception ex)
         {
-            logger.LogVerbose("Failed to fetch plugin statuses: {0}", ex.Message);
+            logger.WriteLine(Strings.PluginStatuses_FailedToFetchPluginStatuses, ex.Message);
         }
     }
 
