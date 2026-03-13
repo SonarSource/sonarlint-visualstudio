@@ -375,6 +375,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to fetch plugin statuses: {0}.
+        /// </summary>
+        public static string PluginStatuses_FailedToFetchPluginStatuses {
+            get {
+                return ResourceManager.GetString("PluginStatuses_FailedToFetchPluginStatuses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plugin Statuses.
+        /// </summary>
+        public static string PluginStatuses_LogContext {
+            get {
+                return ResourceManager.GetString("PluginStatuses_LogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Default settings will be used.
         /// </summary>
         public static string Settings_UsingDefaultSettings {
@@ -384,7 +402,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube for Visual Studio.
+        ///   Looks up a localized string similar to SonarQube.
         /// </summary>
         public static string SonarLintOutputPaneTitle {
             get {
