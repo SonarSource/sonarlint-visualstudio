@@ -63,7 +63,7 @@ public class SLCoreInstanceHandlerTests
             threadHandling.ThrowIfOnUIThread();
             factory.CreateInstance();
             handle.InitializeAsync();
-            _ = handle.ShutdownTask;
+
         });
     }
 
@@ -112,7 +112,7 @@ public class SLCoreInstanceHandlerTests
             threadHandling.ThrowIfOnUIThread();
             factory.CreateInstance();
             handle.InitializeAsync();
-            _ = handle.ShutdownTask;
+
             handle.Dispose();
             activeConfigScopeTracker.Reset();
         });
@@ -232,7 +232,7 @@ public class SLCoreInstanceHandlerTests
     {
         handleLifetimeTaskSource = new TaskCompletionSource<bool>();
         instanceHandle = Substitute.For<ISLCoreInstanceHandle>();
-        instanceHandle.ShutdownTask.Returns(handleLifetimeTaskSource.Task);
+        instanceHandle.InitializeAsync().Returns(Task.FromResult((Task)handleLifetimeTaskSource.Task));
         instanceFactory.CreateInstance().Returns(instanceHandle);
     }
 

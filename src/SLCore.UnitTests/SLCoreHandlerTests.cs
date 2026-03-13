@@ -217,8 +217,7 @@ public class SLCoreHandlerTests
     {
         instanceHandler = Substitute.For<ISLCoreInstanceHandler>();
         notificationService = Substitute.For<ISloopRestartFailedNotificationService>();
-        threadHandling = Substitute.For<IThreadHandling>();
-        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>()());
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
         return maxStartsBeforeManual.HasValue
             ? new SLCoreHandler(instanceHandler, notificationService, maxStartsBeforeManual.Value, threadHandling)
