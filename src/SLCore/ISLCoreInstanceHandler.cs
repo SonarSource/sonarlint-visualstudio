@@ -29,40 +29,26 @@ namespace SonarLint.VisualStudio.SLCore;
 internal interface ISLCoreInstanceHandler : IDisposable
 {
     int CurrentStartNumber { get; }
-    Task StartInstanceAsync();
+    Task StartInstanceAsync(CancellationToken token);
 }
 
 [Export(typeof(ISLCoreInstanceHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
+[method: ImportingConstructor]
+internal sealed class SLCoreInstanceHandler(
+    ISLCoreInstanceFactory slCoreInstanceFactory,
+    IAliveConnectionTracker aliveConnectionTracker,
+    IActiveConfigScopeTracker activeConfigScopeTracker,
+    IMonitoringService monitoringService,
+    IThreadHandling threadHandling,
+    ILogger logger)
+    : ISLCoreInstanceHandler
 {
-    private readonly IAliveConnectionTracker aliveConnectionTracker;
-    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-    private readonly ISLCoreInstanceFactory slCoreInstanceFactory;
-    private readonly IMonitoringService monitoringService;
-    private readonly IThreadHandling threadHandling;
-    private readonly ILogger logger;
-    internal /* for testing */ ISLCoreInstanceHandle currentInstanceHandle = null;
+    internal /* for testing */ ISLCoreInstanceHandle? CurrentInstanceHandle;
     private bool disposed;
     public int CurrentStartNumber { get; private set; }
 
-    [ImportingConstructor]
-    public SLCoreInstanceHandler(ISLCoreInstanceFactory slCoreInstanceFactory,
-        IAliveConnectionTracker aliveConnectionTracker,
-        IActiveConfigScopeTracker activeConfigScopeTracker,
-        IMonitoringService monitoringService,
-        IThreadHandling threadHandling,
-        ILogger logger)
-    {
-        this.aliveConnectionTracker = aliveConnectionTracker;
-        this.activeConfigScopeTracker = activeConfigScopeTracker;
-        this.slCoreInstanceFactory = slCoreInstanceFactory;
-        this.monitoringService = monitoringService;
-        this.threadHandling = threadHandling;
-        this.logger = logger;
-    }
-
-    public async Task StartInstanceAsync()
+    public async Task StartInstanceAsync(CancellationToken token)
     {
         threadHandling.ThrowIfOnUIThread();
 
@@ -71,17 +57,17 @@ internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
             throw new ObjectDisposedException(nameof(SLCoreInstanceHandler));
         }
 
-        if (currentInstanceHandle is not null)
+        if (CurrentInstanceHandle is not null)
         {
             throw new InvalidOperationException(SLCoreStrings.SLCoreHandler_InstanceAlreadyRunning);
         }
 
-        if (!TryCreateInstance())
+        if (token.IsCancellationRequested || !TryCreateInstance())
         {
             return;
         }
 
-        await LaunchInstanceAsync();
+        await LaunchInstanceAsync(token);
     }
 
     private bool TryCreateInstance()
@@ -90,7 +76,7 @@ internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
         try
         {
             logger.WriteLine(SLCoreStrings.SLCoreHandler_CreatingInstance);
-            currentInstanceHandle = slCoreInstanceFactory.CreateInstance();
+            CurrentInstanceHandle = slCoreInstanceFactory.CreateInstance();
         }
         catch (Exception e)
         {
@@ -102,21 +88,14 @@ internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
         return true;
     }
 
-    private async Task LaunchInstanceAsync()
+    private async Task LaunchInstanceAsync(CancellationToken token)
     {
         try
         {
             logger.WriteLine(SLCoreStrings.SLCoreHandler_StartingInstance);
-            await currentInstanceHandle.InitializeAsync();
-            try
-            {
-                monitoringService.Init();
-            }
-            catch (Exception e)
-            {
-                //Swallow errors for not supported VS versions
-            }
-            await currentInstanceHandle.ShutdownTask;
+            var shutdownTask = await CurrentInstanceHandle!.InitializeAsync();
+            InitializeMonitoring();
+            await await Task.WhenAny(shutdownTask, Task.Delay(Timeout.Infinite, token));
         }
         catch (Exception e)
         {
@@ -130,14 +109,26 @@ internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
         }
     }
 
+    private void InitializeMonitoring()
+    {
+        try
+        {
+            monitoringService.Init();
+        }
+        catch (Exception)
+        {
+            //Swallow errors for not supported VS versions
+        }
+    }
+
     private void HandleInstanceDeath()
     {
         if (disposed)
         {
             return;
         }
-        currentInstanceHandle?.Dispose();
-        currentInstanceHandle = null;
+        CurrentInstanceHandle?.Dispose();
+        CurrentInstanceHandle = null;
         activeConfigScopeTracker?.Reset();
     }
 
@@ -149,7 +140,7 @@ internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
         }
 
         disposed = true;
-        currentInstanceHandle?.Dispose();
+        CurrentInstanceHandle?.Dispose();
         aliveConnectionTracker?.Dispose();
         activeConfigScopeTracker?.Dispose();
     }
