@@ -41,7 +41,11 @@ internal class SupportedLanguagesDialogViewModel : ViewModelBase, IDisposable
         pluginStatusesStore.PluginStatusesChanged += OnPluginStatusesChanged;
     }
 
-    public void Dispose() => pluginStatusesStore.PluginStatusesChanged -= OnPluginStatusesChanged;
+    public void Dispose()
+    {
+        pluginStatusesStore.PluginStatusesChanged -= OnPluginStatusesChanged;
+        GC.SuppressFinalize(this);
+    }
 
     private void OnPluginStatusesChanged(object sender, EventArgs e)
     {
