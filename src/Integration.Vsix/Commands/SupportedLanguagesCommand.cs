@@ -21,6 +21,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands;
@@ -30,9 +32,18 @@ internal class SupportedLanguagesCommand : VsCommandBase
 {
     internal const int Id = 0x1029;
 
+    private readonly IPluginStatusesStore pluginStatusesStore;
+    private readonly IThreadHandling threadHandling;
+
+    public SupportedLanguagesCommand(IPluginStatusesStore pluginStatusesStore, IThreadHandling threadHandling)
+    {
+        this.pluginStatusesStore = pluginStatusesStore;
+        this.threadHandling = threadHandling;
+    }
+
     protected override void InvokeInternal()
     {
-        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow();
+        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow(pluginStatusesStore, threadHandling);
         supportedLanguagesWindow.ShowDialog(Application.Current.MainWindow);
     }
 }
