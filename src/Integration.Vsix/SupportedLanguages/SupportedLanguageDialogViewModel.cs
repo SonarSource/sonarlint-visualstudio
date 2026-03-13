@@ -1,12 +1,11 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 
-// TODO https://sonarsource.atlassian.net/browse/SLVS-2869 This class is currently using mock data. This exclusion will need to be removed when the real data is loaded in.
-[ExcludeFromCodeCoverage]
 internal class SupportedLanguageDialogViewModel : ViewModelBase
 {
     private static readonly HashSet<PluginStateDto> DisplayedStates =
@@ -16,6 +15,9 @@ internal class SupportedLanguageDialogViewModel : ViewModelBase
         PluginStateDto.DOWNLOADING,
         PluginStateDto.FAILED
     ];
+
+    private readonly IPluginStatusesStore pluginStatusesStore;
+    private readonly IThreadHandling threadHandling;
 
     public ObservableCollection<PluginStatusDto> AllPlugins { get; }
 
@@ -27,16 +29,35 @@ internal class SupportedLanguageDialogViewModel : ViewModelBase
             .Select(p => p.pluginName)
             .Distinct());
 
-    public SupportedLanguageDialogViewModel()
+    public SupportedLanguageDialogViewModel(IPluginStatusesStore pluginStatusesStore, IThreadHandling threadHandling)
     {
-        AllPlugins = new ObservableCollection<PluginStatusDto>()
-        {
-            new PluginStatusDto("Python", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "4.23.0", "1.2.3"),
-            new PluginStatusDto("CSS", PluginStateDto.FAILED, ArtifactSourceDto.SONARQUBE_CLOUD, null, null),
-            new PluginStatusDto("XML", PluginStateDto.PREMIUM, ArtifactSourceDto.SONARQUBE_SERVER, "1.23.0", null),
-        };
+        this.pluginStatusesStore = pluginStatusesStore;
+        this.threadHandling = threadHandling;
 
+        AllPlugins = new ObservableCollection<PluginStatusDto>(pluginStatusesStore.GetAll());
         DisplayedPlugins = new ObservableCollection<PluginStatusDto>(
             AllPlugins.Where(p => DisplayedStates.Contains(p.state)));
+
+        pluginStatusesStore.PluginStatusesChanged += OnPluginStatusesChanged;
+    }
+
+    private void OnPluginStatusesChanged(object sender, EventArgs e)
+    {
+        threadHandling.RunOnUIThread(() =>
+        {
+            AllPlugins.Clear();
+            foreach (var plugin in pluginStatusesStore.GetAll())
+            {
+                AllPlugins.Add(plugin);
+            }
+
+            DisplayedPlugins.Clear();
+            foreach (var plugin in AllPlugins.Where(p => DisplayedStates.Contains(p.state)))
+            {
+                DisplayedPlugins.Add(plugin);
+            }
+
+            RaisePropertyChanged(nameof(PremiumLanguagesTooltip));
+        });
     }
 }

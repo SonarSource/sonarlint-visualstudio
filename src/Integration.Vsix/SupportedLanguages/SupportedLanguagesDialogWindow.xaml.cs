@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
@@ -29,9 +30,9 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
 {
     public SupportedLanguageDialogViewModel ViewModel { get; }
 
-    public SupportedLanguagesDialogWindow()
+    public SupportedLanguagesDialogWindow(IPluginStatusesStore pluginStatusesStore, Core.IThreadHandling threadHandling)
     {
-        ViewModel = new SupportedLanguageDialogViewModel();
+        ViewModel = new SupportedLanguageDialogViewModel(pluginStatusesStore, threadHandling);
         InitializeComponent();
     }
 
