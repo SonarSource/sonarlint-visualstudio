@@ -90,13 +90,12 @@ internal sealed class SLCoreInstanceHandler(
 
     private async Task LaunchInstanceAsync(CancellationToken token)
     {
-        var instance = CurrentInstanceHandle; // todo
         try
         {
             logger.WriteLine(SLCoreStrings.SLCoreHandler_StartingInstance);
-            await instance!.InitializeAsync();
+            var shutdownTask = await CurrentInstanceHandle!.InitializeAsync();
             InitializeMonitoring();
-            await await Task.WhenAny(CurrentInstanceHandle.ShutdownTask, Task.Delay(Timeout.Infinite, token));
+            await await Task.WhenAny(shutdownTask, Task.Delay(Timeout.Infinite, token));
         }
         catch (Exception e)
         {
@@ -106,7 +105,7 @@ internal sealed class SLCoreInstanceHandler(
         finally
         {
             logger.WriteLine(SLCoreStrings.SLCoreHandler_InstanceDied);
-            StopInstance();
+            HandleInstanceDeath();
         }
     }
 
@@ -122,7 +121,7 @@ internal sealed class SLCoreInstanceHandler(
         }
     }
 
-    private void StopInstance()
+    private void HandleInstanceDeath()
     {
         if (disposed)
         {

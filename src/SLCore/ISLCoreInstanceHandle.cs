@@ -36,72 +36,35 @@ namespace SonarLint.VisualStudio.SLCore;
 
 internal interface ISLCoreInstanceHandle : IDisposable
 {
-    Task InitializeAsync();
-
-    Task ShutdownTask { get; }
+    Task<Task> InitializeAsync();
 }
 
-internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
+internal sealed class SLCoreInstanceHandle(
+    ISLCoreRpcFactory slCoreRpcFactory,
+    ISLCoreRpcManager slCoreRpcManager,
+    ISLCoreConstantsProvider constantsProvider,
+    ISLCoreLanguageProvider slCoreLanguageProvider,
+    ISLCoreFoldersProvider slCoreFoldersProvider,
+    IServerConnectionsProvider serverConnectionConfigurationProvider,
+    ISLCoreEmbeddedPluginProvider slCoreEmbeddedPluginJarProvider,
+    INodeLocationProvider nodeLocator,
+    IEsLintBridgeLocator esLintBridgeLocator,
+    IActiveSolutionBoundTracker activeSolutionBoundTracker,
+    IConfigScopeUpdater configScopeUpdater,
+    ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
+    ISlCoreTelemetryMigrationProvider telemetryMigrationProvider,
+    IFocusOnNewCodeService focusOnNewCodeService,
+    IThreadHandling threadHandling) : ISLCoreInstanceHandle
 {
-    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-    private readonly ISLCoreRpcFactory slCoreRpcFactory;
-    private readonly ISLCoreRpcManager slCoreRpcManager;
-    private readonly IServerConnectionsProvider serverConnectionConfigurationProvider;
-    private readonly IConfigScopeUpdater configScopeUpdater;
-    private readonly ISLCoreConstantsProvider constantsProvider;
-    private readonly ISLCoreLanguageProvider slCoreLanguageProvider;
-    private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
-    private readonly ISLCoreEmbeddedPluginProvider slCoreEmbeddedPluginJarProvider;
-    private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
-    private readonly ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
-    private readonly IFocusOnNewCodeService focusOnNewCodeService;
-    private readonly IEsLintBridgeLocator esLintBridgeLocator;
-    private readonly INodeLocationProvider nodeLocator;
-    private readonly IThreadHandling threadHandling;
-    public Task ShutdownTask => SLCoreRpc.ShutdownTask;// todo nre??
-    private ISLCoreRpc SLCoreRpc { get; set; }
+    private ISLCoreRpc? slCoreRpc;
 
-    internal SLCoreInstanceHandle(
-        ISLCoreRpcFactory slCoreRpcFactory,
-        ISLCoreRpcManager slCoreRpcManager,
-        ISLCoreConstantsProvider constantsProvider,
-        ISLCoreLanguageProvider slCoreLanguageProvider,
-        ISLCoreFoldersProvider slCoreFoldersProvider,
-        IServerConnectionsProvider serverConnectionConfigurationProvider,
-        ISLCoreEmbeddedPluginProvider slCoreEmbeddedPluginJarProvider,
-        INodeLocationProvider nodeLocator,
-        IEsLintBridgeLocator esLintBridgeLocator,
-        IActiveSolutionBoundTracker activeSolutionBoundTracker,
-        IConfigScopeUpdater configScopeUpdater,
-        ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
-        ISlCoreTelemetryMigrationProvider telemetryMigrationProvider,
-        IFocusOnNewCodeService focusOnNewCodeService,
-        IThreadHandling threadHandling)
-    {
-        this.slCoreRpcFactory = slCoreRpcFactory;
-        this.slCoreRpcManager = slCoreRpcManager;
-        this.constantsProvider = constantsProvider;
-        this.slCoreLanguageProvider = slCoreLanguageProvider;
-        this.slCoreFoldersProvider = slCoreFoldersProvider;
-        this.serverConnectionConfigurationProvider = serverConnectionConfigurationProvider;
-        this.slCoreEmbeddedPluginJarProvider = slCoreEmbeddedPluginJarProvider;
-        this.nodeLocator = nodeLocator;
-        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-        this.configScopeUpdater = configScopeUpdater;
-        this.threadHandling = threadHandling;
-        this.slCoreRuleSettingsProvider = slCoreRuleSettingsProvider;
-        this.telemetryMigrationProvider = telemetryMigrationProvider;
-        this.focusOnNewCodeService = focusOnNewCodeService;
-        this.esLintBridgeLocator = esLintBridgeLocator;
-    }
-
-    public async Task InitializeAsync()
+    public async Task<Task> InitializeAsync()
     {
         threadHandling.ThrowIfOnUIThread();
 
         await focusOnNewCodeService.InitializationProcessor.InitializeAsync();
 
-        SLCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
+        slCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
 
         var serverConnectionConfigurations = serverConnectionConfigurationProvider.GetServerConnections();
         var (storageRoot, workDir, sonarlintUserHome) = slCoreFoldersProvider.GetWorkFolders();
@@ -130,6 +93,8 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         slCoreRpcManager.Initialize(initializationParams);
 
         await UpdateConfigurationScopeForCurrentSolutionAsync();
+
+        return slCoreRpc?.ShutdownTask ?? Task.CompletedTask;
     }
 
     private async Task UpdateConfigurationScopeForCurrentSolutionAsync()
@@ -142,8 +107,8 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     public void Dispose()
     {
         Shutdown();
-        SLCoreRpc?.Dispose();
-        SLCoreRpc = null;
+        slCoreRpc?.Dispose();
+        slCoreRpc = null;
     }
 
     private void Shutdown()
