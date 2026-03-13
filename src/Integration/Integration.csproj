@@ -67,6 +67,7 @@
     <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
+    <ProjectReference Include="..\SLCore\SLCore.csproj" />
   </ItemGroup>
 
 

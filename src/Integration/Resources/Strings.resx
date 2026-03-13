@@ -240,4 +240,10 @@
   <data name="PluginStatuses_FailedToFetchPluginStatuses" xml:space="preserve">
     <value>Failed to fetch plugin statuses: {0}</value>
   </data>
+  <data name="PluginStatusesFailedNotificationText" xml:space="preserve">
+    <value>Some analyzers are unavailable: </value>
+  </data>
+  <data name="PluginStatusesFailedNotificationSeeDetailsButton" xml:space="preserve">
+    <value>See Details</value>
+  </data>
 </root>
