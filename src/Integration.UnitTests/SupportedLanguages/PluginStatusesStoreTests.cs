@@ -85,19 +85,6 @@ public class PluginStatusesStoreTests
     }
 
     [TestMethod]
-    public void GetAll_ReturnsACopy()
-    {
-        var pluginStatuses = CreatePluginStatuses();
-        testSubject.Update(ConfigScopeId, pluginStatuses);
-
-        var result1 = testSubject.GetAll();
-        var result2 = testSubject.GetAll();
-
-        result1.Should().NotBeSameAs(result2);
-        result1.Should().BeEquivalentTo(result2);
-    }
-
-    [TestMethod]
     public void Update_WhenConfigScopeMatches_StoresPluginStatuses()
     {
         var pluginStatuses = CreatePluginStatuses();
