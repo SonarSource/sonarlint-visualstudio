@@ -24,7 +24,6 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -52,11 +51,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ExcludeFromCodeCoverage]
     public class SonarLintIntegrationPackage : AsyncPackage
     {
-        // Note: we don't currently have any tests for this class so we don't need to inject
-        // thread handling wrapper. However, we'll still use it so our threading code is
-        // consistent.
-        private readonly IThreadHandling threadHandling = ThreadHandling.Instance;
-
         private PackageCommandManager commandManager;
 
         private ILogger logger;
