@@ -37,6 +37,8 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
 {
     public bool IsSolutionWorkSpace() => !solutionInfoProvider.IsFolderWorkspace();
 
+    public string GetSolutionFilePath() => solutionInfoProvider.GetFullSolutionFilePath();
+
     public IReadOnlyCollection<string> ListFiles() =>
         IsSolutionWorkSpace()
             ? vsUiServiceOperation.Execute<SVsSolution, IVsSolution, IReadOnlyCollection<string>>(GetAllFilesInSolution)
