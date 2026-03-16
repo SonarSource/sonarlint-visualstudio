@@ -21,9 +21,9 @@
 using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -36,18 +36,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideBindingPath]
     // Specify when to load the extension (GUID can be found in Microsoft.VisualStudio.VSConstants.UICONTEXT)
-    [ProvideAutoLoad(CommonGuids.PackageActivation, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     // Register the information needed to show the package in the Help/About dialog of VS.
     // NB: The version is automatically updated by the ChangeVersion.proj
     [InstalledProductRegistration("#110", "#112", "9.9.0.0", IconResourceID = 400)]
     [ProvideOptionPage(typeof(GeneralOptionsDialogPage), "SonarQube", GeneralOptionsDialogPage.PageName, 901, 902, false, 903)]
     [ProvideOptionPage(typeof(FileExclusionsDialogPage), "SonarQube", FileExclusionsDialogPage.PageName, 901, 905, true)]
     [ProvideOptionPage(typeof(OtherOptionsDialogPage), "SonarQube", OtherOptionsDialogPage.PageName, 901, 904, true)]
-    [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
-        "(HasCSProj | HasVBProj)",
-        new string[] { "HasCSProj", "HasVBProj" },
-        new string[] { "SolutionHasProjectCapability:CSharp", "SolutionHasProjectCapability:VB" }
-    )]
     [SuppressMessage("Reliability",
         "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",
         Justification = "By-Design. The base class exposes a Dispose override in which the disposable instances will be disposed",
@@ -56,11 +51,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ExcludeFromCodeCoverage]
     public class SonarLintIntegrationPackage : AsyncPackage
     {
-        // Note: we don't currently have any tests for this class so we don't need to inject
-        // thread handling wrapper. However, we'll still use it so our threading code is
-        // consistent.
-        private readonly IThreadHandling threadHandling = ThreadHandling.Instance;
-
         private PackageCommandManager commandManager;
 
         private ILogger logger;
@@ -78,15 +68,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
                 Debug.Assert(logger != null, "MEF composition error - failed to retrieve a logger");
+
                 logger.WriteLine(Strings.SL_Initializing);
 
                 IServiceProvider serviceProvider = this;
-
                 commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
                 await commandManager.InitializeAsync(this, ShowOptionPage);
-
-                // make sure roslynSettingsFileSynchronizer is initialized
-                Debug.Assert(threadHandling.CheckAccess(), "Still expecting to be on the UI thread");
 
                 logger.WriteLine(Strings.SL_InitializationComplete);
             }
