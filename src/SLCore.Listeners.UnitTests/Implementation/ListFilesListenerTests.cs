@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         private ICanonicalFilePathsCache canonicalFilePathsCache;
         private TestLogger logger;
         private const string ConfigScopeId = "Some ID";
+        private const string DefaultSolutionFilePath = "C:\\Code\\Project\\MySolution.sln";
         private static readonly string[] DefaultFiles = ["C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js"];
 
         [TestInitialize]
@@ -165,7 +166,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         [TestMethod]
         public async Task ListFilesAsync_SolutionWorkSpace_NoFilesNoRoot_ReturnsEmptyAndLogs()
         {
-            SetUpSolutionFiles(filePaths: []);
+            SetUpSolutionFiles(filePaths: [], solutionFilePath: null);
 
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
@@ -185,7 +186,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var filePath0Dto = CreateDefaultClientFileDto();
             SetUpDtoFactory(filePaths[0], filePath0Dto, "C:\\");
             SetUpDtoFactory(filePaths[1], null, "C:\\");
-            SetUpSolutionWorkspaceService(filePaths);
+            SetUpSolutionWorkspaceService(filePaths, DefaultSolutionFilePath);
 
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
@@ -197,14 +198,15 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         }
 
         [TestMethod]
-        [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\", null)] // supports whitespace
-        [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\", "some path")]
-        [DataRow("C:\\привет\\project\\file1.js", "C:\\привет\\project\\file2.js", "C:\\", "C:\\привет\\")] // supports localized
-        [DataRow("\\\\servername\\work\\project\\file1.js", "\\\\servername\\work\\project\\file2.js", "\\\\servername\\work\\", "\\\\servername\\work\\repo\\")] // supports UNC
-        public async Task ListFilesAsync_SolutionWorkSpace_UpdatesRootPath(string filePath1, string filepath2, string expectedRootPath, string expectedBaseDir)
+        [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\Code\\MySolution.sln", "C:\\", null)]
+        [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\Code\\MySolution.sln", "C:\\", "some path")]
+        [DataRow("C:\\привет\\project\\file1.js", "C:\\привет\\project\\file2.js", "C:\\привет\\MySolution.sln", "C:\\", "C:\\привет\\")]
+        [DataRow("D:\\привет\\project\\file1.js", "D:\\привет\\project\\file2.js", "D:\\привет\\MySolution.sln", "D:\\", "D:\\привет\\")]
+        [DataRow("\\\\servername\\work\\project\\file1.js", "\\\\servername\\work\\project\\file2.js", "\\\\servername\\work\\MySolution.sln", "\\\\servername\\work\\", "\\\\servername\\work\\repo\\")]
+        public async Task ListFilesAsync_SolutionWorkSpace_UpdatesRootPath(string filePath1, string filepath2, string solutionFilePath, string expectedRootPath, string expectedBaseDir)
         {
             gitWorkspaceService.GetRepoRoot().Returns(expectedBaseDir);
-            var clientFileDtos = SetUpSolutionFiles(expectedRootPath, [filePath1, filepath2]);
+            var clientFileDtos = SetUpSolutionFiles(expectedRootPath, [filePath1, filepath2], solutionFilePath);
 
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
@@ -266,12 +268,12 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             return sharedBindingDto;
         }
 
-        private List<ClientFileDto> SetUpSolutionFiles(string rootPath = "C:\\", string[] filePaths = null)
+        private List<ClientFileDto> SetUpSolutionFiles(string rootPath = "C:\\", string[] filePaths = null, string solutionFilePath = DefaultSolutionFilePath)
         {
             SetUpFolderWorkSpaceService(null);
             filePaths ??= DefaultFiles;
             var clientFileDtos = SetUpDefaultDtosForFiles(filePaths, rootPath);
-            SetUpSolutionWorkspaceService(filePaths);
+            SetUpSolutionWorkspaceService(filePaths, solutionFilePath);
             return clientFileDtos;
         }
 
@@ -303,9 +305,10 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             folderWorkspaceService.ListFiles().Returns(files);
         }
 
-        private void SetUpSolutionWorkspaceService(params string[] files)
+        private void SetUpSolutionWorkspaceService(string[] files, string solutionFilePath = DefaultSolutionFilePath)
         {
             solutionWorkspaceService.ListFiles().Returns(files);
+            solutionWorkspaceService.GetSolutionFilePath().Returns(solutionFilePath);
         }
 
         private void SetUpActiveConfigScopeTracker(bool shouldFailSetRoot = false)

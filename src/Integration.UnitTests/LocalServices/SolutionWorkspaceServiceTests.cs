@@ -61,5 +61,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             result.Should().Be(!isFolderSpace);
         }
+
+        [TestMethod]
+        public void GetSolutionFilePath_ReturnsFullSolutionFilePath()
+        {
+            var solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
+            solutionInfoProvider.GetFullSolutionFilePath().Returns("C:\\Code\\MySolution.sln");
+
+            var testSubject = new SolutionWorkspaceService(solutionInfoProvider, new TestLogger(), Substitute.For<IVsUIServiceOperation>());
+
+            var result = testSubject.GetSolutionFilePath();
+
+            result.Should().Be("C:\\Code\\MySolution.sln");
+        }
     }
 }

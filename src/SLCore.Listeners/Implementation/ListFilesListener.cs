@@ -88,7 +88,7 @@ public class ListFilesListener(
         }
 
         var solutionFiles = solutionWorkspaceService.ListFiles();
-        return (solutionFiles, GetSolutionModeRoot(solutionFiles.FirstOrDefault()), gitWorkspaceService.GetRepoRoot());
+        return (solutionFiles, GetSolutionModeRoot(solutionWorkspaceService.GetSolutionFilePath()), gitWorkspaceService.GetRepoRoot());
     }
 
     private List<ClientFileDto> GetClientFilesDtos(
