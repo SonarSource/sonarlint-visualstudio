@@ -22,7 +22,7 @@ jobs:
   build:
     runs-on: warp-custom-sonarlint-visualstudio
     name: Build
-    environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release' || '' }}
+    environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release-ready-build' || '' }}
     steps:
       - uses: actions/checkout@v5
         with:
