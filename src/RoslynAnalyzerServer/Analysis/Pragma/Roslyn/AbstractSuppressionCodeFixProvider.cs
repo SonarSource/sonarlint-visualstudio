@@ -1,12 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+// See the THIRD-PARTY-NOTICES file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma.Roslyn;
 
-internal partial class AbstractSuppressionCodeFixProvider
+internal static partial class AbstractSuppressionCodeFixProvider
 {
     internal sealed class SuppressionTargetInfo
     {
