@@ -26,11 +26,11 @@ using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.SupportedLanguages;
 
-public interface IFailedPluginNotification;
+public interface IFailedPluginNotification : IDisposable;
 
 [Export(typeof(IFailedPluginNotification))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class FailedPluginNotification : IFailedPluginNotification, IDisposable
+internal sealed class FailedPluginNotification : IFailedPluginNotification
 {
     private const string NotificationId = "PluginStatuses.FailedNotification";
 
