@@ -62,6 +62,7 @@ internal sealed class FailedPluginNotification : IFailedPluginNotification, IDis
 
         if (failedPlugins.Count == 0)
         {
+            notificationService.CloseNotification();
             return;
         }
 
@@ -80,7 +81,8 @@ internal sealed class FailedPluginNotification : IFailedPluginNotification, IDis
         var notification = new Notification(
             id: NotificationId,
             message: message,
-            actions: [restartAction, seeDetailsAction]);
+            actions: [restartAction, seeDetailsAction],
+            showOncePerSession: false);
 
         notificationService.ShowNotification(notification);
     }
