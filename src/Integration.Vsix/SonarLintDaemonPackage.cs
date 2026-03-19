@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 buildEventNotifier = await this.GetMefServiceAsync<IBuildEventNotifier>();
                 await buildEventNotifier.InitializationProcessor.InitializeAsync();
 
-                failedPluginNotification = this.GetMefService<IFailedPluginNotification>();
+                failedPluginNotification = await this.GetMefServiceAsync<IFailedPluginNotification>();
 
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 slCoreHandler.EnableSloop();
