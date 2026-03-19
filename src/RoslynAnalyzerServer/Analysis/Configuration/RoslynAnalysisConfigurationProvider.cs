@@ -20,8 +20,10 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.CodeFixes;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Synchronization;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -94,15 +96,34 @@ internal class RoslynAnalysisConfigurationProvider(
                 continue;
             }
 
+            var enrichedCodeFixProviders = EnrichWithPragmaGenerateProvider(analysisProfile);
+
             configurations.Add(
                 language,
                 new RoslynAnalysisConfiguration(
                     sonarLintXmlProvider.Create(analysisProfile),
                     analysisProfile.Rules.ToImmutableDictionary(x => x.RuleId.RuleKey, y => y.ReportDiagnostic),
                     analysisProfile.Analyzers,
-                    analysisProfile.CodeFixProvidersByRuleKey));
+                    enrichedCodeFixProviders));
         }
         return configurations;
+    }
+
+    private static ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> EnrichWithPragmaGenerateProvider(RoslynAnalysisProfile analysisProfile)
+    {
+        var pragmaGenerateProvider = new PragmaWarningGenerateCodeFixProvider();
+        var builder = analysisProfile.CodeFixProvidersByRuleKey.ToBuilder();
+
+        foreach (var ruleKey in analysisProfile.Rules.Where(r => r.IsActive).Select(r => r.RuleId.RuleKey))
+        {
+            var existing = builder.TryGetValue(ruleKey, out var providers)
+                ? providers.ToList()
+                : new List<CodeFixProvider>();
+            existing.Add(pragmaGenerateProvider);
+            builder[ruleKey] = existing;
+        }
+
+        return builder.ToImmutable();
     }
 
     private record struct AnalysisConfigurationCache(AnalysisConfigurationParametersCache Parameters, IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> Configurations);
