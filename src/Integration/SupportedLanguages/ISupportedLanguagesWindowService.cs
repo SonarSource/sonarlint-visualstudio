@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.SupportedLanguages;
+using System.ComponentModel.Composition;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands;
+namespace SonarLint.VisualStudio.Integration.SupportedLanguages;
 
-internal class SupportedLanguagesCommand(ISupportedLanguagesWindowService supportedLanguagesWindowService) : VsCommandBase
+public interface ISupportedLanguagesWindowService
 {
-    internal const int Id = 0x1029;
-
-    protected override void InvokeInternal() => supportedLanguagesWindowService.Show();
+    void Show();
 }
+
+

@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
@@ -49,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var showInBrowserService = await asyncServiceProvider.GetMefServiceAsync<IShowInBrowserService>();
             var outputWindowService = await asyncServiceProvider.GetMefServiceAsync<IOutputWindowService>();
             var projectPropertyManager = await asyncServiceProvider.GetMefServiceAsync<IProjectPropertyManager>();
+            var supportedLanguagesWindowService = await asyncServiceProvider.GetMefServiceAsync<ISupportedLanguagesWindowService>();
 
             RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager));
             RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, null));
@@ -61,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Commands
             RegisterCommand(CommonGuids.SonarLintMenuCommandSet, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
             RegisterCommand(CommonGuids.SonarLintMenuCommandSet, SolutionSettingsCommand.Id, new SolutionSettingsCommand(asyncServiceProvider as IServiceProvider));
-            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, SupportedLanguagesCommand.Id, new SupportedLanguagesCommand());
+            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, SupportedLanguagesCommand.Id, new SupportedLanguagesCommand(supportedLanguagesWindowService));
 
             // Help menu buttons
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowLogsCommand.Id, new ShowLogsCommand(outputWindowService));

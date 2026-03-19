@@ -19,12 +19,29 @@
  */
 
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
+using SonarLint.VisualStudio.Integration.Vsix.Commands;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands;
+namespace SonarLint.VisualStudio.Integration.UnitTests.Commands;
 
-internal class SupportedLanguagesCommand(ISupportedLanguagesWindowService supportedLanguagesWindowService) : VsCommandBase
+[TestClass]
+public class SupportedLanguagesCommandTests
 {
-    internal const int Id = 0x1029;
+    private ISupportedLanguagesWindowService supportedLanguagesWindowService = null!;
+    private SupportedLanguagesCommand testSubject = null!;
 
-    protected override void InvokeInternal() => supportedLanguagesWindowService.Show();
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        supportedLanguagesWindowService = Substitute.For<ISupportedLanguagesWindowService>();
+        testSubject = new SupportedLanguagesCommand(supportedLanguagesWindowService);
+    }
+
+    [TestMethod]
+    public void Invoke_CallsShow()
+    {
+        testSubject.Invoke(CommandHelper.CreateRandomOleMenuCommand(), null);
+
+        supportedLanguagesWindowService.Received(1).Show();
+    }
 }
