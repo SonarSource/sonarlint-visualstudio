@@ -240,6 +240,15 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Suppress {0} with #pragma.
+        /// </summary>
+        internal static string PragmaWarningGenerateCodeFixTitle {
+            get {
+                return ResourceManager.GetString("PragmaWarningGenerateCodeFixTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to load class {0} from {1}: {2}.
         /// </summary>
         internal static string RoslynAnalysisAnalyzerClassLoaderFailedToLoad {

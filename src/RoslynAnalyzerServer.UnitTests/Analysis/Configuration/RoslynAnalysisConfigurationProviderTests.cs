@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -127,7 +128,16 @@ public class RoslynAnalysisConfigurationProviderTests
         {
             result.ContainsKey(language).Should().BeTrue();
             result[language].Analyzers.Should().BeEquivalentTo(roslynAnalysisProfiles[language].Analyzers);
-            result[language].CodeFixProvidersByRuleKey.Should().BeSameAs(roslynAnalysisProfiles[language].CodeFixProvidersByRuleKey);
+            foreach (var kvp in roslynAnalysisProfiles[language].CodeFixProvidersByRuleKey)
+            {
+                result[language].CodeFixProvidersByRuleKey.Should().ContainKey(kvp.Key);
+                result[language].CodeFixProvidersByRuleKey[kvp.Key].Should().Contain(kvp.Value);
+            }
+            foreach (var activeRuleKey in roslynAnalysisProfiles[language].Rules.Where(r => r.IsActive).Select(r => r.RuleId.RuleKey))
+            {
+                result[language].CodeFixProvidersByRuleKey.Should().ContainKey(activeRuleKey);
+                result[language].CodeFixProvidersByRuleKey[activeRuleKey].Should().Contain(p => p is PragmaWarningGenerateCodeFixProvider);
+            }
             result[language].DiagnosticOptions.Should().BeEquivalentTo(roslynAnalysisProfiles[language].Rules.ToDictionary(x => x.RuleId.RuleKey, x => x.ReportDiagnostic));
             result[language].SonarLintXml.Should().BeEquivalentTo(xmlConfigurations[language]);
         }
