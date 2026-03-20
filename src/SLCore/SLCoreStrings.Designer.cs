@@ -564,6 +564,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube for Visual Studio background service failed to start with the provided custom JRE. You can change the Java Home in SonarQube Options (Java 21+)..
+        /// </summary>
+        public static string SloopRestartFailedNotificationService_GoldBarMessageCustomJre {
+            get {
+                return ResourceManager.GetString("SloopRestartFailedNotificationService_GoldBarMessageCustomJre", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Restart SonarQube for Visual Studio.
         /// </summary>
         public static string SloopRestartFailedNotificationService_Restart {
