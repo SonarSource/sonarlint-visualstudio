@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
@@ -29,7 +28,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 
 [Export(typeof(ISupportedLanguagesWindowService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[ExcludeFromCodeCoverage]
 [method: ImportingConstructor]
 public class SupportedLanguagesWindowService(
     IPluginStatusesStore pluginStatusesStore,
