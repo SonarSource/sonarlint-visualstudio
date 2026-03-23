@@ -23,7 +23,6 @@ using System.Windows;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
-using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 
@@ -44,13 +43,5 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
     private void SetUpConnection_Click(object sender, RoutedEventArgs e)
     {
         connectedModeUIManager.ShowManageBindingDialogAsync().Forget();
-    }
-
-    private void RetryButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: PluginStatusDto plugin })
-        {
-            MessageBox.Show($"Retry clicked for: {plugin.pluginName} (state: {plugin.state})", "Debug");
-        }
     }
 }

@@ -144,7 +144,6 @@
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse x:Name="StatusDot" Width="8" Height="8" Margin="0,0,6,0" VerticalAlignment="Center" Visibility="Collapsed" />
                     <TextBlock x:Name="StatusText" VerticalAlignment="Center" />
-                    <Button x:Name="RetryButton" Content="Retry" Visibility="Collapsed" Click="RetryButton_Click" Style="{StaticResource ActionButtonStyle}" />
                 </StackPanel>
                 <DataTemplate.Triggers>
                     <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.ACTIVE}">
@@ -162,7 +161,6 @@
                         <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
                         <Setter TargetName="StatusText" Property="Text" Value="Failed" />
                         <Setter TargetName="StatusText" Property="Foreground" Value="Red" />
-                        <!--<Setter TargetName="RetryButton" Property="Visibility" Value="Visible" />-->
                     </DataTrigger>
                     <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.SYNCED}">
                         <Setter TargetName="StatusDot" Property="Fill" Value="Green" />
@@ -220,7 +218,7 @@
                             </TextBlock>
                         </InlineUIContainer><Run Text=" and advanced security rules for your existing code." />
                     </TextBlock>
-                    <Button Content="Set up connection"
+                    <Button Content="Set up Connection"
                             Click="SetUpConnection_Click"
                             Style="{StaticResource ActionButtonStyle}"
                             Margin="0,8,0,0"
