@@ -285,25 +285,45 @@
                 BorderThickness="1"
                 CornerRadius="4"
                 ClipToBounds="True">
-            <DataGrid ItemsSource="{Binding DisplayedPlugins}"
-                      Style="{StaticResource PluginDataGridStyle}"
-                      RowStyle="{StaticResource PluginDataGridRowStyle}"
-                      CellStyle="{StaticResource PluginDataGridCellStyle}"
-                      ColumnHeaderStyle="{StaticResource PluginDataGridColumnHeaderStyle}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      CanUserReorderColumns="False"
-                      CanUserResizeColumns="False"
-                      CanUserResizeRows="False"
-                      CanUserSortColumns="False"
-                      SelectionMode="Single">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="LANGUAGE" Binding="{Binding pluginName}" Width="*" />
-                    <DataGridTemplateColumn Header="STATUS" CellTemplate="{StaticResource StatusCellTemplate}" Width="*" />
-                    <!--<DataGridTemplateColumn Header="VERSION" CellTemplate="{StaticResource VersionCellTemplate}" Width="*" />-->
-                    <DataGridTemplateColumn Header="SOURCE" CellTemplate="{StaticResource SourceCellTemplate}" Width="*" />
-                </DataGrid.Columns>
-            </DataGrid>
+            <Grid>
+                <DataGrid ItemsSource="{Binding DisplayedPlugins}"
+                          Style="{StaticResource PluginDataGridStyle}"
+                          RowStyle="{StaticResource PluginDataGridRowStyle}"
+                          CellStyle="{StaticResource PluginDataGridCellStyle}"
+                          ColumnHeaderStyle="{StaticResource PluginDataGridColumnHeaderStyle}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserReorderColumns="False"
+                          CanUserResizeColumns="False"
+                          CanUserResizeRows="False"
+                          CanUserSortColumns="False"
+                          SelectionMode="Single">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="LANGUAGE/ANALYZER" Binding="{Binding pluginName}" Width="*" />
+                        <DataGridTemplateColumn Header="STATUS" CellTemplate="{StaticResource StatusCellTemplate}" Width="*" />
+                        <!--<DataGridTemplateColumn Header="VERSION" CellTemplate="{StaticResource VersionCellTemplate}" Width="*" />-->
+                        <DataGridTemplateColumn Header="SOURCE" CellTemplate="{StaticResource SourceCellTemplate}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DisplayedPlugins.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <ProgressBar IsIndeterminate="True" Width="200" Height="4" />
+                    <TextBlock Text="Loading analyzers..."
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,0"
+                               Foreground="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>
