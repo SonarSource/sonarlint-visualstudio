@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,27 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
+using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
+namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SupportedLanguages;
 
-[Export(typeof(ISupportedLanguagesWindowService))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-[ExcludeFromCodeCoverage]
-[method: ImportingConstructor]
-public class SupportedLanguagesWindowService(
-    IPluginStatusesStore pluginStatusesStore,
-    IThreadHandling threadHandling,
-    IConnectedModeUIManager connectedModeUiManager) : ISupportedLanguagesWindowService
+[TestClass]
+public class SupportedLanguagesWindowServiceTests
 {
-    public void Show()
-    {
-        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow(pluginStatusesStore, threadHandling, connectedModeUiManager);
-        supportedLanguagesWindow.ShowDialog(Application.Current.MainWindow);
-    }
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<SupportedLanguagesWindowService, ISupportedLanguagesWindowService>(
+            MefTestHelpers.CreateExport<IPluginStatusesStore>(),
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<IConnectedModeUIManager>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<SupportedLanguagesWindowService>();
 }
