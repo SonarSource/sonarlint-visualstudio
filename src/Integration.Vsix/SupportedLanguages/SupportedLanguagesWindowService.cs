@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
@@ -32,11 +33,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 public class SupportedLanguagesWindowService(
     IPluginStatusesStore pluginStatusesStore,
     IThreadHandling threadHandling,
-    IConnectedModeUIManager connectedModeUiManager) : ISupportedLanguagesWindowService
+    IConnectedModeUIManager connectedModeUiManager,
+    IServerConnectionsRepository serverConnectionsRepository,
+    IActiveSolutionBoundTracker activeSolutionBoundTracker) : ISupportedLanguagesWindowService
 {
     public void Show()
     {
-        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow(pluginStatusesStore, threadHandling, connectedModeUiManager);
+        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow(pluginStatusesStore, threadHandling, connectedModeUiManager, serverConnectionsRepository, activeSolutionBoundTracker);
         supportedLanguagesWindow.ShowDialog(Application.Current.MainWindow);
     }
 }

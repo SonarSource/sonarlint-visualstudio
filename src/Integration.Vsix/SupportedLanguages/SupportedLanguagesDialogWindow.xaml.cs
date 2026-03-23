@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
@@ -33,10 +34,15 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
 
     public SupportedLanguagesDialogViewModel ViewModel { get; }
 
-    public SupportedLanguagesDialogWindow(IPluginStatusesStore pluginStatusesStore, Core.IThreadHandling threadHandling, IConnectedModeUIManager connectedModeUIManager)
+    public SupportedLanguagesDialogWindow(
+        IPluginStatusesStore pluginStatusesStore,
+        Core.IThreadHandling threadHandling,
+        IConnectedModeUIManager connectedModeUIManager,
+        IServerConnectionsRepository serverConnectionsRepository,
+        IActiveSolutionBoundTracker activeSolutionBoundTracker)
     {
         this.connectedModeUIManager = connectedModeUIManager;
-        ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling);
+        ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker);
         InitializeComponent();
     }
 

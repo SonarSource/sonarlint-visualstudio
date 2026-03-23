@@ -5,6 +5,7 @@
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
     xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+    xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages"
     Title="Supported Languages"
     ResizeMode="NoResize"
     Width="800"
@@ -196,6 +197,15 @@
                 CornerRadius="4"
                 Padding="12"
                 Margin="0,0,0,16">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ConnectionBannerState}" Value="{x:Static local:ConnectionBannerState.Bound}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
             <DockPanel>
                 <imaging:CrispImage DockPanel.Dock="Left" Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusInformation}" Width="16" Height="16" VerticalAlignment="Top" Margin="0,2,8,0" />
                 <StackPanel TextElement.FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}"
@@ -218,12 +228,21 @@
                             </TextBlock>
                         </InlineUIContainer><Run Text=" and advanced security rules for your existing code." />
                     </TextBlock>
-                    <Button Content="Set up Connection"
-                            Click="SetUpConnection_Click"
-                            Style="{StaticResource ActionButtonStyle}"
+                    <Button Click="SetUpConnection_Click"
                             Margin="0,8,0,0"
                             Padding="12,4"
-                            HorizontalAlignment="Left" />
+                            HorizontalAlignment="Left">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+                                <Setter Property="Content" Value="Set up Connection" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ConnectionBannerState}" Value="{x:Static local:ConnectionBannerState.NotBound}">
+                                        <Setter Property="Content" Value="Bind Project" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                 </StackPanel>
             </DockPanel>
         </Border>
