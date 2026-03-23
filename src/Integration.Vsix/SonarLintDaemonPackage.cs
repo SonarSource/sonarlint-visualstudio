@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.CSharpVB;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
 using SonarLint.VisualStudio.Integration.Vsix.Events.Build;
@@ -78,6 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private IAnalysisConfigMonitor analysisConfigMonitor;
         private IBuildEventNotifier buildEventNotifier;
         private IRoslynEnvironmentInitializer roslynEnvironment;
+        private IFailedPluginNotification failedPluginNotification;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -134,6 +136,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 buildEventNotifier = await this.GetMefServiceAsync<IBuildEventNotifier>();
                 await buildEventNotifier.InitializationProcessor.InitializeAsync();
 
+                failedPluginNotification = await this.GetMefServiceAsync<IFailedPluginNotification>();
+
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 slCoreHandler.EnableSloop();
             }
@@ -177,6 +181,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 buildEventNotifier?.Dispose();
                 buildEventNotifier = null;
+
+                failedPluginNotification?.Dispose();
+                failedPluginNotification = null;
             }
         }
 
