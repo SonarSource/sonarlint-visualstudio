@@ -190,61 +190,94 @@
                    Foreground="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"
                    Margin="0,0,0,16" />
 
-        <Border Grid.Row="1"
-                Background="{DynamicResource {x:Static vsShell:VsBrushes.AccentMediumKey}}"
-                BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.PanelBorderKey}}"
-                BorderThickness="1"
-                CornerRadius="4"
-                Padding="12"
-                Margin="0,0,0,16">
+        <Border Grid.Row="1">
             <Border.Style>
                 <Style TargetType="Border">
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Setter Property="CornerRadius" Value="4" />
+                    <Setter Property="Padding" Value="12" />
+                    <Setter Property="Margin" Value="0,0,0,16" />
+                    <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.AccentMediumKey}}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.PanelBorderKey}}" />
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding ConnectionBannerState}" Value="{x:Static local:ConnectionBannerState.Bound}">
+                        <DataTrigger Binding="{Binding IsBannerVisible}" Value="False">
                             <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsErrorBanner}" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceRedMediumKey}}" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </Border.Style>
-            <DockPanel>
-                <imaging:CrispImage DockPanel.Dock="Left" Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusInformation}" Width="16" Height="16" VerticalAlignment="Top" Margin="0,2,8,0" />
-                <StackPanel TextElement.FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}"
-                            TextElement.Foreground="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}">
-                    <TextBlock Text="Get more from your analysis"
-                               FontWeight="Bold" />
-                    <TextBlock TextWrapping="Wrap"
-                               Margin="0,4,0,0">
-                        <Run Text="Connect to " /><Run Text="SonarQube Server or Cloud" Foreground="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" /><Run Text=" to unlock " /><InlineUIContainer BaselineAlignment="TextBottom">
-                            <TextBlock Text="extended language support"
-                                       ToolTip="{Binding PremiumLanguagesTooltip}"
-                                       Cursor="Help">
-                                <TextBlock.TextDecorations>
-                                    <TextDecoration Location="Underline">
-                                        <TextDecoration.Pen>
-                                            <Pen Brush="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}" Thickness="2" DashStyle="{x:Static DashStyles.Dot}" />
-                                        </TextDecoration.Pen>
-                                    </TextDecoration>
-                                </TextBlock.TextDecorations>
-                            </TextBlock>
-                        </InlineUIContainer><Run Text=" and advanced security rules for your existing code." />
-                    </TextBlock>
-                    <Button Click="SetUpConnection_Click"
-                            Margin="0,8,0,0"
-                            Padding="12,4"
-                            HorizontalAlignment="Left">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
-                                <Setter Property="Content" Value="Set up Connection" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding ConnectionBannerState}" Value="{x:Static local:ConnectionBannerState.NotBound}">
-                                        <Setter Property="Content" Value="Bind Project" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </StackPanel>
-            </DockPanel>
+            <Grid>
+                <DockPanel>
+                    <DockPanel.Style>
+                        <Style TargetType="DockPanel">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsErrorBanner}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DockPanel.Style>
+                    <imaging:CrispImage DockPanel.Dock="Left" Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusInformation}" Width="16" Height="16" VerticalAlignment="Top" Margin="0,2,8,0" />
+                    <StackPanel TextElement.FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}"
+                                TextElement.Foreground="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}">
+                        <TextBlock Text="Get more from your analysis"
+                                   FontWeight="Bold" />
+                        <TextBlock TextWrapping="Wrap"
+                                   Margin="0,4,0,0">
+                            <Run Text="Connect to " /><Run Text="SonarQube Server or Cloud" Foreground="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" /><Run Text=" to unlock " /><InlineUIContainer BaselineAlignment="TextBottom">
+                                <TextBlock Text="extended language support"
+                                           ToolTip="{Binding PremiumLanguagesTooltip}"
+                                           Cursor="Help">
+                                    <TextBlock.TextDecorations>
+                                        <TextDecoration Location="Underline">
+                                            <TextDecoration.Pen>
+                                                <Pen Brush="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}" Thickness="2" DashStyle="{x:Static DashStyles.Dot}" />
+                                            </TextDecoration.Pen>
+                                        </TextDecoration>
+                                    </TextBlock.TextDecorations>
+                                </TextBlock>
+                            </InlineUIContainer><Run Text=" and advanced security rules for your existing code." />
+                        </TextBlock>
+                        <Button Click="SetUpConnection_Click"
+                                Content="{Binding SetUpConnectionText}"
+                                Margin="0,8,0,0"
+                                Padding="12,4"
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource ActionButtonStyle}" />
+                    </StackPanel>
+                </DockPanel>
+
+                <DockPanel>
+                    <DockPanel.Style>
+                        <Style TargetType="DockPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsErrorBanner}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DockPanel.Style>
+                    <imaging:CrispImage DockPanel.Dock="Left" Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusError}" Width="16" Height="16" VerticalAlignment="Top" Margin="0,2,8,0" />
+                    <StackPanel TextElement.FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}"
+                                TextElement.Foreground="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}">
+                        <TextBlock Text="Some analyzers are unavailable"
+                                   FontWeight="Bold" />
+                        <TextBlock Text="{Binding FailedPluginsText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,0" />
+                        <Button Click="RestartBackend_Click"
+                                Content="Restart SonarQube for Visual Studio"
+                                Margin="0,8,0,0"
+                                Padding="12,4"
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource ActionButtonStyle}" />
+                    </StackPanel>
+                </DockPanel>
+            </Grid>
         </Border>
 
         <Border Grid.Row="2"

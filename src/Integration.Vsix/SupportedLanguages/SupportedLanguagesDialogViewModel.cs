@@ -11,7 +11,8 @@ internal enum ConnectionBannerState
 {
     NoConnection,
     NotBound,
-    Bound
+    Bound,
+    PluginFailed
 }
 
 internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDisposable
@@ -39,21 +40,13 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
             .Select(p => p.pluginName)
             .Distinct());
 
-    public ConnectionBannerState ConnectionBannerState
-    {
-        get
-        {
-            if (activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode())
-            {
-                return ConnectionBannerState.Bound;
-            }
-            if (serverConnectionsRepository.TryGetAll(out var connections) && connections.Count > 0)
-            {
-                return ConnectionBannerState.NotBound;
-            }
-            return ConnectionBannerState.NoConnection;
-        }
-    }
+    public bool IsBannerVisible => GetConnectionBannerState() != ConnectionBannerState.Bound;
+    public bool IsErrorBanner => GetConnectionBannerState() == ConnectionBannerState.PluginFailed;
+    public string SetUpConnectionText => GetConnectionBannerState() == ConnectionBannerState.NotBound ? "Bind Project" : "Set up Connection";
+    public string FailedPluginsText =>
+        string.Join(", ", AllPlugins
+            .Where(p => p.state == PluginStateDto.FAILED)
+            .Select(p => p.pluginName));
 
     public SupportedLanguagesDialogViewModel(
         IPluginStatusesStore pluginStatusesStore,
@@ -99,11 +92,37 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
             }
 
             RaisePropertyChanged(nameof(PremiumLanguagesTooltip));
+            RaisePropertyChanged(nameof(FailedPluginsText));
+            RaisePropertyChanged(nameof(IsBannerVisible));
+            RaisePropertyChanged(nameof(IsErrorBanner));
+            RaisePropertyChanged(nameof(SetUpConnectionText));
         });
     }
 
     private void OnConnectionStateChanged(object sender, EventArgs e)
     {
-        threadHandling.RunOnUIThread(() => RaisePropertyChanged(nameof(ConnectionBannerState)));
+        threadHandling.RunOnUIThread(() =>
+        {
+            RaisePropertyChanged(nameof(IsBannerVisible));
+            RaisePropertyChanged(nameof(IsErrorBanner));
+            RaisePropertyChanged(nameof(SetUpConnectionText));
+        });
+    }
+
+    private ConnectionBannerState GetConnectionBannerState()
+    {
+        if (AllPlugins.Any(p => p.state == PluginStateDto.FAILED))
+        {
+            return ConnectionBannerState.PluginFailed;
+        }
+        if (activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode())
+        {
+            return ConnectionBannerState.Bound;
+        }
+        if (serverConnectionsRepository.TryGetAll(out var connections) && connections.Count > 0)
+        {
+            return ConnectionBannerState.NotBound;
+        }
+        return ConnectionBannerState.NoConnection;
     }
 }

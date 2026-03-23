@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
+using SonarLint.VisualStudio.SLCore;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 
@@ -31,6 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 internal sealed partial class SupportedLanguagesDialogWindow : Window
 {
     private readonly IConnectedModeUIManager connectedModeUIManager;
+    private readonly ISLCoreHandler slCoreHandler;
 
     public SupportedLanguagesDialogViewModel ViewModel { get; }
 
@@ -39,9 +41,11 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
         Core.IThreadHandling threadHandling,
         IConnectedModeUIManager connectedModeUIManager,
         IServerConnectionsRepository serverConnectionsRepository,
-        IActiveSolutionBoundTracker activeSolutionBoundTracker)
+        IActiveSolutionBoundTracker activeSolutionBoundTracker,
+        ISLCoreHandler slCoreHandler)
     {
         this.connectedModeUIManager = connectedModeUIManager;
+        this.slCoreHandler = slCoreHandler;
         ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker);
         InitializeComponent();
     }
@@ -49,5 +53,11 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
     private void SetUpConnection_Click(object sender, RoutedEventArgs e)
     {
         connectedModeUIManager.ShowManageBindingDialogAsync().Forget();
+    }
+
+    private void RestartBackend_Click(object sender, RoutedEventArgs e)
+    {
+        slCoreHandler.ForceRestartSloop();
+        Close();
     }
 }
