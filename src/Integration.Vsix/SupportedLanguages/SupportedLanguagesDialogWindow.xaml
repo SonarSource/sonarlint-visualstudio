@@ -112,21 +112,6 @@
                 </Setter>
             </Style>
 
-            <DataTemplate x:Key="VersionCellTemplate">
-                <TextBlock x:Name="VersionText" Text="{Binding actualVersion}" VerticalAlignment="Center"
-                           Foreground="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}">
-                    <TextBlock.ToolTip>
-                        <TextBlock Text="{Binding overriddenVersion, StringFormat='Overriding local version {0}'}" />
-                    </TextBlock.ToolTip>
-                </TextBlock>
-                <DataTemplate.Triggers>
-                    <DataTrigger Binding="{Binding overriddenVersion}" Value="{x:Null}">
-                        <Setter TargetName="VersionText" Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
-                        <Setter TargetName="VersionText" Property="ToolTip" Value="{x:Null}" />
-                    </DataTrigger>
-                </DataTemplate.Triggers>
-            </DataTemplate>
-
             <DataTemplate x:Key="SourceCellTemplate">
                 <TextBlock x:Name="SourceText" Text="SonarQube for IDE" VerticalAlignment="Center" />
                 <DataTemplate.Triggers>
@@ -301,7 +286,6 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="LANGUAGE/ANALYZER" Binding="{Binding pluginName}" Width="*" />
                         <DataGridTemplateColumn Header="STATUS" CellTemplate="{StaticResource StatusCellTemplate}" Width="*" />
-                        <!--<DataGridTemplateColumn Header="VERSION" CellTemplate="{StaticResource VersionCellTemplate}" Width="*" />-->
                         <DataGridTemplateColumn Header="SOURCE" CellTemplate="{StaticResource SourceCellTemplate}" Width="*" />
                     </DataGrid.Columns>
                 </DataGrid>
