@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -20,7 +20,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
@@ -31,9 +30,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 [ExcludeFromCodeCoverage]
 internal sealed partial class SupportedLanguagesDialogWindow : Window
 {
-    private readonly IConnectedModeUIManager connectedModeUIManager;
-    private readonly ISLCoreHandler slCoreHandler;
-
     public SupportedLanguagesDialogViewModel ViewModel { get; }
 
     public SupportedLanguagesDialogWindow(
@@ -44,20 +40,16 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         ISLCoreHandler slCoreHandler)
     {
-        this.connectedModeUIManager = connectedModeUIManager;
-        this.slCoreHandler = slCoreHandler;
-        ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker);
+        ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker, connectedModeUIManager, slCoreHandler);
+        Closed += (_, _) => ViewModel.Dispose();
         InitializeComponent();
     }
 
-    private void SetUpConnection_Click(object sender, RoutedEventArgs e)
-    {
-        connectedModeUIManager.ShowManageBindingDialogAsync().Forget();
-    }
+    private void SetUpConnection_Click(object sender, RoutedEventArgs e) => ViewModel.SetUpConnection();
 
     private void RestartBackend_Click(object sender, RoutedEventArgs e)
     {
-        slCoreHandler.ForceRestartSloop();
+        ViewModel.RestartBackend();
         Close();
     }
 }

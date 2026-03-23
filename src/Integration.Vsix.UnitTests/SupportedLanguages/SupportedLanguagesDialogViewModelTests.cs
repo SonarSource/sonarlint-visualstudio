@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
+using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SupportedLanguages;
@@ -44,6 +46,8 @@ public class SupportedLanguagesDialogViewModelTests
     private IThreadHandling threadHandling;
     private IServerConnectionsRepository serverConnectionsRepository;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private IConnectedModeUIManager connectedModeUIManager;
+    private ISLCoreHandler slCoreHandler;
 
     [TestInitialize]
     public void TestInitialize()
@@ -52,13 +56,16 @@ public class SupportedLanguagesDialogViewModelTests
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
+        slCoreHandler = Substitute.For<ISLCoreHandler>();
         pluginStatusesStore.GetAll().Returns(DefaultPluginStatuses);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
         serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(false);
+        connectedModeUIManager.ShowManageBindingDialogAsync().Returns(Task.FromResult(true));
     }
 
     private SupportedLanguagesDialogViewModel CreateTestSubject() =>
-        new(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker);
+        new(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker, connectedModeUIManager, slCoreHandler);
 
     [TestMethod]
     public void Ctor_InitializesAllPluginsFromStore()
@@ -316,6 +323,26 @@ public class SupportedLanguagesDialogViewModelTests
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerVisible));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsErrorBanner));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.SetUpConnectionText));
+    }
+
+    [TestMethod]
+    public void SetUpConnection_OpensManageBindingDialog()
+    {
+        var testSubject = CreateTestSubject();
+
+        testSubject.SetUpConnection();
+
+        connectedModeUIManager.Received(1).ShowManageBindingDialogAsync();
+    }
+
+    [TestMethod]
+    public void RestartBackend_ForcesRestartSloop()
+    {
+        var testSubject = CreateTestSubject();
+
+        testSubject.RestartBackend();
+
+        slCoreHandler.Received(1).ForceRestartSloop();
     }
 
     [TestMethod]

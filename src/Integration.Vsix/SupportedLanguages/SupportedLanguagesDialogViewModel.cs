@@ -1,8 +1,11 @@
 ﻿using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
+using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
@@ -29,6 +32,8 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
     private readonly IThreadHandling threadHandling;
     private readonly IServerConnectionsRepository serverConnectionsRepository;
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private readonly IConnectedModeUIManager connectedModeUIManager;
+    private readonly ISLCoreHandler slCoreHandler;
 
     public ObservableCollection<PluginStatusDto> AllPlugins { get; }
 
@@ -52,12 +57,16 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         IPluginStatusesStore pluginStatusesStore,
         IThreadHandling threadHandling,
         IServerConnectionsRepository serverConnectionsRepository,
-        IActiveSolutionBoundTracker activeSolutionBoundTracker)
+        IActiveSolutionBoundTracker activeSolutionBoundTracker,
+        IConnectedModeUIManager connectedModeUIManager,
+        ISLCoreHandler slCoreHandler)
     {
         this.pluginStatusesStore = pluginStatusesStore;
         this.threadHandling = threadHandling;
         this.serverConnectionsRepository = serverConnectionsRepository;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+        this.connectedModeUIManager = connectedModeUIManager;
+        this.slCoreHandler = slCoreHandler;
 
         AllPlugins = new ObservableCollection<PluginStatusDto>(pluginStatusesStore.GetAll());
         DisplayedPlugins = new ObservableCollection<PluginStatusDto>(
@@ -67,6 +76,10 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         serverConnectionsRepository.ConnectionChanged += OnConnectionStateChanged;
         activeSolutionBoundTracker.SolutionBindingChanged += OnConnectionStateChanged;
     }
+
+    public void SetUpConnection() => connectedModeUIManager.ShowManageBindingDialogAsync().Forget();
+
+    public void RestartBackend() => slCoreHandler.ForceRestartSloop();
 
     public void Dispose()
     {
