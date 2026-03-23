@@ -213,7 +213,7 @@
                         <TextBlock TextWrapping="Wrap"
                                    Margin="0,4,0,0">
                             <Run Text="Connect to " /><Run Text="SonarQube Server or Cloud" Foreground="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" /><Run Text=" to unlock " /><InlineUIContainer BaselineAlignment="TextBottom">
-                                <TextBlock Text="extended language support"
+                                <TextBlock Text="extended language/analyzer support"
                                            ToolTip="{Binding PremiumLanguagesTooltip}"
                                            Cursor="Help">
                                     <TextBlock.TextDecorations>

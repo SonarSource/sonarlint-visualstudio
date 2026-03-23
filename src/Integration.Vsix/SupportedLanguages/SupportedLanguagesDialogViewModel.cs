@@ -39,11 +39,17 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
 
     public ObservableCollection<PluginStatusDto> DisplayedPlugins { get; }
 
-    public string PremiumLanguagesTooltip =>
-        string.Join(", ", AllPlugins
-            .Where(p => p.state == PluginStateDto.PREMIUM)
-            .Select(p => p.pluginName)
-            .Distinct());
+    public string PremiumLanguagesTooltip
+    {
+        get
+        {
+            var names = string.Join(", ", AllPlugins
+                .Where(p => p.state == PluginStateDto.PREMIUM)
+                .Select(p => p.pluginName)
+                .Distinct());
+            return names.Length == 0 ? string.Empty : "Including: " + names;
+        }
+    }
 
     public bool IsBannerVisible => GetConnectionBannerState() != ConnectionBannerState.Bound;
     public bool IsErrorBanner => GetConnectionBannerState() == ConnectionBannerState.PluginFailed;

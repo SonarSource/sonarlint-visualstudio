@@ -110,7 +110,7 @@ public class SupportedLanguagesDialogViewModelTests
     {
         var testSubject = CreateTestSubject();
 
-        testSubject.PremiumLanguagesTooltip.Should().Be("Java, COBOL");
+        testSubject.PremiumLanguagesTooltip.Should().Be("Including: Java, COBOL");
     }
 
     [TestMethod]
@@ -135,7 +135,7 @@ public class SupportedLanguagesDialogViewModelTests
         });
         var testSubject = CreateTestSubject();
 
-        testSubject.PremiumLanguagesTooltip.Should().Be("Java");
+        testSubject.PremiumLanguagesTooltip.Should().Be("Including: Java");
     }
 
     [TestMethod]
