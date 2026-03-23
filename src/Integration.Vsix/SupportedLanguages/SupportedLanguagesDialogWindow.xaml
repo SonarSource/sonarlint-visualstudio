@@ -302,7 +302,7 @@
                         </Style>
                     </StackPanel.Style>
                     <ProgressBar IsIndeterminate="True" Width="200" Height="4" />
-                    <TextBlock Text="Loading analyzers..."
+                    <TextBlock Text="Loading..."
                                HorizontalAlignment="Center"
                                Margin="0,8,0,0"
                                Foreground="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
