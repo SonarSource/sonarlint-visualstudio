@@ -2,11 +2,14 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="clr-namespace:SonarLint.VisualStudio.SLCore.Service.Plugin.Models;assembly=SonarLint.VisualStudio.SLCore"
+    xmlns:slcore="clr-namespace:SonarLint.VisualStudio.SLCore;assembly=SonarLint.VisualStudio.SLCore"
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
     xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
     xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages"
-    Title="Supported Languages"
+    xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
+    xmlns:integrationRes="clr-namespace:SonarLint.VisualStudio.Integration.Resources;assembly=SonarLint.VisualStudio.Integration"
+    Title="{x:Static res:Strings.PluginStatuses_DialogTitle}"
     ResizeMode="NoResize"
     Width="800"
     Height="500"
@@ -113,14 +116,14 @@
             </Style>
 
             <DataTemplate x:Key="SourceCellTemplate">
-                <TextBlock x:Name="SourceText" Text="SonarQube for IDE" VerticalAlignment="Center" />
+                <TextBlock x:Name="SourceText" Text="{x:Static res:Strings.PluginStatuses_SourceIde}" VerticalAlignment="Center" />
                 <DataTemplate.Triggers>
                     <DataTrigger Binding="{Binding source}" Value="{x:Static models:ArtifactSourceDto.SONARQUBE_SERVER}">
-                        <Setter TargetName="SourceText" Property="Text" Value="SonarQube Server" />
+                        <Setter TargetName="SourceText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_SourceServer}" />
                         <Setter TargetName="SourceText" Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding source}" Value="{x:Static models:ArtifactSourceDto.SONARQUBE_CLOUD}">
-                        <Setter TargetName="SourceText" Property="Text" Value="SonarQube Cloud" />
+                        <Setter TargetName="SourceText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_SourceCloud}" />
                         <Setter TargetName="SourceText" Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" />
                     </DataTrigger>
                 </DataTemplate.Triggers>
@@ -135,23 +138,23 @@
                     <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.ACTIVE}">
                         <Setter TargetName="StatusDot" Property="Fill" Value="Green" />
                         <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
-                        <Setter TargetName="StatusText" Property="Text" Value="Active" />
+                        <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusActive}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.DOWNLOADING}">
                         <Setter TargetName="StatusDot" Property="Fill" Value="Orange" />
                         <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
-                        <Setter TargetName="StatusText" Property="Text" Value="Downloading..." />
+                        <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusDownloading}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.FAILED}">
                         <Setter TargetName="StatusDot" Property="Fill" Value="Red" />
                         <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
-                        <Setter TargetName="StatusText" Property="Text" Value="Failed" />
+                        <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusFailed}" />
                         <Setter TargetName="StatusText" Property="Foreground" Value="Red" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.SYNCED}">
                         <Setter TargetName="StatusDot" Property="Fill" Value="Green" />
                         <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
-                        <Setter TargetName="StatusText" Property="Text" Value="Active" />
+                        <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusActive}" />
                     </DataTrigger>
                 </DataTemplate.Triggers>
             </DataTemplate>
@@ -169,7 +172,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
-                   Text="Supported Languages &amp; Analyzers"
+                   Text="{x:Static res:Strings.PluginStatuses_DialogTitle}"
                    FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment200PercentFontSizeKey}}"
                    FontWeight="Bold"
                    Foreground="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"
@@ -208,7 +211,7 @@
                     <imaging:CrispImage DockPanel.Dock="Left" Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusInformation}" Width="16" Height="16" VerticalAlignment="Top" Margin="0,2,8,0" />
                     <StackPanel TextElement.FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}"
                                 TextElement.Foreground="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}">
-                        <TextBlock Text="Get more from your analysis"
+                        <TextBlock Text="{x:Static res:Strings.PluginStatuses_BannerInfoHeading}"
                                    FontWeight="Bold" />
                         <TextBlock TextWrapping="Wrap"
                                    Margin="0,4,0,0">
@@ -249,13 +252,13 @@
                     <imaging:CrispImage DockPanel.Dock="Left" Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusError}" Width="16" Height="16" VerticalAlignment="Top" Margin="0,2,8,0" />
                     <StackPanel TextElement.FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}"
                                 TextElement.Foreground="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}">
-                        <TextBlock Text="Some analyzers are unavailable"
+                        <TextBlock Text="{x:Static integrationRes:Strings.PluginStatusesFailedNotificationText}"
                                    FontWeight="Bold" />
                         <TextBlock Text="{Binding FailedPluginsTooltip}"
                                    TextWrapping="Wrap"
                                    Margin="0,4,0,0" />
                         <Button Click="RestartBackend_Click"
-                                Content="Restart SonarQube for Visual Studio"
+                                Content="{x:Static slcore:SLCoreStrings.SloopRestartFailedNotificationService_Restart}"
                                 Margin="0,8,0,0"
                                 Padding="12,4"
                                 HorizontalAlignment="Left"
@@ -284,9 +287,9 @@
                           CanUserSortColumns="False"
                           SelectionMode="Single">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="LANGUAGE/ANALYZER" Binding="{Binding pluginName}" Width="*" />
-                        <DataGridTemplateColumn Header="STATUS" CellTemplate="{StaticResource StatusCellTemplate}" Width="*" />
-                        <DataGridTemplateColumn Header="SOURCE" CellTemplate="{StaticResource SourceCellTemplate}" Width="*" />
+                        <DataGridTextColumn Header="{x:Static res:Strings.PluginStatuses_ColumnLanguage}" Binding="{Binding pluginName}" Width="*" />
+                        <DataGridTemplateColumn Header="{x:Static res:Strings.PluginStatuses_ColumnStatus}" CellTemplate="{StaticResource StatusCellTemplate}" Width="*" />
+                        <DataGridTemplateColumn Header="{x:Static res:Strings.PluginStatuses_ColumnSource}" CellTemplate="{StaticResource SourceCellTemplate}" Width="*" />
                     </DataGrid.Columns>
                 </DataGrid>
 
@@ -302,10 +305,6 @@
                         </Style>
                     </StackPanel.Style>
                     <ProgressBar IsIndeterminate="True" Width="200" Height="4" />
-                    <TextBlock Text="Loading..."
-                               HorizontalAlignment="Center"
-                               Margin="0,8,0,0"
-                               Foreground="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
                 </StackPanel>
             </Grid>
         </Border>

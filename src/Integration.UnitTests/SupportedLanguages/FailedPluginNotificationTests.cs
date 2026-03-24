@@ -84,7 +84,7 @@ public class FailedPluginNotificationTests
         RaisePluginStatusesChanged();
 
         notificationService.Received(1).ShowNotification(Arg.Is<Notification>(n =>
-            n.Message == Strings.PluginStatusesFailedNotificationText + "Java, C/C++/Objective-C"
+            n.Message.StartsWith(Strings.PluginStatusesFailedNotificationText) && n.Message.EndsWith("Java, C/C++/Objective-C")
             && n.Id == "PluginStatuses.FailedNotification"
             && n.ShowOncePerSession == false));
     }

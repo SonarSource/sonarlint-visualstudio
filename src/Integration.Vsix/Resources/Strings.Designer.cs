@@ -747,6 +747,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Get more from your analysis.
+        /// </summary>
+        public static string PluginStatuses_BannerInfoHeading {
+            get {
+                return ResourceManager.GetString("PluginStatuses_BannerInfoHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set up Connection.
         /// </summary>
         public static string PluginStatuses_BannerSetUpConnectionButton {
@@ -756,11 +765,101 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to LANGUAGE/ANALYZER.
+        /// </summary>
+        public static string PluginStatuses_ColumnLanguage {
+            get {
+                return ResourceManager.GetString("PluginStatuses_ColumnLanguage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SOURCE.
+        /// </summary>
+        public static string PluginStatuses_ColumnSource {
+            get {
+                return ResourceManager.GetString("PluginStatuses_ColumnSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to STATUS.
+        /// </summary>
+        public static string PluginStatuses_ColumnStatus {
+            get {
+                return ResourceManager.GetString("PluginStatuses_ColumnStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Supported Languages &amp; Analyzers.
+        /// </summary>
+        public static string PluginStatuses_DialogTitle {
+            get {
+                return ResourceManager.GetString("PluginStatuses_DialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Including: {0}.
         /// </summary>
         public static string PluginStatuses_PremiumPluginsTooltip {
             get {
                 return ResourceManager.GetString("PluginStatuses_PremiumPluginsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube Cloud.
+        /// </summary>
+        public static string PluginStatuses_SourceCloud {
+            get {
+                return ResourceManager.GetString("PluginStatuses_SourceCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube for IDE.
+        /// </summary>
+        public static string PluginStatuses_SourceIde {
+            get {
+                return ResourceManager.GetString("PluginStatuses_SourceIde", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube Server.
+        /// </summary>
+        public static string PluginStatuses_SourceServer {
+            get {
+                return ResourceManager.GetString("PluginStatuses_SourceServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active.
+        /// </summary>
+        public static string PluginStatuses_StatusActive {
+            get {
+                return ResourceManager.GetString("PluginStatuses_StatusActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading....
+        /// </summary>
+        public static string PluginStatuses_StatusDownloading {
+            get {
+                return ResourceManager.GetString("PluginStatuses_StatusDownloading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed.
+        /// </summary>
+        public static string PluginStatuses_StatusFailed {
+            get {
+                return ResourceManager.GetString("PluginStatuses_StatusFailed", resourceCulture);
             }
         }
         

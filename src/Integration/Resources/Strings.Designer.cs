@@ -384,7 +384,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Some analyzers are unavailable: .
+        ///   Looks up a localized string similar to Some analyzers are unavailable.
         /// </summary>
         public static string PluginStatusesFailedNotificationText {
             get {
