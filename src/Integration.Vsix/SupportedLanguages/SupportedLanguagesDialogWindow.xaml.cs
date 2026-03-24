@@ -35,7 +35,7 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
 
     public SupportedLanguagesDialogWindow(
         IPluginStatusesStore pluginStatusesStore,
-        Core.IThreadHandling threadHandling,
+        IThreadHandling threadHandling,
         IConnectedModeUIManager connectedModeUIManager,
         IServerConnectionsRepository serverConnectionsRepository,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
@@ -49,9 +49,5 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
 
     private void SetUpConnection_Click(object sender, RoutedEventArgs e) => ViewModel.SetUpConnection();
 
-    private void RestartBackend_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.RestartBackend();
-        Close();
-    }
+    private void RestartBackend_Click(object sender, RoutedEventArgs e) => ViewModel.RestartBackend();
 }

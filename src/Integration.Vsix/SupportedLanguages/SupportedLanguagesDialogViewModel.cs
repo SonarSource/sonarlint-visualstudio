@@ -113,7 +113,11 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
 
     public void SetUpConnection() => connectedModeUIManager.ShowManageBindingDialogAsync().Forget();
 
-    public void RestartBackend() => slCoreHandler.ForceRestartSloop();
+    public void RestartBackend()
+    {
+        slCoreHandler.ForceRestartSloop();
+        pluginStatusesStore.Clear();
+    }
 
     public void Dispose()
     {

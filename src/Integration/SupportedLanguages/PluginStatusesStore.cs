@@ -82,6 +82,16 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
         RaisePluginStatusesChanged();
     }
 
+    public void Clear()
+    {
+        lock (lockObject)
+        {
+            pluginStatuses = ImmutableList<PluginStatusDto>.Empty;
+        }
+
+        RaisePluginStatusesChanged();
+    }
+
     public event EventHandler PluginStatusesChanged;
 
     private void OnCurrentConfigurationScopeChanged(object sender, ConfigurationScopeChangedEventArgs e)
