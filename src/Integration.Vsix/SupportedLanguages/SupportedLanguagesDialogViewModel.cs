@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
@@ -67,13 +68,13 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
                 .Where(p => p.state == PluginStateDto.PREMIUM)
                 .Select(p => p.pluginName)
                 .Distinct());
-            return names.Length == 0 ? string.Empty : "Including: " + names;
+            return names.Length == 0 ? string.Empty : string.Format(Strings.PluginStatuses_PremiumLanguagesTooltip, names);
         }
     }
 
     public bool IsBannerVisible => GetConnectionBannerState() != ConnectionBannerState.Bound;
     public bool IsErrorBanner => GetConnectionBannerState() == ConnectionBannerState.PluginFailed;
-    public string SetUpConnectionText => GetConnectionBannerState() == ConnectionBannerState.NotBound ? "Bind Project" : "Set up Connection";
+    public string SetUpConnectionText => GetConnectionBannerState() == ConnectionBannerState.NotBound ? Strings.PluginStatuses_BannerBindProjectButton : Strings.PluginStatuses_BannerSetUpConnectionButton;
     public string FailedPluginsText =>
         string.Join(", ", AllPlugins
             .Where(p => p.state == PluginStateDto.FAILED)

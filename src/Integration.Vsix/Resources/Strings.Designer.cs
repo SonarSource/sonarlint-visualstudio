@@ -738,6 +738,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bind Project.
+        /// </summary>
+        public static string PluginStatuses_BannerBindProjectButton {
+            get {
+                return ResourceManager.GetString("PluginStatuses_BannerBindProjectButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set up Connection.
+        /// </summary>
+        public static string PluginStatuses_BannerSetUpConnectionButton {
+            get {
+                return ResourceManager.GetString("PluginStatuses_BannerSetUpConnectionButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Including: {0}.
+        /// </summary>
+        public static string PluginStatuses_PremiumLanguagesTooltip {
+            get {
+                return ResourceManager.GetString("PluginStatuses_PremiumLanguagesTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to C# Unused pragma suppression analysis severity:.
         /// </summary>
         public static string PragmaAnalysisSeverityLabel {

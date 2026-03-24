@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
@@ -110,7 +111,7 @@ public class SupportedLanguagesDialogViewModelTests
     {
         var testSubject = CreateTestSubject();
 
-        testSubject.PremiumLanguagesTooltip.Should().Be("Including: Java, COBOL");
+        testSubject.PremiumLanguagesTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumLanguagesTooltip, "Java, COBOL"));
     }
 
     [TestMethod]
@@ -135,7 +136,7 @@ public class SupportedLanguagesDialogViewModelTests
         });
         var testSubject = CreateTestSubject();
 
-        testSubject.PremiumLanguagesTooltip.Should().Be("Including: Java");
+        testSubject.PremiumLanguagesTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumLanguagesTooltip, "Java"));
     }
 
     [TestMethod]
@@ -217,7 +218,7 @@ public class SupportedLanguagesDialogViewModelTests
         pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
         var testSubject = CreateTestSubject();
 
-        testSubject.SetUpConnectionText.Should().Be("Set up Connection");
+        testSubject.SetUpConnectionText.Should().Be(Strings.PluginStatuses_BannerSetUpConnectionButton);
     }
 
     [TestMethod]
@@ -231,7 +232,7 @@ public class SupportedLanguagesDialogViewModelTests
         });
         var testSubject = CreateTestSubject();
 
-        testSubject.SetUpConnectionText.Should().Be("Bind Project");
+        testSubject.SetUpConnectionText.Should().Be(Strings.PluginStatuses_BannerBindProjectButton);
     }
 
     [TestMethod]
