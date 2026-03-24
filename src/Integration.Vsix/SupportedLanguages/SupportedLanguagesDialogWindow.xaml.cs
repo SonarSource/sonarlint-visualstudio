@@ -35,17 +35,17 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
 
     public SupportedLanguagesDialogWindow(
         IPluginStatusesStore pluginStatusesStore,
-        IThreadHandling threadHandling,
-        IConnectedModeUIManager connectedModeUIManager,
-        IServerConnectionsRepository serverConnectionsRepository,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IActiveSolutionTracker activeSolutionTracker,
-        ISLCoreHandler slCoreHandler)
+        ISLCoreHandler slCoreHandler,
+        IServerConnectionsRepository serverConnectionsRepository,
+        IConnectedModeUIManager connectedModeUIManager,
+        IThreadHandling threadHandling)
     {
         try
         {
-            ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker, activeSolutionTracker,
-                connectedModeUIManager, slCoreHandler);
+            ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, activeSolutionBoundTracker, activeSolutionTracker, slCoreHandler, serverConnectionsRepository,
+                connectedModeUIManager, threadHandling);
             Closed += DisposeViewModel;
             InitializeComponent();
         }

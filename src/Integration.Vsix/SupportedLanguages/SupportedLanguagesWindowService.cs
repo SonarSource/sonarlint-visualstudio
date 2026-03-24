@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
@@ -33,16 +34,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 [method: ImportingConstructor]
 public class SupportedLanguagesWindowService(
     IPluginStatusesStore pluginStatusesStore,
-    IThreadHandling threadHandling,
-    IConnectedModeUIManager connectedModeUiManager,
-    IServerConnectionsRepository serverConnectionsRepository,
     IActiveSolutionBoundTracker activeSolutionBoundTracker,
     IActiveSolutionTracker activeSolutionTracker,
-    ISLCoreHandler slCoreHandler) : ISupportedLanguagesWindowService
+    ISLCoreHandler slCoreHandler,
+    IServerConnectionsRepository serverConnectionsRepository,
+    IConnectedModeUIManager connectedModeUiManager,
+    IThreadHandling threadHandling) : ISupportedLanguagesWindowService
 {
+    [ExcludeFromCodeCoverage]
     public void Show()
     {
-        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow(pluginStatusesStore, threadHandling, connectedModeUiManager, serverConnectionsRepository, activeSolutionBoundTracker, activeSolutionTracker, slCoreHandler);
+        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow(pluginStatusesStore, activeSolutionBoundTracker, activeSolutionTracker, slCoreHandler, serverConnectionsRepository, connectedModeUiManager, threadHandling);
         supportedLanguagesWindow.ShowDialog(Application.Current.MainWindow);
     }
 }

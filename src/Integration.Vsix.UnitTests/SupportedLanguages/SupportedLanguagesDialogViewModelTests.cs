@@ -45,23 +45,23 @@ public class SupportedLanguagesDialogViewModelTests
     ];
 
     private IPluginStatusesStore pluginStatusesStore;
-    private IThreadHandling threadHandling;
-    private IServerConnectionsRepository serverConnectionsRepository;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IActiveSolutionTracker activeSolutionTracker;
-    private IConnectedModeUIManager connectedModeUIManager;
     private ISLCoreHandler slCoreHandler;
+    private IServerConnectionsRepository serverConnectionsRepository;
+    private IConnectedModeUIManager connectedModeUIManager;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
     {
         pluginStatusesStore = Substitute.For<IPluginStatusesStore>();
-        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
-        serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         activeSolutionTracker = Substitute.For<IActiveSolutionTracker>();
-        connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
         slCoreHandler = Substitute.For<ISLCoreHandler>();
+        serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
+        connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         pluginStatusesStore.GetAll().Returns(DefaultPluginStatuses);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
         activeSolutionTracker.CurrentSolutionName.Returns("MySolution");
@@ -70,7 +70,7 @@ public class SupportedLanguagesDialogViewModelTests
     }
 
     private SupportedLanguagesDialogViewModel CreateTestSubject() =>
-        new(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker, activeSolutionTracker, connectedModeUIManager, slCoreHandler);
+        new(pluginStatusesStore, activeSolutionBoundTracker, activeSolutionTracker, slCoreHandler, serverConnectionsRepository, connectedModeUIManager, threadHandling);
 
     [TestMethod]
     public void Ctor_InitializesAllPluginsFromStore()

@@ -34,11 +34,12 @@ public class SupportedLanguagesWindowServiceTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<SupportedLanguagesWindowService, ISupportedLanguagesWindowService>(
             MefTestHelpers.CreateExport<IPluginStatusesStore>(),
-            MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
-            MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
-            MefTestHelpers.CreateExport<ISLCoreHandler>());
+            MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+            MefTestHelpers.CreateExport<ISLCoreHandler>(),
+            MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
+            MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>

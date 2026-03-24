@@ -50,12 +50,12 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
     ];
 
     private readonly IPluginStatusesStore pluginStatusesStore;
-    private readonly IThreadHandling threadHandling;
-    private readonly IServerConnectionsRepository serverConnectionsRepository;
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IActiveSolutionTracker activeSolutionTracker;
-    private readonly IConnectedModeUIManager connectedModeUIManager;
     private readonly ISLCoreHandler slCoreHandler;
+    private readonly IServerConnectionsRepository serverConnectionsRepository;
+    private readonly IConnectedModeUIManager connectedModeUIManager;
+    private readonly IThreadHandling threadHandling;
 
     public ObservableCollection<PluginStatusDto> AllPlugins { get; }
 
@@ -84,20 +84,20 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
 
     public SupportedLanguagesDialogViewModel(
         IPluginStatusesStore pluginStatusesStore,
-        IThreadHandling threadHandling,
-        IServerConnectionsRepository serverConnectionsRepository,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IActiveSolutionTracker activeSolutionTracker,
+        ISLCoreHandler slCoreHandler,
+        IServerConnectionsRepository serverConnectionsRepository,
         IConnectedModeUIManager connectedModeUIManager,
-        ISLCoreHandler slCoreHandler)
+        IThreadHandling threadHandling)
     {
         this.pluginStatusesStore = pluginStatusesStore;
-        this.threadHandling = threadHandling;
-        this.serverConnectionsRepository = serverConnectionsRepository;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.activeSolutionTracker = activeSolutionTracker;
-        this.connectedModeUIManager = connectedModeUIManager;
         this.slCoreHandler = slCoreHandler;
+        this.serverConnectionsRepository = serverConnectionsRepository;
+        this.connectedModeUIManager = connectedModeUIManager;
+        this.threadHandling = threadHandling;
 
         AllPlugins = new ObservableCollection<PluginStatusDto>(pluginStatusesStore.GetAll());
         DisplayedPlugins = new ObservableCollection<PluginStatusDto>(
