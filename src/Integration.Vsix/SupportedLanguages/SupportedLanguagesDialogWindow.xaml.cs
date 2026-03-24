@@ -42,10 +42,22 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
         IActiveSolutionTracker activeSolutionTracker,
         ISLCoreHandler slCoreHandler)
     {
-        ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker, activeSolutionTracker, connectedModeUIManager, slCoreHandler);
-        Closed += (_, _) => ViewModel.Dispose();
-        InitializeComponent();
+        try
+        {
+            ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker, activeSolutionTracker,
+                connectedModeUIManager, slCoreHandler);
+            Closed += DisposeViewModel;
+            InitializeComponent();
+        }
+        catch (Exception)
+        {
+            Closed -= DisposeViewModel;
+            ViewModel?.Dispose();
+            throw;
+        }
     }
+    
+    private void DisposeViewModel(object sender, EventArgs args) => ViewModel.Dispose();
 
     private void SetUpConnection_Click(object sender, RoutedEventArgs e) => ViewModel.SetUpConnection();
 
