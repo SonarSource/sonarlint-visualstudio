@@ -21,6 +21,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore;
@@ -38,9 +39,10 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
         IConnectedModeUIManager connectedModeUIManager,
         IServerConnectionsRepository serverConnectionsRepository,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
+        IActiveSolutionTracker activeSolutionTracker,
         ISLCoreHandler slCoreHandler)
     {
-        ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker, connectedModeUIManager, slCoreHandler);
+        ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker, activeSolutionTracker, connectedModeUIManager, slCoreHandler);
         Closed += (_, _) => ViewModel.Dispose();
         InitializeComponent();
     }

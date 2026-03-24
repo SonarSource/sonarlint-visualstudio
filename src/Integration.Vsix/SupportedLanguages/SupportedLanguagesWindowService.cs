@@ -37,11 +37,12 @@ public class SupportedLanguagesWindowService(
     IConnectedModeUIManager connectedModeUiManager,
     IServerConnectionsRepository serverConnectionsRepository,
     IActiveSolutionBoundTracker activeSolutionBoundTracker,
+    IActiveSolutionTracker activeSolutionTracker,
     ISLCoreHandler slCoreHandler) : ISupportedLanguagesWindowService
 {
     public void Show()
     {
-        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow(pluginStatusesStore, threadHandling, connectedModeUiManager, serverConnectionsRepository, activeSolutionBoundTracker, slCoreHandler);
+        var supportedLanguagesWindow = new SupportedLanguagesDialogWindow(pluginStatusesStore, threadHandling, connectedModeUiManager, serverConnectionsRepository, activeSolutionBoundTracker, activeSolutionTracker, slCoreHandler);
         supportedLanguagesWindow.ShowDialog(Application.Current.MainWindow);
     }
 }

@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
@@ -47,6 +48,7 @@ public class SupportedLanguagesDialogViewModelTests
     private IThreadHandling threadHandling;
     private IServerConnectionsRepository serverConnectionsRepository;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private IActiveSolutionTracker activeSolutionTracker;
     private IConnectedModeUIManager connectedModeUIManager;
     private ISLCoreHandler slCoreHandler;
 
@@ -57,16 +59,18 @@ public class SupportedLanguagesDialogViewModelTests
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        activeSolutionTracker = Substitute.For<IActiveSolutionTracker>();
         connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
         slCoreHandler = Substitute.For<ISLCoreHandler>();
         pluginStatusesStore.GetAll().Returns(DefaultPluginStatuses);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
+        activeSolutionTracker.CurrentSolutionName.Returns("MySolution");
         serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(false);
         connectedModeUIManager.ShowManageBindingDialogAsync().Returns(Task.FromResult(true));
     }
 
     private SupportedLanguagesDialogViewModel CreateTestSubject() =>
-        new(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker, connectedModeUIManager, slCoreHandler);
+        new(pluginStatusesStore, threadHandling, serverConnectionsRepository, activeSolutionBoundTracker, activeSolutionTracker, connectedModeUIManager, slCoreHandler);
 
     [TestMethod]
     public void Ctor_InitializesAllPluginsFromStore()
@@ -104,6 +108,7 @@ public class SupportedLanguagesDialogViewModelTests
         pluginStatusesStore.Received(1).PluginStatusesChanged += Arg.Any<EventHandler>();
         serverConnectionsRepository.Received(1).ConnectionChanged += Arg.Any<EventHandler>();
         activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged += Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+        activeSolutionTracker.ReceivedWithAnyArgs(1).ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
     }
 
     [TestMethod]
@@ -176,6 +181,35 @@ public class SupportedLanguagesDialogViewModelTests
         var testSubject = CreateTestSubject();
 
         testSubject.IsBannerVisible.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsBannerVisible_False_WhenNoSolutionOpen()
+    {
+        pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
+        activeSolutionTracker.CurrentSolutionName.Returns((string)null);
+        serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
+        {
+            callInfo[0] = new List<ServerConnection> { new ServerConnection.SonarQube(new Uri("http://localhost")) };
+            return true;
+        });
+        var testSubject = CreateTestSubject();
+
+        testSubject.IsBannerVisible.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsBannerVisible_True_WhenNotBoundAndSolutionIsOpen()
+    {
+        pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
+        serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
+        {
+            callInfo[0] = new List<ServerConnection> { new ServerConnection.SonarQube(new Uri("http://localhost")) };
+            return true;
+        });
+        var testSubject = CreateTestSubject();
+
+        testSubject.IsBannerVisible.Should().BeTrue();
     }
 
     [TestMethod]
@@ -303,6 +337,30 @@ public class SupportedLanguagesDialogViewModelTests
     }
 
     [TestMethod]
+    public void OnActiveSolutionChanged_DelegatesUpdateToUIThread()
+    {
+        var testSubject = CreateTestSubject();
+
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
+
+        threadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+    }
+
+    [TestMethod]
+    public void OnActiveSolutionChanged_RaisesPropertyChangedForBannerProperties()
+    {
+        var testSubject = CreateTestSubject();
+        var raisedProperties = new List<string>();
+        testSubject.PropertyChanged += (_, args) => raisedProperties.Add(args.PropertyName);
+
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
+
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerVisible));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsErrorBanner));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.SetUpConnectionText));
+    }
+
+    [TestMethod]
     public void OnSolutionBindingChanged_DelegatesUpdateToUIThread()
     {
         var testSubject = CreateTestSubject();
@@ -356,5 +414,6 @@ public class SupportedLanguagesDialogViewModelTests
         pluginStatusesStore.Received(1).PluginStatusesChanged -= Arg.Any<EventHandler>();
         serverConnectionsRepository.Received(1).ConnectionChanged -= Arg.Any<EventHandler>();
         activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+        activeSolutionTracker.ReceivedWithAnyArgs(1).ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
     }
 }

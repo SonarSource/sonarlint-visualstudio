@@ -35,7 +35,7 @@ internal enum ConnectionBannerState
 {
     NoConnection,
     NotBound,
-    Bound,
+    Hidden,
     PluginFailed
 }
 
@@ -53,6 +53,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
     private readonly IThreadHandling threadHandling;
     private readonly IServerConnectionsRepository serverConnectionsRepository;
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private readonly IActiveSolutionTracker activeSolutionTracker;
     private readonly IConnectedModeUIManager connectedModeUIManager;
     private readonly ISLCoreHandler slCoreHandler;
 
@@ -72,7 +73,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         }
     }
 
-    public bool IsBannerVisible => GetConnectionBannerState() != ConnectionBannerState.Bound;
+    public bool IsBannerVisible => GetConnectionBannerState() != ConnectionBannerState.Hidden;
     public bool IsErrorBanner => GetConnectionBannerState() == ConnectionBannerState.PluginFailed;
     public string SetUpConnectionText => GetConnectionBannerState() == ConnectionBannerState.NotBound ? Strings.PluginStatuses_BannerBindProjectButton : Strings.PluginStatuses_BannerSetUpConnectionButton;
     public string FailedPluginsText =>
@@ -85,6 +86,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         IThreadHandling threadHandling,
         IServerConnectionsRepository serverConnectionsRepository,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
+        IActiveSolutionTracker activeSolutionTracker,
         IConnectedModeUIManager connectedModeUIManager,
         ISLCoreHandler slCoreHandler)
     {
@@ -92,6 +94,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         this.threadHandling = threadHandling;
         this.serverConnectionsRepository = serverConnectionsRepository;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+        this.activeSolutionTracker = activeSolutionTracker;
         this.connectedModeUIManager = connectedModeUIManager;
         this.slCoreHandler = slCoreHandler;
 
@@ -102,6 +105,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         pluginStatusesStore.PluginStatusesChanged += OnPluginStatusesChanged;
         serverConnectionsRepository.ConnectionChanged += OnConnectionStateChanged;
         activeSolutionBoundTracker.SolutionBindingChanged += OnConnectionStateChanged;
+        activeSolutionTracker.ActiveSolutionChanged += OnConnectionStateChanged;
     }
 
     public void SetUpConnection() => connectedModeUIManager.ShowManageBindingDialogAsync().Forget();
@@ -113,6 +117,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         pluginStatusesStore.PluginStatusesChanged -= OnPluginStatusesChanged;
         serverConnectionsRepository.ConnectionChanged -= OnConnectionStateChanged;
         activeSolutionBoundTracker.SolutionBindingChanged -= OnConnectionStateChanged;
+        activeSolutionTracker.ActiveSolutionChanged -= OnConnectionStateChanged;
     }
 
     private void OnPluginStatusesChanged(object sender, EventArgs e)
@@ -157,7 +162,11 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         }
         if (activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode())
         {
-            return ConnectionBannerState.Bound;
+            return ConnectionBannerState.Hidden;
+        }
+        if (activeSolutionTracker.CurrentSolutionName == null)
+        {
+            return ConnectionBannerState.Hidden;
         }
         if (serverConnectionsRepository.TryGetAll(out var connections) && connections.Count > 0)
         {
