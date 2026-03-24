@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -50,16 +51,15 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
     ];
 
     private readonly IPluginStatusesStore pluginStatusesStore;
-    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-    private readonly IActiveSolutionTracker activeSolutionTracker;
+    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly ISLCoreHandler slCoreHandler;
     private readonly IServerConnectionsRepository serverConnectionsRepository;
-    private readonly IConnectedModeUIManager connectedModeUIManager;
+    private readonly IConnectedModeUIManager connectedModeUiManager;
     private readonly IThreadHandling threadHandling;
 
-    public ObservableCollection<PluginStatusDto> AllPlugins { get; }
+    public ObservableCollection<PluginStatusDto> AllPlugins { get; } = new ();
 
-    public ObservableCollection<PluginStatusDto> DisplayedPlugins { get; }
+    public ObservableCollection<PluginStatusDto> DisplayedPlugins { get; } = new ();
 
     public string PremiumPluginsTooltip
     {
@@ -78,40 +78,38 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
             .Select(p => p.pluginName));
 
     public ConnectionBannerState BannerState { get; private set; }
-    public bool IsBannerVisible => BannerState != ConnectionBannerState.Hidden;
     public bool IsBannerError => BannerState == ConnectionBannerState.PluginFailed;
-    public string BannerButtonText => BannerState == ConnectionBannerState.NotBound ? Strings.PluginStatuses_BannerBindProjectButton : Strings.PluginStatuses_BannerSetUpConnectionButton;
+    public bool IsBannerPromotion => BannerState == ConnectionBannerState.NotBound || BannerState == ConnectionBannerState.NoConnection;
+    public string PromotionBannerButtonText => BannerState switch
+        {
+            ConnectionBannerState.NotBound => Strings.PluginStatuses_BannerBindProjectButton,
+            ConnectionBannerState.NoConnection => Strings.PluginStatuses_BannerSetUpConnectionButton,
+            _ => string.Empty
+        };
 
     public SupportedLanguagesDialogViewModel(
         IPluginStatusesStore pluginStatusesStore,
-        IActiveSolutionBoundTracker activeSolutionBoundTracker,
-        IActiveSolutionTracker activeSolutionTracker,
+        IActiveConfigScopeTracker activeConfigScopeTracker,
         ISLCoreHandler slCoreHandler,
         IServerConnectionsRepository serverConnectionsRepository,
-        IConnectedModeUIManager connectedModeUIManager,
+        IConnectedModeUIManager connectedModeUiManager,
         IThreadHandling threadHandling)
     {
         this.pluginStatusesStore = pluginStatusesStore;
-        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-        this.activeSolutionTracker = activeSolutionTracker;
+        this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.slCoreHandler = slCoreHandler;
         this.serverConnectionsRepository = serverConnectionsRepository;
-        this.connectedModeUIManager = connectedModeUIManager;
+        this.connectedModeUiManager = connectedModeUiManager;
         this.threadHandling = threadHandling;
 
-        AllPlugins = new ObservableCollection<PluginStatusDto>(pluginStatusesStore.GetAll());
-        DisplayedPlugins = new ObservableCollection<PluginStatusDto>(
-            AllPlugins.Where(p => DisplayedStates.Contains(p.state)));
+        pluginStatusesStore.PluginStatusesChanged += PluginStatusesStore_PluginStatusesChanged;
+        serverConnectionsRepository.ConnectionChanged += ServerConnectionsRepository_ConnectionChanged;
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += ActiveConfigScopeTracker_CurrentConfigurationScopeChanged;
 
-        BannerState = GetConnectionBannerState();
-
-        pluginStatusesStore.PluginStatusesChanged += OnPluginStatusesChanged;
-        serverConnectionsRepository.ConnectionChanged += OnConnectionStateChanged;
-        activeSolutionBoundTracker.SolutionBindingChanged += OnConnectionStateChanged;
-        activeSolutionTracker.ActiveSolutionChanged += OnConnectionStateChanged;
+        UpdateFullStateAsync().Forget();
     }
 
-    public void SetUpConnection() => connectedModeUIManager.ShowManageBindingDialogAsync().Forget();
+    public void SetUpConnection() => connectedModeUiManager.ShowManageBindingDialogAsync().Forget();
 
     public void RestartBackend()
     {
@@ -121,62 +119,69 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
 
     public void Dispose()
     {
-        pluginStatusesStore.PluginStatusesChanged -= OnPluginStatusesChanged;
-        serverConnectionsRepository.ConnectionChanged -= OnConnectionStateChanged;
-        activeSolutionBoundTracker.SolutionBindingChanged -= OnConnectionStateChanged;
-        activeSolutionTracker.ActiveSolutionChanged -= OnConnectionStateChanged;
+        pluginStatusesStore.PluginStatusesChanged -= PluginStatusesStore_PluginStatusesChanged;
+        serverConnectionsRepository.ConnectionChanged -= ServerConnectionsRepository_ConnectionChanged;
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged -= ActiveConfigScopeTracker_CurrentConfigurationScopeChanged;
     }
 
-    private void OnPluginStatusesChanged(object sender, EventArgs e)
+    private void PluginStatusesStore_PluginStatusesChanged(object sender, EventArgs e) => UpdateFullStateAsync().Forget();
+
+    private void ServerConnectionsRepository_ConnectionChanged(object sender, EventArgs e) => UpdateFullStateAsync().Forget();
+
+    private void ActiveConfigScopeTracker_CurrentConfigurationScopeChanged(object sender, EventArgs e) => UpdateFullStateAsync().Forget();
+
+    private async Task UpdateFullStateAsync()
     {
-        threadHandling.RunOnUIThread(() =>
+        ConfigurationScope configScope = null;
+
+        await threadHandling.RunOnBackgroundThread(() =>
         {
-            AllPlugins.Clear();
-            foreach (var plugin in pluginStatusesStore.GetAll())
-            {
-                AllPlugins.Add(plugin);
-            }
+            configScope = activeConfigScopeTracker.Current;
+        });
 
-            DisplayedPlugins.Clear();
-            foreach (var plugin in AllPlugins.Where(p => DisplayedStates.Contains(p.state)))
-            {
-                DisplayedPlugins.Add(plugin);
-            }
-
-            BannerState = GetConnectionBannerState();
-
-            RaisePropertyChanged(nameof(PremiumPluginsTooltip));
-            RaisePropertyChanged(nameof(FailedPluginsTooltip));
-            RaisePropertyChanged(nameof(BannerState));
-            RaisePropertyChanged(nameof(IsBannerVisible));
-            RaisePropertyChanged(nameof(IsBannerError));
-            RaisePropertyChanged(nameof(BannerButtonText));
+        await threadHandling.RunOnUIThreadAsync(() =>
+        {
+            UpdatePlugins();
+            UpdateBannerState(configScope);
         });
     }
 
-    private void OnConnectionStateChanged(object sender, EventArgs e)
+    private void UpdateBannerState(ConfigurationScope configScope)
     {
-        threadHandling.RunOnUIThread(() =>
-        {
-            BannerState = GetConnectionBannerState();
-            RaisePropertyChanged(nameof(BannerState));
-            RaisePropertyChanged(nameof(IsBannerVisible));
-            RaisePropertyChanged(nameof(IsBannerError));
-            RaisePropertyChanged(nameof(BannerButtonText));
-        });
+        BannerState = GetConnectionBannerState(configScope);
+
+        RaisePropertyChanged(nameof(BannerState));
+        RaisePropertyChanged(nameof(IsBannerError));
+        RaisePropertyChanged(nameof(IsBannerPromotion));
+        RaisePropertyChanged(nameof(PromotionBannerButtonText));
     }
 
-    private ConnectionBannerState GetConnectionBannerState()
+    private void UpdatePlugins()
+    {
+        AllPlugins.Clear();
+        foreach (var plugin in pluginStatusesStore.GetAll())
+        {
+            AllPlugins.Add(plugin);
+        }
+
+        DisplayedPlugins.Clear();
+        foreach (var plugin in AllPlugins.Where(p => DisplayedStates.Contains(p.state)))
+        {
+            DisplayedPlugins.Add(plugin);
+        }
+
+        RaisePropertyChanged(nameof(PremiumPluginsTooltip));
+        RaisePropertyChanged(nameof(FailedPluginsTooltip));
+    }
+
+    private ConnectionBannerState GetConnectionBannerState(ConfigurationScope configScope)
     {
         if (AllPlugins.Any(p => p.state == PluginStateDto.FAILED))
         {
             return ConnectionBannerState.PluginFailed;
         }
-        if (activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode())
-        {
-            return ConnectionBannerState.Hidden;
-        }
-        if (activeSolutionTracker.CurrentSolutionName == null)
+        // If no solution is open OR a project is bound
+        if (configScope is null or { SonarProjectId: not null })
         {
             return ConnectionBannerState.Hidden;
         }

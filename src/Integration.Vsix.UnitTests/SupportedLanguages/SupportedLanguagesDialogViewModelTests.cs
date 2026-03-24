@@ -21,7 +21,7 @@
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
@@ -45,8 +45,7 @@ public class SupportedLanguagesDialogViewModelTests
     ];
 
     private IPluginStatusesStore pluginStatusesStore;
-    private IActiveSolutionBoundTracker activeSolutionBoundTracker;
-    private IActiveSolutionTracker activeSolutionTracker;
+    private IActiveConfigScopeTracker activeConfigScopeTracker;
     private ISLCoreHandler slCoreHandler;
     private IServerConnectionsRepository serverConnectionsRepository;
     private IConnectedModeUIManager connectedModeUIManager;
@@ -56,21 +55,19 @@ public class SupportedLanguagesDialogViewModelTests
     public void TestInitialize()
     {
         pluginStatusesStore = Substitute.For<IPluginStatusesStore>();
-        activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-        activeSolutionTracker = Substitute.For<IActiveSolutionTracker>();
+        activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         slCoreHandler = Substitute.For<ISLCoreHandler>();
         serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
         connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         pluginStatusesStore.GetAll().Returns(DefaultPluginStatuses);
-        activeSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
-        activeSolutionTracker.CurrentSolutionName.Returns("MySolution");
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("MySolution"));
         serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(false);
         connectedModeUIManager.ShowManageBindingDialogAsync().Returns(Task.FromResult(true));
     }
 
     private SupportedLanguagesDialogViewModel CreateTestSubject() =>
-        new(pluginStatusesStore, activeSolutionBoundTracker, activeSolutionTracker, slCoreHandler, serverConnectionsRepository, connectedModeUIManager, threadHandling);
+        new(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository, connectedModeUIManager, threadHandling);
 
     [TestMethod]
     public void Ctor_InitializesAllPluginsFromStore()
@@ -107,8 +104,7 @@ public class SupportedLanguagesDialogViewModelTests
 
         pluginStatusesStore.Received(1).PluginStatusesChanged += Arg.Any<EventHandler>();
         serverConnectionsRepository.Received(1).ConnectionChanged += Arg.Any<EventHandler>();
-        activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged += Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
-        activeSolutionTracker.ReceivedWithAnyArgs(1).ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
+        activeConfigScopeTracker.ReceivedWithAnyArgs(1).CurrentConfigurationScopeChanged += Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
     }
 
     [TestMethod]
@@ -165,41 +161,36 @@ public class SupportedLanguagesDialogViewModelTests
     }
 
     [TestMethod]
-    public void IsBannerVisible_True_WhenNoConnection()
+    public void IsBannerPromotion_True_WhenNoConnection()
     {
         pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
         var testSubject = CreateTestSubject();
 
-        testSubject.IsBannerVisible.Should().BeTrue();
+        testSubject.IsBannerPromotion.Should().BeTrue();
     }
 
     [TestMethod]
-    public void IsBannerVisible_False_WhenBound()
+    public void IsBannerPromotion_False_WhenBound()
     {
         pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
-        activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(new BoundServerProject("solution", "project", new ServerConnection.SonarQube(new Uri("http://localhost"))), SonarLintMode.Connected, "dir"));
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("MySolution", SonarProjectId: "project-key"));
         var testSubject = CreateTestSubject();
 
-        testSubject.IsBannerVisible.Should().BeFalse();
+        testSubject.IsBannerPromotion.Should().BeFalse();
     }
 
     [TestMethod]
-    public void IsBannerVisible_False_WhenNoSolutionOpen()
+    public void IsBannerPromotion_False_WhenNoSolutionOpen()
     {
         pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
-        activeSolutionTracker.CurrentSolutionName.Returns((string)null);
-        serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
-        {
-            callInfo[0] = new List<ServerConnection> { new ServerConnection.SonarQube(new Uri("http://localhost")) };
-            return true;
-        });
+        activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
         var testSubject = CreateTestSubject();
 
-        testSubject.IsBannerVisible.Should().BeFalse();
+        testSubject.IsBannerPromotion.Should().BeFalse();
     }
 
     [TestMethod]
-    public void IsBannerVisible_True_WhenNotBoundAndSolutionIsOpen()
+    public void IsBannerPromotion_True_WhenNotBoundAndSolutionIsOpen()
     {
         pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
         serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
@@ -209,15 +200,15 @@ public class SupportedLanguagesDialogViewModelTests
         });
         var testSubject = CreateTestSubject();
 
-        testSubject.IsBannerVisible.Should().BeTrue();
+        testSubject.IsBannerPromotion.Should().BeTrue();
     }
 
     [TestMethod]
-    public void IsBannerVisible_True_WhenPluginFailed()
+    public void IsBannerPromotion_False_WhenPluginFailed()
     {
         var testSubject = CreateTestSubject();
 
-        testSubject.IsBannerVisible.Should().BeTrue();
+        testSubject.IsBannerPromotion.Should().BeFalse();
     }
 
     [TestMethod]
@@ -240,23 +231,24 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void IsBannerError_TakesPriorityOverConnectionState()
     {
-        activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(new BoundServerProject("solution", "project", new ServerConnection.SonarQube(new Uri("http://localhost"))), SonarLintMode.Connected, "dir"));
+        // Even when bound (would normally be Hidden), failed plugins still show the error banner
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("id", SonarProjectId: "project-key"));
         var testSubject = CreateTestSubject();
 
         testSubject.IsBannerError.Should().BeTrue();
     }
 
     [TestMethod]
-    public void BannerButtonText_SetUpConnection_WhenNoConnection()
+    public void PromotionBannerButtonText_SetUpConnection_WhenNoConnection()
     {
         pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
         var testSubject = CreateTestSubject();
 
-        testSubject.BannerButtonText.Should().Be(Strings.PluginStatuses_BannerSetUpConnectionButton);
+        testSubject.PromotionBannerButtonText.Should().Be(Strings.PluginStatuses_BannerSetUpConnectionButton);
     }
 
     [TestMethod]
-    public void BannerButtonText_BindProject_WhenNotBound()
+    public void PromotionBannerButtonText_BindProject_WhenNotBound()
     {
         pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
         serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
@@ -266,7 +258,7 @@ public class SupportedLanguagesDialogViewModelTests
         });
         var testSubject = CreateTestSubject();
 
-        testSubject.BannerButtonText.Should().Be(Strings.PluginStatuses_BannerBindProjectButton);
+        testSubject.PromotionBannerButtonText.Should().Be(Strings.PluginStatuses_BannerBindProjectButton);
     }
 
     [TestMethod]
@@ -287,13 +279,15 @@ public class SupportedLanguagesDialogViewModelTests
     }
 
     [TestMethod]
-    public void OnPluginStatusesChanged_DelegatesUpdateToUIThread()
+    public void OnPluginStatusesChanged_DelegatesUpdateToBackgroundThenUIThread()
     {
         var testSubject = CreateTestSubject();
+        threadHandling.ClearReceivedCalls();
 
         pluginStatusesStore.PluginStatusesChanged += Raise.EventWith(EventArgs.Empty);
 
-        threadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+        threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -307,19 +301,21 @@ public class SupportedLanguagesDialogViewModelTests
 
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.PremiumPluginsTooltip));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.FailedPluginsTooltip));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerVisible));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerPromotion));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerError));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.BannerButtonText));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.PromotionBannerButtonText));
     }
 
     [TestMethod]
-    public void OnConnectionChanged_DelegatesUpdateToUIThread()
+    public void OnConnectionChanged_DelegatesUpdateToBackgroundThenUIThread()
     {
         var testSubject = CreateTestSubject();
+        threadHandling.ClearReceivedCalls();
 
         serverConnectionsRepository.ConnectionChanged += Raise.EventWith(EventArgs.Empty);
 
-        threadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+        threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -331,57 +327,35 @@ public class SupportedLanguagesDialogViewModelTests
 
         serverConnectionsRepository.ConnectionChanged += Raise.EventWith(EventArgs.Empty);
 
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerVisible));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerPromotion));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerError));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.BannerButtonText));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.PromotionBannerButtonText));
     }
 
     [TestMethod]
-    public void OnActiveSolutionChanged_DelegatesUpdateToUIThread()
+    public void OnConfigurationScopeChanged_DelegatesUpdateToBackgroundThenUIThread()
     {
         var testSubject = CreateTestSubject();
+        threadHandling.ClearReceivedCalls();
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(new ConfigurationScopeChangedEventArgs(true));
 
-        threadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+        threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
     }
 
     [TestMethod]
-    public void OnActiveSolutionChanged_RaisesPropertyChangedForBannerProperties()
+    public void OnConfigurationScopeChanged_RaisesPropertyChangedForBannerProperties()
     {
         var testSubject = CreateTestSubject();
         var raisedProperties = new List<string>();
         testSubject.PropertyChanged += (_, args) => raisedProperties.Add(args.PropertyName);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(new ConfigurationScopeChangedEventArgs(true));
 
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerVisible));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerPromotion));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerError));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.BannerButtonText));
-    }
-
-    [TestMethod]
-    public void OnSolutionBindingChanged_DelegatesUpdateToUIThread()
-    {
-        var testSubject = CreateTestSubject();
-
-        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
-
-        threadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
-    }
-
-    [TestMethod]
-    public void OnSolutionBindingChanged_RaisesPropertyChangedForBannerProperties()
-    {
-        var testSubject = CreateTestSubject();
-        var raisedProperties = new List<string>();
-        testSubject.PropertyChanged += (_, args) => raisedProperties.Add(args.PropertyName);
-
-        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
-
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerVisible));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerError));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.BannerButtonText));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.PromotionBannerButtonText));
     }
 
     [TestMethod]
@@ -402,6 +376,7 @@ public class SupportedLanguagesDialogViewModelTests
         testSubject.RestartBackend();
 
         slCoreHandler.Received(1).ForceRestartSloop();
+        pluginStatusesStore.Received(1).Clear();
     }
 
     [TestMethod]
@@ -413,7 +388,6 @@ public class SupportedLanguagesDialogViewModelTests
 
         pluginStatusesStore.Received(1).PluginStatusesChanged -= Arg.Any<EventHandler>();
         serverConnectionsRepository.Received(1).ConnectionChanged -= Arg.Any<EventHandler>();
-        activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
-        activeSolutionTracker.ReceivedWithAnyArgs(1).ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
+        activeConfigScopeTracker.ReceivedWithAnyArgs(1).CurrentConfigurationScopeChanged -= Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
     }
 }

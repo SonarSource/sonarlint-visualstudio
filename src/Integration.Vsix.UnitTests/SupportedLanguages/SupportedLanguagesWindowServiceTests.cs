@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore;
@@ -34,8 +35,7 @@ public class SupportedLanguagesWindowServiceTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<SupportedLanguagesWindowService, ISupportedLanguagesWindowService>(
             MefTestHelpers.CreateExport<IPluginStatusesStore>(),
-            MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
-            MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<ISLCoreHandler>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
             MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
