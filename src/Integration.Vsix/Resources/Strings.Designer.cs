@@ -758,9 +758,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Including: {0}.
         /// </summary>
-        public static string PluginStatuses_PremiumLanguagesTooltip {
+        public static string PluginStatuses_PremiumPluginsTooltip {
             get {
-                return ResourceManager.GetString("PluginStatuses_PremiumLanguagesTooltip", resourceCulture);
+                return ResourceManager.GetString("PluginStatuses_PremiumPluginsTooltip", resourceCulture);
             }
         }
         

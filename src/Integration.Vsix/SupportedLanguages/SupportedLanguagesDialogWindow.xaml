@@ -188,7 +188,7 @@
                         <DataTrigger Binding="{Binding IsBannerVisible}" Value="False">
                             <Setter Property="Visibility" Value="Collapsed" />
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding IsErrorBanner}" Value="True">
+                        <DataTrigger Binding="{Binding IsBannerError}" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceRedMediumKey}}" />
                         </DataTrigger>
                     </Style.Triggers>
@@ -199,7 +199,7 @@
                     <DockPanel.Style>
                         <Style TargetType="DockPanel">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsErrorBanner}" Value="True">
+                                <DataTrigger Binding="{Binding IsBannerError}" Value="True">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -214,7 +214,7 @@
                                    Margin="0,4,0,0">
                             <Run Text="Connect to " /><Run Text="SonarQube Server or Cloud" Foreground="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" /><Run Text=" to unlock " /><InlineUIContainer BaselineAlignment="TextBottom">
                                 <TextBlock Text="extended language/analyzer support"
-                                           ToolTip="{Binding PremiumLanguagesTooltip}"
+                                           ToolTip="{Binding PremiumPluginsTooltip}"
                                            Cursor="Help">
                                     <TextBlock.TextDecorations>
                                         <TextDecoration Location="Underline">
@@ -227,7 +227,7 @@
                             </InlineUIContainer><Run Text=" and advanced security rules for your existing code." />
                         </TextBlock>
                         <Button Click="SetUpConnection_Click"
-                                Content="{Binding SetUpConnectionText}"
+                                Content="{Binding BannerButtonText}"
                                 Margin="0,8,0,0"
                                 Padding="12,4"
                                 HorizontalAlignment="Left"
@@ -240,7 +240,7 @@
                         <Style TargetType="DockPanel">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsErrorBanner}" Value="True">
+                                <DataTrigger Binding="{Binding IsBannerError}" Value="True">
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -251,7 +251,7 @@
                                 TextElement.Foreground="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}">
                         <TextBlock Text="Some analyzers are unavailable"
                                    FontWeight="Bold" />
-                        <TextBlock Text="{Binding FailedPluginsText}"
+                        <TextBlock Text="{Binding FailedPluginsTooltip}"
                                    TextWrapping="Wrap"
                                    Margin="0,4,0,0" />
                         <Button Click="RestartBackend_Click"

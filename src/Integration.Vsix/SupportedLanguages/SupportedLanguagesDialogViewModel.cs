@@ -61,7 +61,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
 
     public ObservableCollection<PluginStatusDto> DisplayedPlugins { get; }
 
-    public string PremiumLanguagesTooltip
+    public string PremiumPluginsTooltip
     {
         get
         {
@@ -69,17 +69,17 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
                 .Where(p => p.state == PluginStateDto.PREMIUM)
                 .Select(p => p.pluginName)
                 .Distinct());
-            return names.Length == 0 ? string.Empty : string.Format(Strings.PluginStatuses_PremiumLanguagesTooltip, names);
+            return names.Length == 0 ? string.Empty : string.Format(Strings.PluginStatuses_PremiumPluginsTooltip, names);
         }
     }
-
-    public bool IsBannerVisible => GetConnectionBannerState() != ConnectionBannerState.Hidden;
-    public bool IsErrorBanner => GetConnectionBannerState() == ConnectionBannerState.PluginFailed;
-    public string SetUpConnectionText => GetConnectionBannerState() == ConnectionBannerState.NotBound ? Strings.PluginStatuses_BannerBindProjectButton : Strings.PluginStatuses_BannerSetUpConnectionButton;
-    public string FailedPluginsText =>
+    public string FailedPluginsTooltip =>
         string.Join(", ", AllPlugins
             .Where(p => p.state == PluginStateDto.FAILED)
             .Select(p => p.pluginName));
+
+    public bool IsBannerVisible => GetConnectionBannerState() != ConnectionBannerState.Hidden;
+    public bool IsBannerError => GetConnectionBannerState() == ConnectionBannerState.PluginFailed;
+    public string BannerButtonText => GetConnectionBannerState() == ConnectionBannerState.NotBound ? Strings.PluginStatuses_BannerBindProjectButton : Strings.PluginStatuses_BannerSetUpConnectionButton;
 
     public SupportedLanguagesDialogViewModel(
         IPluginStatusesStore pluginStatusesStore,
@@ -136,11 +136,11 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
                 DisplayedPlugins.Add(plugin);
             }
 
-            RaisePropertyChanged(nameof(PremiumLanguagesTooltip));
-            RaisePropertyChanged(nameof(FailedPluginsText));
+            RaisePropertyChanged(nameof(PremiumPluginsTooltip));
+            RaisePropertyChanged(nameof(FailedPluginsTooltip));
             RaisePropertyChanged(nameof(IsBannerVisible));
-            RaisePropertyChanged(nameof(IsErrorBanner));
-            RaisePropertyChanged(nameof(SetUpConnectionText));
+            RaisePropertyChanged(nameof(IsBannerError));
+            RaisePropertyChanged(nameof(BannerButtonText));
         });
     }
 
@@ -149,8 +149,8 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         threadHandling.RunOnUIThread(() =>
         {
             RaisePropertyChanged(nameof(IsBannerVisible));
-            RaisePropertyChanged(nameof(IsErrorBanner));
-            RaisePropertyChanged(nameof(SetUpConnectionText));
+            RaisePropertyChanged(nameof(IsBannerError));
+            RaisePropertyChanged(nameof(BannerButtonText));
         });
     }
 

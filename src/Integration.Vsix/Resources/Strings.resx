@@ -481,7 +481,7 @@ Without Connected Mode, any code added or changed in the last 30 days is conside
     <value>Detects unused #pragma warning disable and restore directives that do not suppress any issues raised by Sonar analyzers. Similar to IDE0079, but applies specifically to Sonar rules.
 Set the severity level for how these findings are reported, or choose None to disable this analysis. TreatWarningsAsErrors is respected by this rule.</value>
   </data>
-  <data name="PluginStatuses_PremiumLanguagesTooltip" xml:space="preserve">
+  <data name="PluginStatuses_PremiumPluginsTooltip" xml:space="preserve">
     <value>Including: {0}</value>
   </data>
   <data name="PluginStatuses_BannerBindProjectButton" xml:space="preserve">

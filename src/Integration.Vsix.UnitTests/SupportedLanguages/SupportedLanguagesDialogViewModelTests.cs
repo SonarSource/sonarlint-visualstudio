@@ -96,8 +96,8 @@ public class SupportedLanguagesDialogViewModelTests
 
         testSubject.AllPlugins.Should().BeEmpty();
         testSubject.DisplayedPlugins.Should().BeEmpty();
-        testSubject.PremiumLanguagesTooltip.Should().BeEmpty();
-        testSubject.FailedPluginsText.Should().BeEmpty();
+        testSubject.PremiumPluginsTooltip.Should().BeEmpty();
+        testSubject.FailedPluginsTooltip.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -112,15 +112,15 @@ public class SupportedLanguagesDialogViewModelTests
     }
 
     [TestMethod]
-    public void PremiumLanguagesTooltip_ReturnsPremiumPluginNames()
+    public void PremiumPluginsTooltip_ReturnsPremiumPluginNames()
     {
         var testSubject = CreateTestSubject();
 
-        testSubject.PremiumLanguagesTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumLanguagesTooltip, "Java, COBOL"));
+        testSubject.PremiumPluginsTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumPluginsTooltip, "Java, COBOL"));
     }
 
     [TestMethod]
-    public void PremiumLanguagesTooltip_NoPremiumPlugins_ReturnsEmpty()
+    public void PremiumPluginsTooltip_NoPremiumPlugins_ReturnsEmpty()
     {
         pluginStatusesStore.GetAll().Returns(new[]
         {
@@ -128,11 +128,11 @@ public class SupportedLanguagesDialogViewModelTests
         });
         var testSubject = CreateTestSubject();
 
-        testSubject.PremiumLanguagesTooltip.Should().BeEmpty();
+        testSubject.PremiumPluginsTooltip.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void PremiumLanguagesTooltip_DuplicatePremiumNames_ReturnsDistinct()
+    public void PremiumPluginsTooltip_DuplicatePremiumNames_ReturnsDistinct()
     {
         pluginStatusesStore.GetAll().Returns(new[]
         {
@@ -141,19 +141,19 @@ public class SupportedLanguagesDialogViewModelTests
         });
         var testSubject = CreateTestSubject();
 
-        testSubject.PremiumLanguagesTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumLanguagesTooltip, "Java"));
+        testSubject.PremiumPluginsTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumPluginsTooltip, "Java"));
     }
 
     [TestMethod]
-    public void FailedPluginsText_ReturnsFailedPluginNames()
+    public void FailedPluginsTooltip_ReturnsFailedPluginNames()
     {
         var testSubject = CreateTestSubject();
 
-        testSubject.FailedPluginsText.Should().Be("Go");
+        testSubject.FailedPluginsTooltip.Should().Be("Go");
     }
 
     [TestMethod]
-    public void FailedPluginsText_NoFailedPlugins_ReturnsEmpty()
+    public void FailedPluginsTooltip_NoFailedPlugins_ReturnsEmpty()
     {
         pluginStatusesStore.GetAll().Returns(new[]
         {
@@ -161,7 +161,7 @@ public class SupportedLanguagesDialogViewModelTests
         });
         var testSubject = CreateTestSubject();
 
-        testSubject.FailedPluginsText.Should().BeEmpty();
+        testSubject.FailedPluginsTooltip.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -221,42 +221,42 @@ public class SupportedLanguagesDialogViewModelTests
     }
 
     [TestMethod]
-    public void IsErrorBanner_True_WhenPluginFailed()
+    public void IsBannerError_True_WhenPluginFailed()
     {
         var testSubject = CreateTestSubject();
 
-        testSubject.IsErrorBanner.Should().BeTrue();
+        testSubject.IsBannerError.Should().BeTrue();
     }
 
     [TestMethod]
-    public void IsErrorBanner_False_WhenNoConnection()
+    public void IsBannerError_False_WhenNoConnection()
     {
         pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
         var testSubject = CreateTestSubject();
 
-        testSubject.IsErrorBanner.Should().BeFalse();
+        testSubject.IsBannerError.Should().BeFalse();
     }
 
     [TestMethod]
-    public void IsErrorBanner_TakesPriorityOverConnectionState()
+    public void IsBannerError_TakesPriorityOverConnectionState()
     {
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(new BoundServerProject("solution", "project", new ServerConnection.SonarQube(new Uri("http://localhost"))), SonarLintMode.Connected, "dir"));
         var testSubject = CreateTestSubject();
 
-        testSubject.IsErrorBanner.Should().BeTrue();
+        testSubject.IsBannerError.Should().BeTrue();
     }
 
     [TestMethod]
-    public void SetUpConnectionText_SetUpConnection_WhenNoConnection()
+    public void BannerButtonText_SetUpConnection_WhenNoConnection()
     {
         pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
         var testSubject = CreateTestSubject();
 
-        testSubject.SetUpConnectionText.Should().Be(Strings.PluginStatuses_BannerSetUpConnectionButton);
+        testSubject.BannerButtonText.Should().Be(Strings.PluginStatuses_BannerSetUpConnectionButton);
     }
 
     [TestMethod]
-    public void SetUpConnectionText_BindProject_WhenNotBound()
+    public void BannerButtonText_BindProject_WhenNotBound()
     {
         pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
         serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
@@ -266,7 +266,7 @@ public class SupportedLanguagesDialogViewModelTests
         });
         var testSubject = CreateTestSubject();
 
-        testSubject.SetUpConnectionText.Should().Be(Strings.PluginStatuses_BannerBindProjectButton);
+        testSubject.BannerButtonText.Should().Be(Strings.PluginStatuses_BannerBindProjectButton);
     }
 
     [TestMethod]
@@ -305,11 +305,11 @@ public class SupportedLanguagesDialogViewModelTests
 
         pluginStatusesStore.PluginStatusesChanged += Raise.EventWith(EventArgs.Empty);
 
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.PremiumLanguagesTooltip));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.FailedPluginsText));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.PremiumPluginsTooltip));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.FailedPluginsTooltip));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerVisible));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsErrorBanner));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.SetUpConnectionText));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerError));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.BannerButtonText));
     }
 
     [TestMethod]
@@ -332,8 +332,8 @@ public class SupportedLanguagesDialogViewModelTests
         serverConnectionsRepository.ConnectionChanged += Raise.EventWith(EventArgs.Empty);
 
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerVisible));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsErrorBanner));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.SetUpConnectionText));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerError));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.BannerButtonText));
     }
 
     [TestMethod]
@@ -356,8 +356,8 @@ public class SupportedLanguagesDialogViewModelTests
         activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
 
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerVisible));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsErrorBanner));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.SetUpConnectionText));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerError));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.BannerButtonText));
     }
 
     [TestMethod]
@@ -380,8 +380,8 @@ public class SupportedLanguagesDialogViewModelTests
         activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
 
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerVisible));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsErrorBanner));
-        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.SetUpConnectionText));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerError));
+        raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.BannerButtonText));
     }
 
     [TestMethod]
