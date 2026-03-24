@@ -77,9 +77,10 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
             .Where(p => p.state == PluginStateDto.FAILED)
             .Select(p => p.pluginName));
 
-    public bool IsBannerVisible => GetConnectionBannerState() != ConnectionBannerState.Hidden;
-    public bool IsBannerError => GetConnectionBannerState() == ConnectionBannerState.PluginFailed;
-    public string BannerButtonText => GetConnectionBannerState() == ConnectionBannerState.NotBound ? Strings.PluginStatuses_BannerBindProjectButton : Strings.PluginStatuses_BannerSetUpConnectionButton;
+    public ConnectionBannerState BannerState { get; private set; }
+    public bool IsBannerVisible => BannerState != ConnectionBannerState.Hidden;
+    public bool IsBannerError => BannerState == ConnectionBannerState.PluginFailed;
+    public string BannerButtonText => BannerState == ConnectionBannerState.NotBound ? Strings.PluginStatuses_BannerBindProjectButton : Strings.PluginStatuses_BannerSetUpConnectionButton;
 
     public SupportedLanguagesDialogViewModel(
         IPluginStatusesStore pluginStatusesStore,
@@ -101,6 +102,8 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         AllPlugins = new ObservableCollection<PluginStatusDto>(pluginStatusesStore.GetAll());
         DisplayedPlugins = new ObservableCollection<PluginStatusDto>(
             AllPlugins.Where(p => DisplayedStates.Contains(p.state)));
+
+        BannerState = GetConnectionBannerState();
 
         pluginStatusesStore.PluginStatusesChanged += OnPluginStatusesChanged;
         serverConnectionsRepository.ConnectionChanged += OnConnectionStateChanged;
@@ -136,8 +139,11 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
                 DisplayedPlugins.Add(plugin);
             }
 
+            BannerState = GetConnectionBannerState();
+
             RaisePropertyChanged(nameof(PremiumPluginsTooltip));
             RaisePropertyChanged(nameof(FailedPluginsTooltip));
+            RaisePropertyChanged(nameof(BannerState));
             RaisePropertyChanged(nameof(IsBannerVisible));
             RaisePropertyChanged(nameof(IsBannerError));
             RaisePropertyChanged(nameof(BannerButtonText));
@@ -148,6 +154,8 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
     {
         threadHandling.RunOnUIThread(() =>
         {
+            BannerState = GetConnectionBannerState();
+            RaisePropertyChanged(nameof(BannerState));
             RaisePropertyChanged(nameof(IsBannerVisible));
             RaisePropertyChanged(nameof(IsBannerError));
             RaisePropertyChanged(nameof(BannerButtonText));
