@@ -26,6 +26,7 @@ public interface IPluginStatusesStore
 {
     IReadOnlyCollection<PluginStatusDto> GetAll();
     void Update(string configurationScopeId, IEnumerable<PluginStatusDto> newPluginStatuses);
+    void Clear();
 
     event EventHandler PluginStatusesChanged;
 }

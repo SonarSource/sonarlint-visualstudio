@@ -147,6 +147,27 @@ public class PluginStatusesStoreTests
     }
 
     [TestMethod]
+    public void Clear_EmptiesPluginStatuses()
+    {
+        testSubject.Update(ConfigScopeId, CreatePluginStatuses());
+
+        testSubject.Clear();
+
+        testSubject.GetAll().Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void Clear_RaisesPluginStatusesChangedEvent()
+    {
+        var eventHandler = Substitute.For<EventHandler>();
+        testSubject.PluginStatusesChanged += eventHandler;
+
+        testSubject.Clear();
+
+        eventHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
+    }
+
+    [TestMethod]
     public void ConfigurationScopeChanged_FetchesPluginStatusesFromSLCore()
     {
         var pluginStatuses = CreatePluginStatuses();

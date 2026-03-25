@@ -66,7 +66,7 @@ internal sealed class FailedPluginNotification : IFailedPluginNotification
             return;
         }
 
-        var message = Strings.PluginStatusesFailedNotificationText + string.Join(", ", failedPlugins.Select(p => p.pluginName));
+        var message = $"{Strings.PluginStatusesFailedNotificationText}: {string.Join(", ", failedPlugins.Select(p => p.pluginName))}";
 
         var restartAction = new NotificationAction(
             SLCoreStrings.SloopRestartFailedNotificationService_Restart,
