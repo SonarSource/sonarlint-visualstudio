@@ -1,27 +1,298 @@
 <Window x:Class="SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages.SupportedLanguagesDialogWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Supported Languages"
-    ResizeMode="NoResize"
-    SizeToContent="WidthAndHeight"
-    WindowStartupLocation="CenterOwner"
-    x:ClassModifier="internal">
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:SonarLint.VisualStudio.SLCore.Service.Plugin.Models;assembly=SonarLint.VisualStudio.SLCore"
+        xmlns:slcore="clr-namespace:SonarLint.VisualStudio.SLCore;assembly=SonarLint.VisualStudio.SLCore"
+        xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+        xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+        xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+        xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
+        xmlns:integrationRes="clr-namespace:SonarLint.VisualStudio.Integration.Resources;assembly=SonarLint.VisualStudio.Integration"
+        xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+        Title="{x:Static res:Strings.PluginStatuses_DialogTitle}"
+        ResizeMode="NoResize"
+        Width="800"
+        Height="500"
+        WindowStartupLocation="CenterOwner"
+        x:Name="This"
+        x:ClassModifier="internal">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
+
+            <Style x:Key="PluginDataGridStyle" TargetType="DataGrid">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="AlternatingRowBackground" Value="Transparent" />
+                <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.PanelBorderKey}}" />
+                <Setter Property="HeadersVisibility" Value="Column" />
+                <Setter Property="GridLinesVisibility" Value="Horizontal" />
+                <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}" />
+            </Style>
+
+            <Style x:Key="PluginDataGridRowStyle" TargetType="DataGridRow">
+                <Setter Property="Background" Value="Transparent" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}" />
+                    </Trigger>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="PluginDataGridCellStyle" TargetType="DataGridCell">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="12,8" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="DataGridCell">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter VerticalAlignment="Center" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="PluginDataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Padding" Value="12,8" />
+                <Setter Property="FontWeight" Value="Bold" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.PanelBorderKey}}"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="ActionButtonStyle" TargetType="Button">
+                <Setter Property="Padding" Value="4,1" />
+                <Setter Property="Margin" Value="6,0,0,0" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.ButtonTextKey}}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="ButtonBorder"
+                                    Background="{DynamicResource {x:Static vsShell:VsBrushes.ButtonFaceKey}}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="4"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="ButtonBorder" Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarMouseDownBackgroundGradientKey}}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <DataTemplate x:Key="SourceCellTemplate">
+                <TextBlock x:Name="SourceText" Text="{x:Static res:Strings.PluginStatuses_SourceIde}" VerticalAlignment="Center" />
+                <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding source}" Value="{x:Static models:ArtifactSourceDto.SONARQUBE_SERVER}">
+                        <Setter TargetName="SourceText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_SourceServer}" />
+                        <Setter TargetName="SourceText" Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding source}" Value="{x:Static models:ArtifactSourceDto.SONARQUBE_CLOUD}">
+                        <Setter TargetName="SourceText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_SourceCloud}" />
+                        <Setter TargetName="SourceText" Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" />
+                    </DataTrigger>
+                </DataTemplate.Triggers>
+            </DataTemplate>
+
+            <DataTemplate x:Key="StatusCellTemplate">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse x:Name="StatusDot" Width="8" Height="8" Margin="0,0,6,0" VerticalAlignment="Center" Visibility="Collapsed" />
+                    <TextBlock x:Name="StatusText" VerticalAlignment="Center" />
+                </StackPanel>
+                <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.ACTIVE}">
+                        <Setter TargetName="StatusDot" Property="Fill" Value="Green" />
+                        <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusActive}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.DOWNLOADING}">
+                        <Setter TargetName="StatusDot" Property="Fill" Value="Orange" />
+                        <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusDownloading}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.FAILED}">
+                        <Setter TargetName="StatusDot" Property="Fill" Value="Red" />
+                        <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusFailed}" />
+                        <Setter TargetName="StatusText" Property="Foreground" Value="Red" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.SYNCED}">
+                        <Setter TargetName="StatusDot" Property="Fill" Value="Green" />
+                        <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusActive}" />
+                    </DataTrigger>
+                </DataTemplate.Triggers>
+            </DataTemplate>
+
+            <Style x:Key="BannerBorder" TargetType="Border">
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="12" />
+                <Setter Property="Margin" Value="0,0,0,16" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.AccentMediumKey}}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.PanelBorderKey}}" />
+            </Style>
+
+            <Style x:Key="BannerBorderError" TargetType="Border" BasedOn="{StaticResource BannerBorder}">
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceRedMediumKey}}" />
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
     <Window.Style>
         <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}" />
     </Window.Style>
 
-    <Grid Margin="40">
-        <TextBlock Text="Supported Languages - Coming Soon"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontSize="14" />
+    <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="{x:Static res:Strings.PluginStatuses_DialogTitle}"
+                   FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment200PercentFontSizeKey}}"
+                   FontWeight="Bold"
+                   Foreground="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"
+                   Margin="0,0,0,16" />
+
+        <Border Grid.Row="1" Visibility="{Binding IsBannerError, Converter={StaticResource TrueToVisibleConverter}}"
+                Style="{StaticResource BannerBorderError}">
+                <DockPanel>
+                    <imaging:CrispImage DockPanel.Dock="Left" Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusError}" Width="16" Height="16" VerticalAlignment="Top" Margin="0,2,8,0" />
+                    <StackPanel TextElement.FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}"
+                        TextElement.Foreground="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}">
+                        <TextBlock Text="{x:Static integrationRes:Strings.PluginStatusesFailedNotificationText}"
+                                   FontWeight="Bold" />
+                        <TextBlock Text="{Binding FailedPluginsTooltip}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,0" />
+                        <Button Click="RestartBackend_Click"
+                                Content="{x:Static slcore:SLCoreStrings.SloopRestartFailedNotificationService_Restart}"
+                                Margin="0,8,0,0"
+                                Padding="12,4"
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource ActionButtonStyle}" />
+                    </StackPanel>
+                </DockPanel>
+        </Border>
+
+        <Border Grid.Row="1"
+                Visibility="{Binding IsBannerPromotion, Converter={StaticResource TrueToVisibleConverter}}"
+                Style="{StaticResource BannerBorder}">
+            <DockPanel>
+                <imaging:CrispImage DockPanel.Dock="Left" Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusInformation}" Width="16" Height="16" VerticalAlignment="Top" Margin="0,2,8,0" />
+                <StackPanel TextElement.FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}" TextElement.Foreground="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}">
+                    <TextBlock Text="{x:Static res:Strings.PluginStatuses_BannerInfoHeading}"
+                               FontWeight="Bold" />
+                    <TextBlock TextWrapping="Wrap"
+                               Margin="0,4,0,0">
+                        <Run Text="Connect to " />
+                        <Run Text="SonarQube Server or Cloud"
+                             Foreground="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" />
+                        <Run Text=" to unlock " />
+                        <InlineUIContainer BaselineAlignment="TextBottom">
+                            <TextBlock Text="extended language/analyzer support"
+                                       ToolTip="{Binding PremiumPluginsTooltip}"
+                                       Cursor="Help">
+                                <TextBlock.TextDecorations>
+                                    <TextDecoration Location="Underline">
+                                        <TextDecoration.Pen>
+                                            <Pen Brush="{DynamicResource {x:Static vsShell:VsBrushes.InfoTextKey}}"
+                                                 Thickness="2" DashStyle="{x:Static DashStyles.Dot}" />
+                                        </TextDecoration.Pen>
+                                    </TextDecoration>
+                                </TextBlock.TextDecorations>
+                            </TextBlock>
+                        </InlineUIContainer>
+                        <Run Text=" and advanced security rules for your existing code." />
+                    </TextBlock>
+                    <Button Click="SetUpConnection_Click"
+                            Content="{Binding PromotionBannerButtonText}"
+                            Margin="0,8,0,0"
+                            Padding="12,4"
+                            HorizontalAlignment="Left"
+                            Style="{StaticResource ActionButtonStyle}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="2"
+                BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.PanelBorderKey}}"
+                BorderThickness="1"
+                CornerRadius="4"
+                ClipToBounds="True">
+            <Grid>
+                <DataGrid ItemsSource="{Binding DisplayedPlugins}"
+                          Style="{StaticResource PluginDataGridStyle}"
+                          RowStyle="{StaticResource PluginDataGridRowStyle}"
+                          CellStyle="{StaticResource PluginDataGridCellStyle}"
+                          ColumnHeaderStyle="{StaticResource PluginDataGridColumnHeaderStyle}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserReorderColumns="False"
+                          CanUserResizeColumns="False"
+                          CanUserResizeRows="False"
+                          CanUserSortColumns="False"
+                          SelectionMode="Single">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="{x:Static res:Strings.PluginStatuses_ColumnLanguage}" Binding="{Binding pluginName}" Width="*" />
+                        <DataGridTemplateColumn Header="{x:Static res:Strings.PluginStatuses_ColumnStatus}" CellTemplate="{StaticResource StatusCellTemplate}" Width="*" />
+                        <DataGridTemplateColumn Header="{x:Static res:Strings.PluginStatuses_ColumnSource}" CellTemplate="{StaticResource SourceCellTemplate}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DisplayedPlugins.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <ProgressBar IsIndeterminate="True" Width="200" Height="4" />
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

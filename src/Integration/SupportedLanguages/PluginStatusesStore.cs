@@ -55,6 +55,7 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
         this.logger = logger.ForContext(Strings.PluginStatuses_LogContext);
 
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += OnCurrentConfigurationScopeChanged;
+        threadHandling.RunOnBackgroundThread(FetchPluginStatusesAsync).Forget();
     }
 
     public IReadOnlyCollection<PluginStatusDto> GetAll()
@@ -76,6 +77,16 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
             }
 
             pluginStatuses = newPluginStatuses.ToImmutableList();
+        }
+
+        RaisePluginStatusesChanged();
+    }
+
+    public void Clear()
+    {
+        lock (lockObject)
+        {
+            pluginStatuses = ImmutableList<PluginStatusDto>.Empty;
         }
 
         RaisePluginStatusesChanged();

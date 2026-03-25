@@ -20,14 +20,46 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Integration.SupportedLanguages;
+using SonarLint.VisualStudio.SLCore;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 
 [ExcludeFromCodeCoverage]
 internal sealed partial class SupportedLanguagesDialogWindow : Window
 {
-    public SupportedLanguagesDialogWindow()
+    public SupportedLanguagesDialogViewModel ViewModel { get; }
+
+    public SupportedLanguagesDialogWindow(
+        IPluginStatusesStore pluginStatusesStore,
+        IActiveConfigScopeTracker activeConfigScopeTracker,
+        ISLCoreHandler slCoreHandler,
+        IServerConnectionsRepository serverConnectionsRepository,
+        IConnectedModeUIManager connectedModeUiManager,
+        IThreadHandling threadHandling)
     {
-        InitializeComponent();
+        try
+        {
+            ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository,
+                connectedModeUiManager, threadHandling);
+            Closed += DisposeViewModel;
+            InitializeComponent();
+        }
+        catch (Exception)
+        {
+            Closed -= DisposeViewModel;
+            ViewModel?.Dispose();
+            throw;
+        }
     }
+
+    private void DisposeViewModel(object sender, EventArgs args) => ViewModel.Dispose();
+
+    private void SetUpConnection_Click(object sender, RoutedEventArgs e) => ViewModel.SetUpConnection();
+
+    private void RestartBackend_Click(object sender, RoutedEventArgs e) => ViewModel.RestartBackend();
 }
