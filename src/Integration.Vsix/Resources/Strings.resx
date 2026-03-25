@@ -481,4 +481,46 @@ Without Connected Mode, any code added or changed in the last 30 days is conside
     <value>Detects unused #pragma warning disable and restore directives that do not suppress any issues raised by Sonar analyzers. Similar to IDE0079, but applies specifically to Sonar rules.
 Set the severity level for how these findings are reported, or choose None to disable this analysis. TreatWarningsAsErrors is respected by this rule.</value>
   </data>
+  <data name="PluginStatuses_PremiumPluginsTooltip" xml:space="preserve">
+    <value>Including: {0}</value>
+  </data>
+  <data name="PluginStatuses_BannerBindProjectButton" xml:space="preserve">
+    <value>Bind Project</value>
+  </data>
+  <data name="PluginStatuses_BannerSetUpConnectionButton" xml:space="preserve">
+    <value>Set up Connection</value>
+  </data>
+  <data name="PluginStatuses_DialogTitle" xml:space="preserve">
+    <value>Supported Languages &amp; Analyzers</value>
+  </data>
+  <data name="PluginStatuses_BannerInfoHeading" xml:space="preserve">
+    <value>Get more from your analysis</value>
+  </data>
+  <data name="PluginStatuses_ColumnLanguage" xml:space="preserve">
+    <value>LANGUAGE/ANALYZER</value>
+  </data>
+  <data name="PluginStatuses_ColumnStatus" xml:space="preserve">
+    <value>STATUS</value>
+  </data>
+  <data name="PluginStatuses_ColumnSource" xml:space="preserve">
+    <value>SOURCE</value>
+  </data>
+  <data name="PluginStatuses_StatusActive" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="PluginStatuses_StatusDownloading" xml:space="preserve">
+    <value>Downloading...</value>
+  </data>
+  <data name="PluginStatuses_StatusFailed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="PluginStatuses_SourceIde" xml:space="preserve">
+    <value>SonarQube for IDE</value>
+  </data>
+  <data name="PluginStatuses_SourceServer" xml:space="preserve">
+    <value>SonarQube Server</value>
+  </data>
+  <data name="PluginStatuses_SourceCloud" xml:space="preserve">
+    <value>SonarQube Cloud</value>
+  </data>
 </root>
