@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -47,4 +47,8 @@ public interface ITelemetryManager
     void HotspotInvestigatedLocally();
 
     void HotspotInvestigatedRemotely();
+
+    void SupportedLanguagesPanelOpened();
+
+    void SupportedLanguagesPanelCtaClicked();
 }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -56,6 +57,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
     private readonly IServerConnectionsRepository serverConnectionsRepository;
     private readonly IConnectedModeUIManager connectedModeUiManager;
     private readonly IThreadHandling threadHandling;
+    private readonly ITelemetryManager telemetryManager;
 
     public ObservableCollection<PluginStatusDto> AllPlugins { get; } = new ();
 
@@ -93,7 +95,8 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         ISLCoreHandler slCoreHandler,
         IServerConnectionsRepository serverConnectionsRepository,
         IConnectedModeUIManager connectedModeUiManager,
-        IThreadHandling threadHandling)
+        IThreadHandling threadHandling,
+        ITelemetryManager telemetryManager)
     {
         this.pluginStatusesStore = pluginStatusesStore;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
@@ -101,6 +104,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         this.serverConnectionsRepository = serverConnectionsRepository;
         this.connectedModeUiManager = connectedModeUiManager;
         this.threadHandling = threadHandling;
+        this.telemetryManager = telemetryManager;
 
         pluginStatusesStore.PluginStatusesChanged += PluginStatusesStore_PluginStatusesChanged;
         serverConnectionsRepository.ConnectionChanged += ServerConnectionsRepository_ConnectionChanged;
@@ -109,7 +113,11 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         UpdateFullStateAsync().Forget();
     }
 
-    public void SetUpConnection() => connectedModeUiManager.ShowManageBindingDialogAsync().Forget();
+    public void SetUpConnection()
+    {
+        telemetryManager.SupportedLanguagesPanelCtaClicked();
+        connectedModeUiManager.ShowManageBindingDialogAsync().Forget();
+    }
 
     public void RestartBackend()
     {

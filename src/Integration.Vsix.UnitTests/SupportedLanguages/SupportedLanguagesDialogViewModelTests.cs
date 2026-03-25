@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
@@ -50,6 +51,7 @@ public class SupportedLanguagesDialogViewModelTests
     private IServerConnectionsRepository serverConnectionsRepository;
     private IConnectedModeUIManager connectedModeUiManager;
     private IThreadHandling threadHandling;
+    private ITelemetryManager telemetryManager;
     private SupportedLanguagesDialogViewModel testSubject;
 
     [TestInitialize]
@@ -61,13 +63,14 @@ public class SupportedLanguagesDialogViewModelTests
         serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
         connectedModeUiManager = Substitute.For<IConnectedModeUIManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        telemetryManager = Substitute.For<ITelemetryManager>();
 
         pluginStatusesStore.GetAll().Returns(DefaultPluginStatuses);
         activeConfigScopeTracker.Current.Returns(new ConfigurationScope("MySolution"));
         serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(false);
         connectedModeUiManager.ShowManageBindingDialogAsync().Returns(Task.FromResult(true));
 
-        testSubject = new SupportedLanguagesDialogViewModel(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository, connectedModeUiManager, threadHandling);
+        testSubject = new SupportedLanguagesDialogViewModel(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository, connectedModeUiManager, threadHandling, telemetryManager);
     }
 
     [TestMethod]
@@ -84,7 +87,7 @@ public class SupportedLanguagesDialogViewModelTests
     {
         pluginStatusesStore.GetAll().Returns(Array.Empty<PluginStatusDto>());
 
-        var emptyTestSubject = new SupportedLanguagesDialogViewModel(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository, connectedModeUiManager, threadHandling);
+        var emptyTestSubject = new SupportedLanguagesDialogViewModel(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository, connectedModeUiManager, threadHandling, telemetryManager);
 
         emptyTestSubject.AllPlugins.Should().BeEmpty();
         emptyTestSubject.DisplayedPlugins.Should().BeEmpty();
@@ -230,6 +233,7 @@ public class SupportedLanguagesDialogViewModelTests
         testSubject.SetUpConnection();
 
         connectedModeUiManager.Received(1).ShowManageBindingDialogAsync();
+        telemetryManager.Received(1).SupportedLanguagesPanelCtaClicked();
     }
 
     [TestMethod]
