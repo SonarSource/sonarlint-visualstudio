@@ -286,9 +286,9 @@
     <value>Unable to detect java installation provided in the settings "{0}". Embedded JRE will be used.</value>
   </data>
   <data name="JreLocationDescriptionText" xml:space="preserve">
-    <value>SonarQube for Visual Studio provides its own JRE to launch SLCORE out of process. You can provide an explicit Java installation (17 or more recent) to be used instead.
+    <value>SonarQube for Visual Studio provides its own JRE to launch SLCORE out of process. You can provide an explicit Java installation (21 or more recent) to be used instead.
 
-E.g. C:\Program Files\Java\jdk-17</value>
+E.g. C:\Program Files\Java\jdk-21</value>
   </data>
   <data name="JreLocationLabel" xml:space="preserve">
     <value>Java Home</value>

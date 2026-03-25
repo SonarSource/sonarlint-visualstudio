@@ -147,6 +147,9 @@
   <data name="SloopRestartFailedNotificationService_GoldBarMessage" xml:space="preserve">
     <value>SonarQube for Visual Studio background service failed to start</value>
   </data>
+  <data name="SloopRestartFailedNotificationService_GoldBarMessageCustomJre" xml:space="preserve">
+    <value>SonarQube for Visual Studio background service failed to start with the provided custom JRE. Please ensure that JRE 21+ is correctly configured in the SonarQube Options</value>
+  </data>
   <data name="SloopRestartFailedNotificationService_Restart" xml:space="preserve">
     <value>Restart SonarQube for Visual Studio</value>
   </data>
