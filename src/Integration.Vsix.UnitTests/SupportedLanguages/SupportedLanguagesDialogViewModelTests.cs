@@ -232,8 +232,8 @@ public class SupportedLanguagesDialogViewModelTests
     {
         testSubject.SetUpConnection();
 
-        connectedModeUiManager.Received(1).ShowManageBindingDialogAsync();
         telemetryManager.Received(1).SupportedLanguagesPanelCtaClicked();
+        connectedModeUiManager.Received(1).ShowManageBindingDialogAsync();
     }
 
     [TestMethod]
