@@ -44,14 +44,17 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Notification
         }
 
         [TestMethod]
-        public void Show_CreatesNotificationAndCallsShow()
+        public void Show_CustomJreNotSet_ShowsDefaultMessage()
         {
             INotification notification = null;
 
             var notificationService = Substitute.For<INotificationService>();
             notificationService.When(ns => ns.ShowNotification(Arg.Any<INotification>())).Do(n => notification = (INotification)n.Args()[0]);
 
-            var testSubject = new SloopRestartFailedNotificationService(notificationService, Substitute.For<IOutputWindowService>(), Substitute.For<ISLCoreLocator>());
+            var locator = Substitute.For<ISLCoreLocator>();
+            locator.IsCustomJreSet().Returns(false);
+
+            var testSubject = new SloopRestartFailedNotificationService(notificationService, Substitute.For<IOutputWindowService>(), locator);
 
             testSubject.Show(Substitute.For<Action>());
 
@@ -60,6 +63,29 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Notification
             notification.Should().NotBeNull();
             notification.Id.Should().Be("sonarlint.sloop.restart.failed");
             notification.Message.Should().Be(SLCoreStrings.SloopRestartFailedNotificationService_GoldBarMessage);
+            notification.CloseOnSolutionClose.Should().Be(false);
+        }
+
+        [TestMethod]
+        public void Show_CustomJreSet_ShowsCustomJreMessage()
+        {
+            INotification notification = null;
+
+            var notificationService = Substitute.For<INotificationService>();
+            notificationService.When(ns => ns.ShowNotification(Arg.Any<INotification>())).Do(n => notification = (INotification)n.Args()[0]);
+
+            var locator = Substitute.For<ISLCoreLocator>();
+            locator.IsCustomJreSet().Returns(true);
+
+            var testSubject = new SloopRestartFailedNotificationService(notificationService, Substitute.For<IOutputWindowService>(), locator);
+
+            testSubject.Show(Substitute.For<Action>());
+
+            notificationService.Received(1).ShowNotification(notification);
+
+            notification.Should().NotBeNull();
+            notification.Id.Should().Be("sonarlint.sloop.restart.failed");
+            notification.Message.Should().Be(SLCoreStrings.SloopRestartFailedNotificationService_GoldBarMessageCustomJre);
             notification.CloseOnSolutionClose.Should().Be(false);
         }
 

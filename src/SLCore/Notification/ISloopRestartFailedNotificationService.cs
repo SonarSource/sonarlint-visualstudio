@@ -49,9 +49,13 @@ public class SloopRestartFailedNotificationService(
         AddUseAutoDetectedIfNeeded(restartAction, actions);
         AddShowLogsAction(actions);
 
+        var message = locator.IsCustomJreSet()
+            ? SLCoreStrings.SloopRestartFailedNotificationService_GoldBarMessageCustomJre
+            : SLCoreStrings.SloopRestartFailedNotificationService_GoldBarMessage;
+
         var notification = new VisualStudio.Core.Notifications.Notification(
             id: NotificationId,
-            message: SLCoreStrings.SloopRestartFailedNotificationService_GoldBarMessage,
+            message: message,
             actions: actions,
             showOncePerSession: false,
             closeOnSolutionClose: false

@@ -646,9 +646,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube for Visual Studio provides its own JRE to launch SLCORE out of process. You can provide an explicit Java installation (17 or more recent) to be used instead.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio provides its own JRE to launch SLCORE out of process. You can provide an explicit Java installation (21 or more recent) to be used instead.
         ///
-        ///E.g. C:\Program Files\Java\jdk-17.
+        ///E.g. C:\Program Files\Java\jdk-21.
         /// </summary>
         public static string JreLocationDescriptionText {
             get {
