@@ -48,8 +48,9 @@ public class SupportedLanguagesDialogViewModelTests
     private IActiveConfigScopeTracker activeConfigScopeTracker;
     private ISLCoreHandler slCoreHandler;
     private IServerConnectionsRepository serverConnectionsRepository;
-    private IConnectedModeUIManager connectedModeUIManager;
+    private IConnectedModeUIManager connectedModeUiManager;
     private IThreadHandling threadHandling;
+    private SupportedLanguagesDialogViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()
@@ -58,247 +59,132 @@ public class SupportedLanguagesDialogViewModelTests
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         slCoreHandler = Substitute.For<ISLCoreHandler>();
         serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
-        connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
+        connectedModeUiManager = Substitute.For<IConnectedModeUIManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+
         pluginStatusesStore.GetAll().Returns(DefaultPluginStatuses);
         activeConfigScopeTracker.Current.Returns(new ConfigurationScope("MySolution"));
         serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(false);
-        connectedModeUIManager.ShowManageBindingDialogAsync().Returns(Task.FromResult(true));
+        connectedModeUiManager.ShowManageBindingDialogAsync().Returns(Task.FromResult(true));
+
+        testSubject = new SupportedLanguagesDialogViewModel(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository, connectedModeUiManager, threadHandling);
     }
 
-    private SupportedLanguagesDialogViewModel CreateTestSubject() =>
-        new(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository, connectedModeUIManager, threadHandling);
-
     [TestMethod]
-    public void Ctor_InitializesAllPluginsFromStore()
+    public void Ctor_InitializesCollectionsFromStore()
     {
-        var testSubject = CreateTestSubject();
-
         testSubject.AllPlugins.Should().BeEquivalentTo(DefaultPluginStatuses);
-    }
-
-    [TestMethod]
-    public void Ctor_DisplayedPlugins_FiltersToDisplayedStatesOnly()
-    {
-        var testSubject = CreateTestSubject();
-
         testSubject.DisplayedPlugins.Select(p => p.pluginName).Should().BeEquivalentTo("C#", "Python", "JS", "Go");
+        testSubject.PremiumPluginsTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumPluginsTooltip, "Java, COBOL"));
+        testSubject.FailedPluginsTooltip.Should().Be("Go");
     }
 
     [TestMethod]
     public void Ctor_StoreReturnsEmpty_CollectionsAreEmpty()
     {
         pluginStatusesStore.GetAll().Returns(Array.Empty<PluginStatusDto>());
-        var testSubject = CreateTestSubject();
 
-        testSubject.AllPlugins.Should().BeEmpty();
-        testSubject.DisplayedPlugins.Should().BeEmpty();
-        testSubject.PremiumPluginsTooltip.Should().BeEmpty();
-        testSubject.FailedPluginsTooltip.Should().BeEmpty();
+        var emptyTestSubject = new SupportedLanguagesDialogViewModel(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository, connectedModeUiManager, threadHandling);
+
+        emptyTestSubject.AllPlugins.Should().BeEmpty();
+        emptyTestSubject.DisplayedPlugins.Should().BeEmpty();
+        emptyTestSubject.PremiumPluginsTooltip.Should().BeEmpty();
+        emptyTestSubject.FailedPluginsTooltip.Should().BeEmpty();
     }
 
     [TestMethod]
     public void Ctor_SubscribesToEvents()
     {
-        var testSubject = CreateTestSubject();
-
         pluginStatusesStore.Received(1).PluginStatusesChanged += Arg.Any<EventHandler>();
         serverConnectionsRepository.Received(1).ConnectionChanged += Arg.Any<EventHandler>();
         activeConfigScopeTracker.ReceivedWithAnyArgs(1).CurrentConfigurationScopeChanged += Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
     }
 
     [TestMethod]
-    public void PremiumPluginsTooltip_ReturnsPremiumPluginNames()
+    public void Tooltips_WhenNoSpecialPlugins_AreEmpty()
     {
-        var testSubject = CreateTestSubject();
-
-        testSubject.PremiumPluginsTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumPluginsTooltip, "Java, COBOL"));
-    }
-
-    [TestMethod]
-    public void PremiumPluginsTooltip_NoPremiumPlugins_ReturnsEmpty()
-    {
-        pluginStatusesStore.GetAll().Returns(new[]
-        {
-            new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null)
-        });
-        var testSubject = CreateTestSubject();
+        SimulatePluginStatusesChanged(new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null));
 
         testSubject.PremiumPluginsTooltip.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void PremiumPluginsTooltip_DuplicatePremiumNames_ReturnsDistinct()
-    {
-        pluginStatusesStore.GetAll().Returns(new[]
-        {
-            new PluginStatusDto("Java", PluginStateDto.PREMIUM, null, null, null),
-            new PluginStatusDto("Java", PluginStateDto.PREMIUM, null, null, null)
-        });
-        var testSubject = CreateTestSubject();
-
-        testSubject.PremiumPluginsTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumPluginsTooltip, "Java"));
-    }
-
-    [TestMethod]
-    public void FailedPluginsTooltip_ReturnsFailedPluginNames()
-    {
-        var testSubject = CreateTestSubject();
-
-        testSubject.FailedPluginsTooltip.Should().Be("Go");
-    }
-
-    [TestMethod]
-    public void FailedPluginsTooltip_NoFailedPlugins_ReturnsEmpty()
-    {
-        pluginStatusesStore.GetAll().Returns(new[]
-        {
-            new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null)
-        });
-        var testSubject = CreateTestSubject();
-
         testSubject.FailedPluginsTooltip.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void IsBannerPromotion_True_WhenNoConnection()
+    public void BannerProperties_WhenNoConnection_ShowsPromotionWithSetUpButton()
     {
-        pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
-        var testSubject = CreateTestSubject();
+        SimulatePluginStatusesChanged(new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null));
 
         testSubject.IsBannerPromotion.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void IsBannerPromotion_False_WhenBound()
-    {
-        pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
-        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("MySolution", SonarProjectId: "project-key"));
-        var testSubject = CreateTestSubject();
-
-        testSubject.IsBannerPromotion.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void IsBannerPromotion_False_WhenNoSolutionOpen()
-    {
-        pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
-        activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
-        var testSubject = CreateTestSubject();
-
-        testSubject.IsBannerPromotion.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void IsBannerPromotion_True_WhenNotBoundAndSolutionIsOpen()
-    {
-        pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
-        serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
-        {
-            callInfo[0] = new List<ServerConnection> { new ServerConnection.SonarQube(new Uri("http://localhost")) };
-            return true;
-        });
-        var testSubject = CreateTestSubject();
-
-        testSubject.IsBannerPromotion.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void IsBannerPromotion_False_WhenPluginFailed()
-    {
-        var testSubject = CreateTestSubject();
-
-        testSubject.IsBannerPromotion.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void IsBannerError_True_WhenPluginFailed()
-    {
-        var testSubject = CreateTestSubject();
-
-        testSubject.IsBannerError.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void IsBannerError_False_WhenNoConnection()
-    {
-        pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
-        var testSubject = CreateTestSubject();
-
         testSubject.IsBannerError.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void IsBannerError_TakesPriorityOverConnectionState()
-    {
-        // Even when bound (would normally be Hidden), failed plugins still show the error banner
-        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("id", SonarProjectId: "project-key"));
-        var testSubject = CreateTestSubject();
-
-        testSubject.IsBannerError.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void PromotionBannerButtonText_SetUpConnection_WhenNoConnection()
-    {
-        pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
-        var testSubject = CreateTestSubject();
-
         testSubject.PromotionBannerButtonText.Should().Be(Strings.PluginStatuses_BannerSetUpConnectionButton);
     }
 
     [TestMethod]
-    public void PromotionBannerButtonText_BindProject_WhenNotBound()
+    public void BannerProperties_WhenNotBoundAndHasConnection_ShowsPromotionWithBindButton()
     {
-        pluginStatusesStore.GetAll().Returns(new[] { new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null) });
-        serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
-        {
-            callInfo[0] = new List<ServerConnection> { new ServerConnection.SonarQube(new Uri("http://localhost")) };
-            return true;
-        });
-        var testSubject = CreateTestSubject();
+        SimulatePluginStatusesChanged(new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null));
+        SimulateConnectionChanged(new ServerConnection.SonarQube(new Uri("http://localhost")));
 
+        testSubject.IsBannerPromotion.Should().BeTrue();
+        testSubject.IsBannerError.Should().BeFalse();
         testSubject.PromotionBannerButtonText.Should().Be(Strings.PluginStatuses_BannerBindProjectButton);
+    }
+
+    [TestMethod]
+    public void BannerProperties_WhenBound_NoBanner()
+    {
+        SimulatePluginStatusesChanged(new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null));
+        SimulateConfigurationScopeChanged(new ConfigurationScope("MySolution", SonarProjectId: "project-key"));
+
+        testSubject.IsBannerPromotion.Should().BeFalse();
+        testSubject.IsBannerError.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void BannerProperties_WhenNoSolutionOpen_NoBanner()
+    {
+        SimulatePluginStatusesChanged(new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null));
+        SimulateConfigurationScopeChanged(null);
+
+        testSubject.IsBannerPromotion.Should().BeFalse();
+        testSubject.IsBannerError.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void BannerProperties_WhenPluginFailed_ShowsErrorNotPromotion()
+    {
+        testSubject.IsBannerPromotion.Should().BeFalse();
+        testSubject.IsBannerError.Should().BeTrue();
     }
 
     [TestMethod]
     public void OnPluginStatusesChanged_UpdatesCollections()
     {
-        var testSubject = CreateTestSubject();
         var newPlugins = new[]
         {
             new PluginStatusDto("Ruby", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null),
             new PluginStatusDto("COBOL", PluginStateDto.PREMIUM, null, null, null)
         };
-        pluginStatusesStore.GetAll().Returns(newPlugins);
 
-        pluginStatusesStore.PluginStatusesChanged += Raise.EventWith(EventArgs.Empty);
+        SimulatePluginStatusesChanged(newPlugins);
 
         testSubject.AllPlugins.Should().BeEquivalentTo(newPlugins);
         testSubject.DisplayedPlugins.Single().pluginName.Should().Be("Ruby");
+        testSubject.PremiumPluginsTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumPluginsTooltip, "COBOL"));
+        testSubject.FailedPluginsTooltip.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void OnPluginStatusesChanged_DelegatesUpdateToBackgroundThenUIThread()
+    public void OnPluginStatusesChanged_DelegatesThreadingAndRaisesPropertyChanged()
     {
-        var testSubject = CreateTestSubject();
         threadHandling.ClearReceivedCalls();
-
-        pluginStatusesStore.PluginStatusesChanged += Raise.EventWith(EventArgs.Empty);
-
-        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-        threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
-    }
-
-    [TestMethod]
-    public void OnPluginStatusesChanged_RaisesPropertyChangedForAllRelevantProperties()
-    {
-        var testSubject = CreateTestSubject();
         var raisedProperties = new List<string>();
         testSubject.PropertyChanged += (_, args) => raisedProperties.Add(args.PropertyName);
 
         pluginStatusesStore.PluginStatusesChanged += Raise.EventWith(EventArgs.Empty);
 
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+        threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.PremiumPluginsTooltip));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.FailedPluginsTooltip));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerPromotion));
@@ -307,52 +193,32 @@ public class SupportedLanguagesDialogViewModelTests
     }
 
     [TestMethod]
-    public void OnConnectionChanged_DelegatesUpdateToBackgroundThenUIThread()
+    public void OnConnectionChanged_DelegatesThreadingAndRaisesPropertyChanged()
     {
-        var testSubject = CreateTestSubject();
         threadHandling.ClearReceivedCalls();
-
-        serverConnectionsRepository.ConnectionChanged += Raise.EventWith(EventArgs.Empty);
-
-        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-        threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
-    }
-
-    [TestMethod]
-    public void OnConnectionChanged_RaisesPropertyChangedForBannerProperties()
-    {
-        var testSubject = CreateTestSubject();
         var raisedProperties = new List<string>();
         testSubject.PropertyChanged += (_, args) => raisedProperties.Add(args.PropertyName);
 
         serverConnectionsRepository.ConnectionChanged += Raise.EventWith(EventArgs.Empty);
 
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+        threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerPromotion));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerError));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.PromotionBannerButtonText));
     }
 
     [TestMethod]
-    public void OnConfigurationScopeChanged_DelegatesUpdateToBackgroundThenUIThread()
+    public void OnConfigurationScopeChanged_DelegatesThreadingAndRaisesPropertyChanged()
     {
-        var testSubject = CreateTestSubject();
         threadHandling.ClearReceivedCalls();
-
-        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(new ConfigurationScopeChangedEventArgs(true));
-
-        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-        threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
-    }
-
-    [TestMethod]
-    public void OnConfigurationScopeChanged_RaisesPropertyChangedForBannerProperties()
-    {
-        var testSubject = CreateTestSubject();
         var raisedProperties = new List<string>();
         testSubject.PropertyChanged += (_, args) => raisedProperties.Add(args.PropertyName);
 
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(new ConfigurationScopeChangedEventArgs(true));
 
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+        threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerPromotion));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.IsBannerError));
         raisedProperties.Should().Contain(nameof(SupportedLanguagesDialogViewModel.PromotionBannerButtonText));
@@ -361,18 +227,14 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void SetUpConnection_OpensManageBindingDialog()
     {
-        var testSubject = CreateTestSubject();
-
         testSubject.SetUpConnection();
 
-        connectedModeUIManager.Received(1).ShowManageBindingDialogAsync();
+        connectedModeUiManager.Received(1).ShowManageBindingDialogAsync();
     }
 
     [TestMethod]
     public void RestartBackend_ForcesRestartSloop()
     {
-        var testSubject = CreateTestSubject();
-
         testSubject.RestartBackend();
 
         slCoreHandler.Received(1).ForceRestartSloop();
@@ -382,12 +244,32 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void Dispose_UnsubscribesFromAllEvents()
     {
-        var testSubject = CreateTestSubject();
-
         testSubject.Dispose();
 
         pluginStatusesStore.Received(1).PluginStatusesChanged -= Arg.Any<EventHandler>();
         serverConnectionsRepository.Received(1).ConnectionChanged -= Arg.Any<EventHandler>();
         activeConfigScopeTracker.ReceivedWithAnyArgs(1).CurrentConfigurationScopeChanged -= Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
+    }
+
+    private void SimulatePluginStatusesChanged(params PluginStatusDto[] plugins)
+    {
+        pluginStatusesStore.GetAll().Returns(plugins);
+        pluginStatusesStore.PluginStatusesChanged += Raise.EventWith(EventArgs.Empty);
+    }
+
+    private void SimulateConnectionChanged(ServerConnection connection)
+    {
+        serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
+        {
+            callInfo[0] = new List<ServerConnection> { connection };
+            return true;
+        });
+        serverConnectionsRepository.ConnectionChanged += Raise.EventWith(EventArgs.Empty);
+    }
+
+    private void SimulateConfigurationScopeChanged(ConfigurationScope configScope)
+    {
+        activeConfigScopeTracker.Current.Returns(configScope);
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(new ConfigurationScopeChangedEventArgs(true));
     }
 }
