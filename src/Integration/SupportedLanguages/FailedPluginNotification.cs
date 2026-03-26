@@ -57,7 +57,7 @@ internal sealed class FailedPluginNotification : IFailedPluginNotification
     private void OnPluginStatusesChanged(object sender, EventArgs e)
     {
         var failedPlugins = pluginStatusesStore.GetAll()
-            .Where(p => p.state == PluginStateDto.FAILED)
+            .Where(p => p.State == PluginStateDto.FAILED)
             .ToList();
 
         if (failedPlugins.Count == 0)
@@ -66,7 +66,7 @@ internal sealed class FailedPluginNotification : IFailedPluginNotification
             return;
         }
 
-        var message = $"{Strings.PluginStatusesFailedNotificationText}: {string.Join(", ", failedPlugins.Select(p => p.pluginName))}";
+        var message = $"{Strings.PluginStatusesFailedNotificationText}: {string.Join(", ", failedPlugins.Select(p => p.PluginName))}";
 
         var restartAction = new NotificationAction(
             SLCoreStrings.SloopRestartFailedNotificationService_Restart,

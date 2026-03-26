@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
-using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SupportedLanguages;
@@ -63,8 +62,8 @@ public class FailedPluginNotificationTests
     public void PluginStatusesChanged_NoFailedPlugins_DoesNotShowNotification()
     {
         pluginStatusesStore.GetAll().Returns([
-            new PluginStatusDto(Language.JAVA, "Java", PluginStateDto.ACTIVE, null, null, null, null),
-            new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, null, null, null, null)
+            new PluginStatusDisplay("Java", PluginStateDto.ACTIVE, null, string.Empty),
+            new PluginStatusDisplay("C#", PluginStateDto.ACTIVE, null, string.Empty)
         ]);
 
         RaisePluginStatusesChanged();
@@ -77,9 +76,9 @@ public class FailedPluginNotificationTests
     public void PluginStatusesChanged_HasFailedPlugins_ShowsNotificationWithCorrectMessage()
     {
         pluginStatusesStore.GetAll().Returns([
-            new PluginStatusDto(Language.JAVA, "Java", PluginStateDto.FAILED, null, null, null, null),
-            new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, null, null, null, null),
-            new PluginStatusDto(Language.CPP, "C++", PluginStateDto.FAILED, null, null, null, null)
+            new PluginStatusDisplay("Java", PluginStateDto.FAILED, null, string.Empty),
+            new PluginStatusDisplay("C#", PluginStateDto.ACTIVE, null, string.Empty),
+            new PluginStatusDisplay("C++", PluginStateDto.FAILED, null, string.Empty)
         ]);
 
         RaisePluginStatusesChanged();
@@ -143,7 +142,7 @@ public class FailedPluginNotificationTests
     private void SetupFailedPlugins()
     {
         pluginStatusesStore.GetAll().Returns([
-            new PluginStatusDto(Language.JAVA, "Java", PluginStateDto.FAILED, null, null, null, null)
+            new PluginStatusDisplay("Java", PluginStateDto.FAILED, null, string.Empty)
         ]);
     }
 

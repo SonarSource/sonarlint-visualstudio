@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -22,11 +22,10 @@ using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.SupportedLanguages;
 
-public interface IPluginStatusesStore
+public class PluginStatusDisplay(string pluginName, PluginStateDto state, ArtifactSourceDto? source, string sourceText)
 {
-    IReadOnlyCollection<PluginStatusDisplay> GetAll();
-    void Update(string configurationScopeId, IEnumerable<PluginStatusDto> newPluginStatuses);
-    void Clear();
-
-    event EventHandler PluginStatusesChanged;
+    public string PluginName { get; } = pluginName;
+    public PluginStateDto State { get; } = state;
+    public ArtifactSourceDto? Source { get; } = source;
+    public string SourceText { get; } = sourceText;
 }

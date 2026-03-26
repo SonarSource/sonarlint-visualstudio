@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -57,25 +57,25 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
     private readonly IConnectedModeUIManager connectedModeUiManager;
     private readonly IThreadHandling threadHandling;
 
-    public ObservableCollection<PluginStatusDto> AllPlugins { get; } = new ();
+    public ObservableCollection<PluginStatusDisplay> AllPlugins { get; } = new ();
 
-    public ObservableCollection<PluginStatusDto> DisplayedPlugins { get; } = new ();
+    public ObservableCollection<PluginStatusDisplay> DisplayedPlugins { get; } = new ();
 
     public string PremiumPluginsTooltip
     {
         get
         {
             var names = string.Join(", ", AllPlugins
-                .Where(p => p.state == PluginStateDto.PREMIUM)
-                .Select(p => p.pluginName)
+                .Where(p => p.State == PluginStateDto.PREMIUM)
+                .Select(p => p.PluginName)
                 .Distinct());
             return names.Length == 0 ? string.Empty : string.Format(Strings.PluginStatuses_PremiumPluginsTooltip, names);
         }
     }
     public string FailedPluginsTooltip =>
         string.Join(", ", AllPlugins
-            .Where(p => p.state == PluginStateDto.FAILED)
-            .Select(p => p.pluginName));
+            .Where(p => p.State == PluginStateDto.FAILED)
+            .Select(p => p.PluginName));
 
     public ConnectionBannerState BannerState { get; private set; }
     public bool IsBannerError => BannerState == ConnectionBannerState.PluginFailed;
@@ -165,7 +165,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
         }
 
         DisplayedPlugins.Clear();
-        foreach (var plugin in AllPlugins.Where(p => DisplayedStates.Contains(p.state)))
+        foreach (var plugin in AllPlugins.Where(p => DisplayedStates.Contains(p.State)))
         {
             DisplayedPlugins.Add(plugin);
         }
@@ -176,7 +176,7 @@ internal sealed class SupportedLanguagesDialogViewModel : ViewModelBase, IDispos
 
     private ConnectionBannerState GetConnectionBannerState(ConfigurationScope configScope)
     {
-        if (AllPlugins.Any(p => p.state == PluginStateDto.FAILED))
+        if (AllPlugins.Any(p => p.State == PluginStateDto.FAILED))
         {
             return ConnectionBannerState.PluginFailed;
         }

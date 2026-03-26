@@ -27,22 +27,21 @@ using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
-using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SupportedLanguages;
 
 [TestClass]
 public class SupportedLanguagesDialogViewModelTests
 {
-    private static readonly PluginStatusDto[] DefaultPluginStatuses =
+    private static readonly PluginStatusDisplay[] DefaultPluginStatuses =
     [
-        new(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null),
-        new(Language.PYTHON, "Python", PluginStateDto.SYNCED, ArtifactSourceDto.SONARQUBE_SERVER, "2.0", "1.5", "10.8.1"),
-        new(Language.JS, "JS", PluginStateDto.DOWNLOADING, ArtifactSourceDto.EMBEDDED, null, null, null),
-        new(Language.GO, "Go", PluginStateDto.FAILED, null, null, null, null),
-        new(Language.JAVA, "Java", PluginStateDto.PREMIUM, null, null, null, null),
-        new(Language.COBOL, "COBOL", PluginStateDto.PREMIUM, null, null, null, null),
-        new(Language.KOTLIN, "Kotlin", PluginStateDto.UNSUPPORTED, null, null, null, null)
+        new("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "SonarQube for Visual Studio 1.0"),
+        new("Python", PluginStateDto.SYNCED, ArtifactSourceDto.SONARQUBE_SERVER, "SonarQube Server 10.8.1"),
+        new("JS", PluginStateDto.DOWNLOADING, ArtifactSourceDto.EMBEDDED, string.Empty),
+        new("Go", PluginStateDto.FAILED, null, string.Empty),
+        new("Java", PluginStateDto.PREMIUM, null, string.Empty),
+        new("COBOL", PluginStateDto.PREMIUM, null, string.Empty),
+        new("Kotlin", PluginStateDto.UNSUPPORTED, null, string.Empty)
     ];
 
     private IPluginStatusesStore pluginStatusesStore;
@@ -75,7 +74,7 @@ public class SupportedLanguagesDialogViewModelTests
     public void Ctor_InitializesCollectionsFromStore()
     {
         testSubject.AllPlugins.Should().BeEquivalentTo(DefaultPluginStatuses);
-        testSubject.DisplayedPlugins.Select(p => p.pluginName).Should().BeEquivalentTo("C#", "Python", "JS", "Go");
+        testSubject.DisplayedPlugins.Select(p => p.PluginName).Should().BeEquivalentTo("C#", "Python", "JS", "Go");
         testSubject.PremiumPluginsTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumPluginsTooltip, "Java, COBOL"));
         testSubject.FailedPluginsTooltip.Should().Be("Go");
     }
@@ -83,7 +82,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void Ctor_StoreReturnsEmpty_CollectionsAreEmpty()
     {
-        pluginStatusesStore.GetAll().Returns(Array.Empty<PluginStatusDto>());
+        pluginStatusesStore.GetAll().Returns(Array.Empty<PluginStatusDisplay>());
 
         var emptyTestSubject = new SupportedLanguagesDialogViewModel(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository, connectedModeUiManager, threadHandling);
 
@@ -104,7 +103,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void Tooltips_WhenNoSpecialPlugins_AreEmpty()
     {
-        SimulatePluginStatusesChanged(new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null));
+        SimulatePluginStatusesChanged(new PluginStatusDisplay("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, string.Empty));
 
         testSubject.PremiumPluginsTooltip.Should().BeEmpty();
         testSubject.FailedPluginsTooltip.Should().BeEmpty();
@@ -113,7 +112,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void BannerProperties_WhenNoConnection_ShowsPromotionWithSetUpButton()
     {
-        SimulatePluginStatusesChanged(new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null));
+        SimulatePluginStatusesChanged(new PluginStatusDisplay("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, string.Empty));
 
         testSubject.IsBannerPromotion.Should().BeTrue();
         testSubject.IsBannerError.Should().BeFalse();
@@ -123,7 +122,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void BannerProperties_WhenNotBoundAndHasConnection_ShowsPromotionWithBindButton()
     {
-        SimulatePluginStatusesChanged(new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null));
+        SimulatePluginStatusesChanged(new PluginStatusDisplay("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, string.Empty));
         SimulateConnectionChanged(new ServerConnection.SonarQube(new Uri("http://localhost")));
 
         testSubject.IsBannerPromotion.Should().BeTrue();
@@ -134,7 +133,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void BannerProperties_WhenBound_NoBanner()
     {
-        SimulatePluginStatusesChanged(new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null));
+        SimulatePluginStatusesChanged(new PluginStatusDisplay("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, string.Empty));
         SimulateConfigurationScopeChanged(new ConfigurationScope("MySolution", SonarProjectId: "project-key"));
 
         testSubject.IsBannerPromotion.Should().BeFalse();
@@ -144,7 +143,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void BannerProperties_WhenNoSolutionOpen_NoBanner()
     {
-        SimulatePluginStatusesChanged(new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null));
+        SimulatePluginStatusesChanged(new PluginStatusDisplay("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, string.Empty));
         SimulateConfigurationScopeChanged(null);
 
         testSubject.IsBannerPromotion.Should().BeFalse();
@@ -163,14 +162,14 @@ public class SupportedLanguagesDialogViewModelTests
     {
         var newPlugins = new[]
         {
-            new PluginStatusDto(Language.RUBY, "Ruby", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null),
-            new PluginStatusDto(Language.COBOL, "COBOL", PluginStateDto.PREMIUM, null, null, null, null)
+            new PluginStatusDisplay("Ruby", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, string.Empty),
+            new PluginStatusDisplay("COBOL", PluginStateDto.PREMIUM, null, string.Empty)
         };
 
         SimulatePluginStatusesChanged(newPlugins);
 
         testSubject.AllPlugins.Should().BeEquivalentTo(newPlugins);
-        testSubject.DisplayedPlugins.Single().pluginName.Should().Be("Ruby");
+        testSubject.DisplayedPlugins.Single().PluginName.Should().Be("Ruby");
         testSubject.PremiumPluginsTooltip.Should().Be(string.Format(Strings.PluginStatuses_PremiumPluginsTooltip, "COBOL"));
         testSubject.FailedPluginsTooltip.Should().BeEmpty();
     }
@@ -252,7 +251,7 @@ public class SupportedLanguagesDialogViewModelTests
         activeConfigScopeTracker.ReceivedWithAnyArgs(1).CurrentConfigurationScopeChanged -= Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
     }
 
-    private void SimulatePluginStatusesChanged(params PluginStatusDto[] plugins)
+    private void SimulatePluginStatusesChanged(params PluginStatusDisplay[] plugins)
     {
         pluginStatusesStore.GetAll().Returns(plugins);
         pluginStatusesStore.PluginStatusesChanged += Raise.EventWith(EventArgs.Empty);

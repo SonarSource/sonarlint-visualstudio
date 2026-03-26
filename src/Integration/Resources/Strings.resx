@@ -246,4 +246,13 @@
   <data name="PluginStatusesFailedNotificationSeeDetailsButton" xml:space="preserve">
     <value>See Details</value>
   </data>
+  <data name="PluginStatuses_SourceIde" xml:space="preserve">
+    <value>SonarQube for Visual Studio {0}</value>
+  </data>
+  <data name="PluginStatuses_SourceServer" xml:space="preserve">
+    <value>SonarQube Server {0}</value>
+  </data>
+  <data name="PluginStatuses_SourceCloud" xml:space="preserve">
+    <value>SonarQube Cloud</value>
+  </data>
 </root>

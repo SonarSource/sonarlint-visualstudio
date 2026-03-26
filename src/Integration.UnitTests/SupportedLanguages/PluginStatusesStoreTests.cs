@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -39,6 +39,7 @@ public class PluginStatusesStoreTests
     private IActiveConfigScopeTracker activeConfigScopeTracker;
     private ISLCoreServiceProvider slCoreServiceProvider;
     private IPluginSLCoreService pluginSLCoreService;
+    private IPluginStatusDtoToPluginStatusDisplayConverter converter;
     private NoOpThreadHandler threadHandling;
     private TestLogger logger;
     private PluginStatusesStore testSubject;
@@ -49,10 +50,11 @@ public class PluginStatusesStoreTests
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
         pluginSLCoreService = Substitute.For<IPluginSLCoreService>();
+        converter = new PluginStatusDtoToPluginStatusDisplayConverter();
         threadHandling = new NoOpThreadHandler();
         logger = new TestLogger();
 
-        testSubject = new(activeConfigScopeTracker, slCoreServiceProvider, threadHandling, logger);
+        testSubject = new(activeConfigScopeTracker, slCoreServiceProvider, converter, threadHandling, logger);
         SetCurrentConfigScope(ConfigScopeId);
         slCoreServiceProvider.TryGetTransientService(out Arg.Any<IPluginSLCoreService>()).Returns(info =>
         {
@@ -67,6 +69,7 @@ public class PluginStatusesStoreTests
         MefTestHelpers.CheckTypeCanBeImported<PluginStatusesStore, IPluginStatusesStore>(
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
+            MefTestHelpers.CreateExport<IPluginStatusDtoToPluginStatusDisplayConverter>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
@@ -92,7 +95,7 @@ public class PluginStatusesStoreTests
 
         testSubject.Update(ConfigScopeId, pluginStatuses);
 
-        testSubject.GetAll().Should().BeEquivalentTo(pluginStatuses);
+        testSubject.GetAll().Select(r => r.PluginName).Should().BeEquivalentTo(pluginStatuses.Select(d => d.pluginName));
     }
 
     [TestMethod]
@@ -107,7 +110,7 @@ public class PluginStatusesStoreTests
         testSubject.Update(ConfigScopeId, newStatuses);
 
         var result = testSubject.GetAll();
-        result.Should().BeEquivalentTo(newStatuses);
+        result.First().PluginName.Should().Be("Python");
     }
 
     [TestMethod]
@@ -177,7 +180,7 @@ public class PluginStatusesStoreTests
 
         RaiseConfigScopeChanged();
 
-        testSubject.GetAll().Should().BeEquivalentTo(pluginStatuses);
+        testSubject.GetAll().Select(r => r.PluginName).Should().BeEquivalentTo(pluginStatuses.Select(d => d.pluginName));
     }
 
     [TestMethod]
@@ -203,7 +206,7 @@ public class PluginStatusesStoreTests
 
         RaiseConfigScopeChanged();
 
-        testSubject.GetAll().Should().BeEquivalentTo(pluginStatuses);
+        testSubject.GetAll().Select(r => r.PluginName).Should().BeEquivalentTo(pluginStatuses.Select(d => d.pluginName));
     }
 
     [TestMethod]
