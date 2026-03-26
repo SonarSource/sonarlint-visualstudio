@@ -18,11 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.SLCore.Common.Models;
+
 namespace SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
+/// <param name="language">language that this plugin provides analysis for</param>
 /// <param name="pluginName">human-readable name of the language/analyzer (e.g. "Java", "C/C++/Objective-C")</param>
 /// <param name="state">current lifecycle state of the plugin in the backend</param>
 /// <param name="source">where the plugin artifact came from; null when the plugin is not available</param>
 /// <param name="actualVersion">version of the plugin that is currently in use; null when the plugin is not loaded</param>
 /// <param name="overriddenVersion">a local plugin version that was superseded by the one obtained via SQS/SQC sync, if any; null when no override is in effect</param>
-public record PluginStatusDto(string pluginName, PluginStateDto state, ArtifactSourceDto? source, string? actualVersion, string? overriddenVersion);
+/// <param name="serverVersion">version of the SonarQube Server that provided this plugin (e.g. "10.8.1"); null for non-server sources (embedded, cloud, unavailable)</param>
+public record PluginStatusDto(Language language, string pluginName, PluginStateDto state, ArtifactSourceDto? source, string? actualVersion, string? overriddenVersion, string? serverVersion);

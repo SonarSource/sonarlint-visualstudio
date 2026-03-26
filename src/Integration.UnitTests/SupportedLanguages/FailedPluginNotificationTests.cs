@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
+using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SupportedLanguages;
@@ -62,8 +63,8 @@ public class FailedPluginNotificationTests
     public void PluginStatusesChanged_NoFailedPlugins_DoesNotShowNotification()
     {
         pluginStatusesStore.GetAll().Returns([
-            new PluginStatusDto("Java", PluginStateDto.ACTIVE, null, null, null),
-            new PluginStatusDto("C#", PluginStateDto.ACTIVE, null, null, null)
+            new PluginStatusDto(Language.JAVA, "Java", PluginStateDto.ACTIVE, null, null, null, null),
+            new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, null, null, null, null)
         ]);
 
         RaisePluginStatusesChanged();
@@ -76,15 +77,15 @@ public class FailedPluginNotificationTests
     public void PluginStatusesChanged_HasFailedPlugins_ShowsNotificationWithCorrectMessage()
     {
         pluginStatusesStore.GetAll().Returns([
-            new PluginStatusDto("Java", PluginStateDto.FAILED, null, null, null),
-            new PluginStatusDto("C#", PluginStateDto.ACTIVE, null, null, null),
-            new PluginStatusDto("C/C++/Objective-C", PluginStateDto.FAILED, null, null, null)
+            new PluginStatusDto(Language.JAVA, "Java", PluginStateDto.FAILED, null, null, null, null),
+            new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, null, null, null, null),
+            new PluginStatusDto(Language.CPP, "C++", PluginStateDto.FAILED, null, null, null, null)
         ]);
 
         RaisePluginStatusesChanged();
 
         notificationService.Received(1).ShowNotification(Arg.Is<Notification>(n =>
-            n.Message.StartsWith(Strings.PluginStatusesFailedNotificationText) && n.Message.EndsWith("Java, C/C++/Objective-C")
+            n.Message.StartsWith(Strings.PluginStatusesFailedNotificationText) && n.Message.EndsWith("Java, C++")
             && n.Id == "PluginStatuses.FailedNotification"
             && n.ShowOncePerSession == false));
     }
@@ -142,7 +143,7 @@ public class FailedPluginNotificationTests
     private void SetupFailedPlugins()
     {
         pluginStatusesStore.GetAll().Returns([
-            new PluginStatusDto("Java", PluginStateDto.FAILED, null, null, null)
+            new PluginStatusDto(Language.JAVA, "Java", PluginStateDto.FAILED, null, null, null, null)
         ]);
     }
 

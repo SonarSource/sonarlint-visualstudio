@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
+using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SupportedLanguages;
 
@@ -35,13 +36,13 @@ public class SupportedLanguagesDialogViewModelTests
 {
     private static readonly PluginStatusDto[] DefaultPluginStatuses =
     [
-        new("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null),
-        new("Python", PluginStateDto.SYNCED, ArtifactSourceDto.SONARQUBE_SERVER, "2.0", "1.5"),
-        new("JS", PluginStateDto.DOWNLOADING, ArtifactSourceDto.EMBEDDED, null, null),
-        new("Go", PluginStateDto.FAILED, null, null, null),
-        new("Java", PluginStateDto.PREMIUM, null, null, null),
-        new("COBOL", PluginStateDto.PREMIUM, null, null, null),
-        new("Kotlin", PluginStateDto.UNSUPPORTED, null, null, null)
+        new(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null),
+        new(Language.PYTHON, "Python", PluginStateDto.SYNCED, ArtifactSourceDto.SONARQUBE_SERVER, "2.0", "1.5", "10.8.1"),
+        new(Language.JS, "JS", PluginStateDto.DOWNLOADING, ArtifactSourceDto.EMBEDDED, null, null, null),
+        new(Language.GO, "Go", PluginStateDto.FAILED, null, null, null, null),
+        new(Language.JAVA, "Java", PluginStateDto.PREMIUM, null, null, null, null),
+        new(Language.COBOL, "COBOL", PluginStateDto.PREMIUM, null, null, null, null),
+        new(Language.KOTLIN, "Kotlin", PluginStateDto.UNSUPPORTED, null, null, null, null)
     ];
 
     private IPluginStatusesStore pluginStatusesStore;
@@ -103,7 +104,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void Tooltips_WhenNoSpecialPlugins_AreEmpty()
     {
-        SimulatePluginStatusesChanged(new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null));
+        SimulatePluginStatusesChanged(new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null));
 
         testSubject.PremiumPluginsTooltip.Should().BeEmpty();
         testSubject.FailedPluginsTooltip.Should().BeEmpty();
@@ -112,7 +113,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void BannerProperties_WhenNoConnection_ShowsPromotionWithSetUpButton()
     {
-        SimulatePluginStatusesChanged(new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null));
+        SimulatePluginStatusesChanged(new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null));
 
         testSubject.IsBannerPromotion.Should().BeTrue();
         testSubject.IsBannerError.Should().BeFalse();
@@ -122,7 +123,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void BannerProperties_WhenNotBoundAndHasConnection_ShowsPromotionWithBindButton()
     {
-        SimulatePluginStatusesChanged(new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null));
+        SimulatePluginStatusesChanged(new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null));
         SimulateConnectionChanged(new ServerConnection.SonarQube(new Uri("http://localhost")));
 
         testSubject.IsBannerPromotion.Should().BeTrue();
@@ -133,7 +134,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void BannerProperties_WhenBound_NoBanner()
     {
-        SimulatePluginStatusesChanged(new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null));
+        SimulatePluginStatusesChanged(new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null));
         SimulateConfigurationScopeChanged(new ConfigurationScope("MySolution", SonarProjectId: "project-key"));
 
         testSubject.IsBannerPromotion.Should().BeFalse();
@@ -143,7 +144,7 @@ public class SupportedLanguagesDialogViewModelTests
     [TestMethod]
     public void BannerProperties_WhenNoSolutionOpen_NoBanner()
     {
-        SimulatePluginStatusesChanged(new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null));
+        SimulatePluginStatusesChanged(new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null));
         SimulateConfigurationScopeChanged(null);
 
         testSubject.IsBannerPromotion.Should().BeFalse();
@@ -162,8 +163,8 @@ public class SupportedLanguagesDialogViewModelTests
     {
         var newPlugins = new[]
         {
-            new PluginStatusDto("Ruby", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null),
-            new PluginStatusDto("COBOL", PluginStateDto.PREMIUM, null, null, null)
+            new PluginStatusDto(Language.RUBY, "Ruby", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null),
+            new PluginStatusDto(Language.COBOL, "COBOL", PluginStateDto.PREMIUM, null, null, null, null)
         };
 
         SimulatePluginStatusesChanged(newPlugins);
