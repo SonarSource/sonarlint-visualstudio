@@ -406,8 +406,8 @@ internal class CssIssuesFile : ITestingFile
 
     public List<TestIssue> ExpectedIssues =>
     [
-        new("css:S4666", new TextRangeDto(20, 0, 20, 77), CleanCodeAttribute.LOGICAL, 0),
-        new("css:S4655", new TextRangeDto(12, 0, 12, 38), CleanCodeAttribute.LOGICAL, 0),
+        new("css:S4655", new TextRangeDto(12, 26, 12, 36), CleanCodeAttribute.LOGICAL, 0),
+        new("css:S4666", new TextRangeDto(20, 0, 20, 1), CleanCodeAttribute.LOGICAL, 0),
     ];
 }
 
@@ -417,8 +417,8 @@ internal class VueIssuesFile : ITestingFile
 
     public List<TestIssue> ExpectedIssues =>
     [
-        new("css:S4661", new TextRangeDto(12, 0, 12, 43), CleanCodeAttribute.LOGICAL, 0),
-        new("css:S4658", new TextRangeDto(12, 0, 12, 43), CleanCodeAttribute.CLEAR, 0),
+        new("css:S4658", new TextRangeDto(12, 41, 12, 43), CleanCodeAttribute.CLEAR, 0),
+        new("css:S4661", new TextRangeDto(12, 24, 12, 31), CleanCodeAttribute.LOGICAL, 0),
     ];
 }
 
