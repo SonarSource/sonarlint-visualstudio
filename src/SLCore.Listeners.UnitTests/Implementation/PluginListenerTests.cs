@@ -80,7 +80,7 @@ public class PluginListenerTests
         var configScopeId = "scope1";
         var pluginStatuses = new List<PluginStatusDto>
         {
-            new("Java", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null)
+            new(Language.JAVA, "Java", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null)
         };
 
         testSubject.DidChangePluginStatuses(new DidChangePluginStatusesParams(configScopeId, pluginStatuses));

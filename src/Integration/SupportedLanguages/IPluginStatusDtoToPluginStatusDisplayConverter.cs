@@ -22,11 +22,7 @@ using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.SupportedLanguages;
 
-public interface IPluginStatusesStore
+internal interface IPluginStatusDtoToPluginStatusDisplayConverter
 {
-    IReadOnlyCollection<PluginStatusDisplay> GetAll();
-    void Update(string configurationScopeId, IEnumerable<PluginStatusDto> newPluginStatuses);
-    void Clear();
-
-    event EventHandler PluginStatusesChanged;
+    PluginStatusDisplay Convert(PluginStatusDto dto);
 }
