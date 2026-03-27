@@ -64,6 +64,8 @@ public class RuleDescriptionConversionSmokeTest
             new List<string>
             {
                 "cpp:S1232", // unsupported <caption> tag https://sonarsource.atlassian.net/browse/SLVS-2180
+                "javascript:S6534", // unsupported &le; https://sonarsource.atlassian.net/browse/SLVS-2908
+                "typescript:S6534", // unsupported &le; https://sonarsource.atlassian.net/browse/SLVS-2908
             });
         // these rules were checked manually and render fine, even though some tags are not supported
         partiallySupportedRuleDescriptions.Should().BeEquivalentTo(
