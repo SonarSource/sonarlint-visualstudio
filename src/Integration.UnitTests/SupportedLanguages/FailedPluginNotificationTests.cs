@@ -62,8 +62,8 @@ public class FailedPluginNotificationTests
     public void PluginStatusesChanged_NoFailedPlugins_DoesNotShowNotification()
     {
         pluginStatusesStore.GetAll().Returns([
-            new PluginStatusDto("Java", PluginStateDto.ACTIVE, null, null, null),
-            new PluginStatusDto("C#", PluginStateDto.ACTIVE, null, null, null)
+            new PluginStatusDisplay("Java", PluginStateDto.ACTIVE, null, string.Empty),
+            new PluginStatusDisplay("C#", PluginStateDto.ACTIVE, null, string.Empty)
         ]);
 
         RaisePluginStatusesChanged();
@@ -76,15 +76,15 @@ public class FailedPluginNotificationTests
     public void PluginStatusesChanged_HasFailedPlugins_ShowsNotificationWithCorrectMessage()
     {
         pluginStatusesStore.GetAll().Returns([
-            new PluginStatusDto("Java", PluginStateDto.FAILED, null, null, null),
-            new PluginStatusDto("C#", PluginStateDto.ACTIVE, null, null, null),
-            new PluginStatusDto("C/C++/Objective-C", PluginStateDto.FAILED, null, null, null)
+            new PluginStatusDisplay("Java", PluginStateDto.FAILED, null, string.Empty),
+            new PluginStatusDisplay("C#", PluginStateDto.ACTIVE, null, string.Empty),
+            new PluginStatusDisplay("C++", PluginStateDto.FAILED, null, string.Empty)
         ]);
 
         RaisePluginStatusesChanged();
 
         notificationService.Received(1).ShowNotification(Arg.Is<Notification>(n =>
-            n.Message.StartsWith(Strings.PluginStatusesFailedNotificationText) && n.Message.EndsWith("Java, C/C++/Objective-C")
+            n.Message.StartsWith(Strings.PluginStatusesFailedNotificationText) && n.Message.EndsWith("Java, C++")
             && n.Id == "PluginStatuses.FailedNotification"
             && n.ShowOncePerSession == false));
     }
@@ -142,7 +142,7 @@ public class FailedPluginNotificationTests
     private void SetupFailedPlugins()
     {
         pluginStatusesStore.GetAll().Returns([
-            new PluginStatusDto("Java", PluginStateDto.FAILED, null, null, null)
+            new PluginStatusDisplay("Java", PluginStateDto.FAILED, null, string.Empty)
         ]);
     }
 

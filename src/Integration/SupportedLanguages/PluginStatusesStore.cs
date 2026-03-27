@@ -37,20 +37,23 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
 {
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly ISLCoreServiceProvider slCoreServiceProvider;
+    private readonly IPluginStatusDtoToPluginStatusDisplayConverter converter;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private readonly object lockObject = new();
-    private ImmutableList<PluginStatusDto> pluginStatuses = ImmutableList<PluginStatusDto>.Empty;
+    private ImmutableList<PluginStatusDisplay> pluginStatuses = ImmutableList<PluginStatusDisplay>.Empty;
 
     [ImportingConstructor]
     public PluginStatusesStore(
         IActiveConfigScopeTracker activeConfigScopeTracker,
         ISLCoreServiceProvider slCoreServiceProvider,
+        IPluginStatusDtoToPluginStatusDisplayConverter converter,
         IThreadHandling threadHandling,
         ILogger logger)
     {
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.slCoreServiceProvider = slCoreServiceProvider;
+        this.converter = converter;
         this.threadHandling = threadHandling;
         this.logger = logger.ForContext(Strings.PluginStatuses_LogContext);
 
@@ -58,7 +61,7 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
         threadHandling.RunOnBackgroundThread(FetchPluginStatusesAsync).Forget();
     }
 
-    public IReadOnlyCollection<PluginStatusDto> GetAll()
+    public IReadOnlyCollection<PluginStatusDisplay> GetAll()
     {
         lock (lockObject)
         {
@@ -76,7 +79,7 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
                 return;
             }
 
-            pluginStatuses = newPluginStatuses.ToImmutableList();
+            pluginStatuses = newPluginStatuses.Select(converter.Convert).ToImmutableList();
         }
 
         RaisePluginStatusesChanged();
@@ -86,7 +89,7 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
     {
         lock (lockObject)
         {
-            pluginStatuses = ImmutableList<PluginStatusDto>.Empty;
+            pluginStatuses = ImmutableList<PluginStatusDisplay>.Empty;
         }
 
         RaisePluginStatusesChanged();
@@ -113,7 +116,7 @@ internal sealed class PluginStatusesStore : IPluginStatusesStore, IDisposable
 
             lock (lockObject)
             {
-                pluginStatuses = response.pluginStatuses.ToImmutableList();
+                pluginStatuses = response.pluginStatuses.Select(converter.Convert).ToImmutableList();
             }
 
             RaisePluginStatusesChanged();

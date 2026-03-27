@@ -118,15 +118,13 @@
             </Style>
 
             <DataTemplate x:Key="SourceCellTemplate">
-                <TextBlock x:Name="SourceText" Text="{x:Static res:Strings.PluginStatuses_SourceIde}" VerticalAlignment="Center" />
+                <TextBlock x:Name="SourceTextBlock" Text="{Binding SourceText}" VerticalAlignment="Center" />
                 <DataTemplate.Triggers>
-                    <DataTrigger Binding="{Binding source}" Value="{x:Static models:ArtifactSourceDto.SONARQUBE_SERVER}">
-                        <Setter TargetName="SourceText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_SourceServer}" />
-                        <Setter TargetName="SourceText" Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" />
+                    <DataTrigger Binding="{Binding Source}" Value="{x:Static models:ArtifactSourceDto.SONARQUBE_SERVER}">
+                        <Setter TargetName="SourceTextBlock" Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" />
                     </DataTrigger>
-                    <DataTrigger Binding="{Binding source}" Value="{x:Static models:ArtifactSourceDto.SONARQUBE_CLOUD}">
-                        <Setter TargetName="SourceText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_SourceCloud}" />
-                        <Setter TargetName="SourceText" Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" />
+                    <DataTrigger Binding="{Binding Source}" Value="{x:Static models:ArtifactSourceDto.SONARQUBE_CLOUD}">
+                        <Setter TargetName="SourceTextBlock" Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.ControlLinkTextKey}}" />
                     </DataTrigger>
                 </DataTemplate.Triggers>
             </DataTemplate>
@@ -137,23 +135,23 @@
                     <TextBlock x:Name="StatusText" VerticalAlignment="Center" />
                 </StackPanel>
                 <DataTemplate.Triggers>
-                    <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.ACTIVE}">
+                    <DataTrigger Binding="{Binding State}" Value="{x:Static models:PluginStateDto.ACTIVE}">
                         <Setter TargetName="StatusDot" Property="Fill" Value="Green" />
                         <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
                         <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusActive}" />
                     </DataTrigger>
-                    <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.DOWNLOADING}">
+                    <DataTrigger Binding="{Binding State}" Value="{x:Static models:PluginStateDto.DOWNLOADING}">
                         <Setter TargetName="StatusDot" Property="Fill" Value="Orange" />
                         <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
                         <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusDownloading}" />
                     </DataTrigger>
-                    <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.FAILED}">
+                    <DataTrigger Binding="{Binding State}" Value="{x:Static models:PluginStateDto.FAILED}">
                         <Setter TargetName="StatusDot" Property="Fill" Value="Red" />
                         <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
                         <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusFailed}" />
                         <Setter TargetName="StatusText" Property="Foreground" Value="Red" />
                     </DataTrigger>
-                    <DataTrigger Binding="{Binding state}" Value="{x:Static models:PluginStateDto.SYNCED}">
+                    <DataTrigger Binding="{Binding State}" Value="{x:Static models:PluginStateDto.SYNCED}">
                         <Setter TargetName="StatusDot" Property="Fill" Value="Green" />
                         <Setter TargetName="StatusDot" Property="Visibility" Value="Visible" />
                         <Setter TargetName="StatusText" Property="Text" Value="{x:Static res:Strings.PluginStatuses_StatusActive}" />
@@ -273,9 +271,9 @@
                           CanUserSortColumns="False"
                           SelectionMode="Single">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="{x:Static res:Strings.PluginStatuses_ColumnLanguage}" Binding="{Binding pluginName}" Width="*" />
+                        <DataGridTextColumn Header="{x:Static res:Strings.PluginStatuses_ColumnLanguage}" Binding="{Binding PluginName}" Width="*" />
                         <DataGridTemplateColumn Header="{x:Static res:Strings.PluginStatuses_ColumnStatus}" CellTemplate="{StaticResource StatusCellTemplate}" Width="*" />
-                        <DataGridTemplateColumn Header="{x:Static res:Strings.PluginStatuses_ColumnSource}" CellTemplate="{StaticResource SourceCellTemplate}" Width="*" />
+                        <DataGridTemplateColumn Header="{x:Static res:Strings.PluginStatuses_ColumnSource}" CellTemplate="{StaticResource SourceCellTemplate}" Width="1.5*" />
                     </DataGrid.Columns>
                 </DataGrid>
 
