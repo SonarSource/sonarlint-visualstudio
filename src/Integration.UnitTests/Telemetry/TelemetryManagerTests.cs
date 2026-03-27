@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -245,6 +245,30 @@ public class TelemetryManagerTests
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.HotspotInvestigatedRemotely();
+        });
+    }
+
+    [TestMethod]
+    public void SupportedLanguagesPanelOpened_CallsRpcService()
+    {
+        telemetryManager.SupportedLanguagesPanelOpened();
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.SupportedLanguagesPanelOpened();
+        });
+    }
+
+    [TestMethod]
+    public void SupportedLanguagesPanelCtaClicked_CallsRpcService()
+    {
+        telemetryManager.SupportedLanguagesPanelCtaClicked();
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.SupportedLanguagesPanelCtaClicked();
         });
     }
 

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -57,6 +57,10 @@ internal sealed class TelemetryManager(ISlCoreTelemetryHelper telemetryHelper, I
     public void HotspotInvestigatedLocally() => telemetryHelper.Notify(telemetryService => telemetryService.HotspotInvestigatedLocally());
 
     public void HotspotInvestigatedRemotely() => telemetryHelper.Notify(telemetryService => telemetryService.HotspotInvestigatedRemotely());
+
+    public void SupportedLanguagesPanelOpened() => telemetryHelper.Notify(telemetryService => telemetryService.SupportedLanguagesPanelOpened());
+
+    public void SupportedLanguagesPanelCtaClicked() => telemetryHelper.Notify(telemetryService => telemetryService.SupportedLanguagesPanelCtaClicked());
 
     private static IEnumerable<FixSuggestionResolvedParams> ConvertFixSuggestionChangeToResolvedParams(string suggestionId, IEnumerable<bool> changeApplicationStatus) =>
         changeApplicationStatus

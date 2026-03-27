@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore;
 
@@ -40,12 +41,13 @@ internal sealed partial class SupportedLanguagesDialogWindow : Window
         ISLCoreHandler slCoreHandler,
         IServerConnectionsRepository serverConnectionsRepository,
         IConnectedModeUIManager connectedModeUiManager,
-        IThreadHandling threadHandling)
+        IThreadHandling threadHandling,
+        ITelemetryManager telemetryManager)
     {
         try
         {
             ViewModel = new SupportedLanguagesDialogViewModel(pluginStatusesStore, activeConfigScopeTracker, slCoreHandler, serverConnectionsRepository,
-                connectedModeUiManager, threadHandling);
+                connectedModeUiManager, threadHandling, telemetryManager);
             Closed += DisposeViewModel;
             InitializeComponent();
         }
