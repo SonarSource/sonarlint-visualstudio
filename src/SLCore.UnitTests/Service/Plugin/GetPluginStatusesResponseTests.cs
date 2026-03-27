@@ -20,6 +20,7 @@
  */
 
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Plugin;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
@@ -35,35 +36,43 @@ public class GetPluginStatusesResponseTests
             pluginStatuses:
             [
                 new PluginStatusDto(
+                    language: Language.JAVA,
                     pluginName: "Java",
                     state: PluginStateDto.ACTIVE,
                     source: ArtifactSourceDto.EMBEDDED,
                     actualVersion: "1.2.3",
-                    overriddenVersion: null),
+                    overriddenVersion: null,
+                    serverVersion: null),
                 new PluginStatusDto(
-                    pluginName: "C/C++/Objective-C",
+                    language: Language.CPP,
+                    pluginName: "C++",
                     state: PluginStateDto.SYNCED,
                     source: ArtifactSourceDto.SONARQUBE_SERVER,
                     actualVersion: "4.5.6",
-                    overriddenVersion: "3.0.0")
+                    overriddenVersion: "3.0.0",
+                    serverVersion: "10.8.1")
             ]);
 
         const string serialized = """
                                   {
                                     pluginStatuses: [
                                       {
+                                        language: "JAVA",
                                         pluginName: "Java",
                                         state: "ACTIVE",
                                         source: "EMBEDDED",
                                         actualVersion: "1.2.3",
-                                        overriddenVersion: null
+                                        overriddenVersion: null,
+                                        serverVersion: null
                                       },
                                       {
-                                        pluginName: "C/C++/Objective-C",
+                                        language: "CPP",
+                                        pluginName: "C++",
                                         state: "SYNCED",
                                         source: "SONARQUBE_SERVER",
                                         actualVersion: "4.5.6",
-                                        overriddenVersion: "3.0.0"
+                                        overriddenVersion: "3.0.0",
+                                        serverVersion: "10.8.1"
                                       }
                                     ]
                                   }

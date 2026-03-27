@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Plugin;
+using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -38,6 +39,7 @@ public class PluginStatusesStoreTests
     private IActiveConfigScopeTracker activeConfigScopeTracker;
     private ISLCoreServiceProvider slCoreServiceProvider;
     private IPluginSLCoreService pluginSLCoreService;
+    private IPluginStatusDtoToPluginStatusDisplayConverter converter;
     private NoOpThreadHandler threadHandling;
     private TestLogger logger;
     private PluginStatusesStore testSubject;
@@ -48,10 +50,11 @@ public class PluginStatusesStoreTests
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
         pluginSLCoreService = Substitute.For<IPluginSLCoreService>();
+        converter = new PluginStatusDtoToPluginStatusDisplayConverter();
         threadHandling = new NoOpThreadHandler();
         logger = new TestLogger();
 
-        testSubject = new(activeConfigScopeTracker, slCoreServiceProvider, threadHandling, logger);
+        testSubject = new(activeConfigScopeTracker, slCoreServiceProvider, converter, threadHandling, logger);
         SetCurrentConfigScope(ConfigScopeId);
         slCoreServiceProvider.TryGetTransientService(out Arg.Any<IPluginSLCoreService>()).Returns(info =>
         {
@@ -66,6 +69,7 @@ public class PluginStatusesStoreTests
         MefTestHelpers.CheckTypeCanBeImported<PluginStatusesStore, IPluginStatusesStore>(
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
+            MefTestHelpers.CreateExport<IPluginStatusDtoToPluginStatusDisplayConverter>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
@@ -91,7 +95,7 @@ public class PluginStatusesStoreTests
 
         testSubject.Update(ConfigScopeId, pluginStatuses);
 
-        testSubject.GetAll().Should().BeEquivalentTo(pluginStatuses);
+        testSubject.GetAll().Select(r => r.PluginName).Should().BeEquivalentTo(pluginStatuses.Select(d => d.pluginName));
     }
 
     [TestMethod]
@@ -101,12 +105,12 @@ public class PluginStatusesStoreTests
 
         var newStatuses = new List<PluginStatusDto>
         {
-            new("Python", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null)
+            new(Language.PYTHON, "Python", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null)
         };
         testSubject.Update(ConfigScopeId, newStatuses);
 
         var result = testSubject.GetAll();
-        result.Should().BeEquivalentTo(newStatuses);
+        result.First().PluginName.Should().Be("Python");
     }
 
     [TestMethod]
@@ -176,7 +180,7 @@ public class PluginStatusesStoreTests
 
         RaiseConfigScopeChanged();
 
-        testSubject.GetAll().Should().BeEquivalentTo(pluginStatuses);
+        testSubject.GetAll().Select(r => r.PluginName).Should().BeEquivalentTo(pluginStatuses.Select(d => d.pluginName));
     }
 
     [TestMethod]
@@ -202,7 +206,7 @@ public class PluginStatusesStoreTests
 
         RaiseConfigScopeChanged();
 
-        testSubject.GetAll().Should().BeEquivalentTo(pluginStatuses);
+        testSubject.GetAll().Select(r => r.PluginName).Should().BeEquivalentTo(pluginStatuses.Select(d => d.pluginName));
     }
 
     [TestMethod]
@@ -261,7 +265,7 @@ public class PluginStatusesStoreTests
 
     private static List<PluginStatusDto> CreatePluginStatuses() =>
     [
-        new PluginStatusDto("Java", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null),
-        new PluginStatusDto("C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "2.0", null)
+        new PluginStatusDto(Language.JAVA, "Java", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "1.0", null, null),
+        new PluginStatusDto(Language.CS, "C#", PluginStateDto.ACTIVE, ArtifactSourceDto.EMBEDDED, "2.0", null, null)
     ];
 }

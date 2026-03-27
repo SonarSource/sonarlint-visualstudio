@@ -514,13 +514,4 @@ Set the severity level for how these findings are reported, or choose None to di
   <data name="PluginStatuses_StatusFailed" xml:space="preserve">
     <value>Failed</value>
   </data>
-  <data name="PluginStatuses_SourceIde" xml:space="preserve">
-    <value>SonarQube for IDE</value>
-  </data>
-  <data name="PluginStatuses_SourceServer" xml:space="preserve">
-    <value>SonarQube Server</value>
-  </data>
-  <data name="PluginStatuses_SourceCloud" xml:space="preserve">
-    <value>SonarQube Cloud</value>
-  </data>
 </root>

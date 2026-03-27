@@ -808,34 +808,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
                 return ResourceManager.GetString("PluginStatuses_PremiumPluginsTooltip", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube Cloud.
-        /// </summary>
-        public static string PluginStatuses_SourceCloud {
-            get {
-                return ResourceManager.GetString("PluginStatuses_SourceCloud", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube for IDE.
-        /// </summary>
-        public static string PluginStatuses_SourceIde {
-            get {
-                return ResourceManager.GetString("PluginStatuses_SourceIde", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube Server.
-        /// </summary>
-        public static string PluginStatuses_SourceServer {
-            get {
-                return ResourceManager.GetString("PluginStatuses_SourceServer", resourceCulture);
-            }
-        }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Active.
         /// </summary>
