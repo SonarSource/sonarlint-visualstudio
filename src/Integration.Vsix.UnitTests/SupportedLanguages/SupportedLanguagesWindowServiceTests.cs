@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 using SonarLint.VisualStudio.SLCore;
@@ -39,7 +40,8 @@ public class SupportedLanguagesWindowServiceTests
             MefTestHelpers.CreateExport<ISLCoreHandler>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
             MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<ITelemetryManager>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
