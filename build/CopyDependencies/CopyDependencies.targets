@@ -31,7 +31,8 @@
 
   <Target Name="CopyJars">
     <ItemGroup>
-      <SourceJars Include="$(JarDownloadDir)\sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar" />
+<!--      CFamily jar is excluded from embedded as it is now downloaded at runtime by SLCORE -->
+<!--      <SourceJars Include="$(JarDownloadDir)\sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar" />-->
       <SourceJars Include="$(JarDownloadDir)\sonar-csharp-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-vbnet-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar" />
