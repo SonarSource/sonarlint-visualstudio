@@ -107,38 +107,61 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine(Strings.Daemon_Initializing);
                 logger.WriteLine(Strings.SQVSVersionLog, VersionHelper.SonarLintVersion);
 
+                logger.WriteLine("[DEBUG] Resolving IImportBeforeFileGenerator...");
                 var importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
+                logger.WriteLine("[DEBUG] Initializing IImportBeforeFileGenerator (resolved: {0})...", importBeforeFileGenerator != null);
                 await importBeforeFileGenerator.InitializationProcessor.InitializeAsync();
 
                 // This migration should be performed before initializing other services, independent if a solution or a folder is opened.
+                logger.WriteLine("[DEBUG] Migrating bindings to server connections...");
                 await MigrateBindingsToServerConnectionsIfNeededAsync();
+                logger.WriteLine("[DEBUG] Bindings migration complete.");
 
+                logger.WriteLine("[DEBUG] Initializing commands...");
                 await MuteIssueCommand.InitializeAsync(this, logger);
                 await DisableRuleCommand.InitializeAsync(this, logger);
 
+                logger.WriteLine("[DEBUG] Resolving IActiveCompilationDatabaseTracker...");
                 activeCompilationDatabaseTracker = await this.GetMefServiceAsync<IActiveCompilationDatabaseTracker>();
+                logger.WriteLine("[DEBUG] Initializing IActiveCompilationDatabaseTracker (resolved: {0})...", activeCompilationDatabaseTracker != null);
                 await activeCompilationDatabaseTracker.InitializationProcessor.InitializeAsync();
 
+                logger.WriteLine("[DEBUG] Resolving ISlCoreUserAnalysisPropertiesSynchronizer...");
                 slCoreUserAnalysisPropertiesSynchronizer = await this.GetMefServiceAsync<ISlCoreUserAnalysisPropertiesSynchronizer>();
+                logger.WriteLine("[DEBUG] Initializing ISlCoreUserAnalysisPropertiesSynchronizer (resolved: {0})...", slCoreUserAnalysisPropertiesSynchronizer != null);
                 await slCoreUserAnalysisPropertiesSynchronizer.InitializationProcessor.InitializeAsync();
 
+                logger.WriteLine("[DEBUG] Resolving IAnalysisConfigMonitor...");
                 analysisConfigMonitor = await this.GetMefServiceAsync<IAnalysisConfigMonitor>();
+                logger.WriteLine("[DEBUG] Initializing IAnalysisConfigMonitor (resolved: {0})...", analysisConfigMonitor != null);
                 await analysisConfigMonitor.InitializationProcessor.InitializeAsync();
 
+                logger.WriteLine("[DEBUG] Resolving IDocumentEventsHandler...");
                 documentEventsHandler = await this.GetMefServiceAsync<IDocumentEventsHandler>();
+                logger.WriteLine("[DEBUG] IDocumentEventsHandler resolved: {0}.", documentEventsHandler != null);
 
+                logger.WriteLine("[DEBUG] Resolving IProjectDocumentsEventsListener...");
                 projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
+                logger.WriteLine("[DEBUG] Initializing IProjectDocumentsEventsListener (resolved: {0})...", projectDocumentsEventsListener != null);
                 projectDocumentsEventsListener.Initialize();
 
+                logger.WriteLine("[DEBUG] Resolving IRoslynEnvironmentInitializer...");
                 roslynEnvironment = await this.GetMefServiceAsync<IRoslynEnvironmentInitializer>();
+                logger.WriteLine("[DEBUG] Initializing IRoslynEnvironmentInitializer (resolved: {0})...", roslynEnvironment != null);
                 await roslynEnvironment.InitializationProcessor.InitializeAsync();
 
+                logger.WriteLine("[DEBUG] Resolving IBuildEventNotifier...");
                 buildEventNotifier = await this.GetMefServiceAsync<IBuildEventNotifier>();
+                logger.WriteLine("[DEBUG] Initializing IBuildEventNotifier (resolved: {0})...", buildEventNotifier != null);
                 await buildEventNotifier.InitializationProcessor.InitializeAsync();
 
+                logger.WriteLine("[DEBUG] Resolving IFailedPluginNotification...");
                 failedPluginNotification = await this.GetMefServiceAsync<IFailedPluginNotification>();
+                logger.WriteLine("[DEBUG] IFailedPluginNotification resolved: {0}.", failedPluginNotification != null);
 
+                logger.WriteLine("[DEBUG] Resolving ISLCoreHandler...");
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
+                logger.WriteLine("[DEBUG] Enabling sloop (ISLCoreHandler resolved: {0})...", slCoreHandler != null);
                 slCoreHandler.EnableSloop();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -150,7 +173,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private async Task MigrateBindingsToServerConnectionsIfNeededAsync()
         {
+            logger.WriteLine("[DEBUG] Resolving IBindingToConnectionMigration...");
             var bindingToConnectionMigration = await this.GetMefServiceAsync<IBindingToConnectionMigration>();
+            logger.WriteLine("[DEBUG] Running migration (IBindingToConnectionMigration resolved: {0})...", bindingToConnectionMigration != null);
             await bindingToConnectionMigration.MigrateAllBindingsToServerConnectionsIfNeededAsync();
         }
 
