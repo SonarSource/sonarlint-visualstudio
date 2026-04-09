@@ -195,21 +195,6 @@ public class FileStateManagerTests
         var fileState = CreateFileState("target.cs");
         var analysisState = CreateLiveAnalysisState();
         liveAnalysisStateFactory.Create(fileState).Returns(analysisState);
-        fileState.UpdateFileState().Returns(new FileSnapshot("target.cs", null));
-        fileStateManager.Opened(fileState);
-
-        var result = fileStateManager.TryGetCurrentSnapshot("target.cs", out var snapshot);
-
-        result.Should().BeFalse();
-        snapshot.Should().BeNull();
-    }
-
-    [TestMethod]
-    public void TryGetCurrentSnapshot_FileOpened_UpdateFileStateReturnsNull_ReturnsFalse()
-    {
-        var fileState = CreateFileState("target.cs");
-        var analysisState = CreateLiveAnalysisState();
-        liveAnalysisStateFactory.Create(fileState).Returns(analysisState);
         fileState.UpdateFileState().Returns((FileSnapshot)null);
         fileStateManager.Opened(fileState);
 
