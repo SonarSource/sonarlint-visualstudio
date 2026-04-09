@@ -76,21 +76,15 @@ public class QuickFixApplicationLogicTests
     public void Ctor_SetsLogContext() => logger.Received(1).ForContext(Resources.QuickFixSuggestedAction_LogContext);
 
     [TestMethod]
-    public void CanBeApplied_DelegatesToQuickFixApplication()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void CanBeApplied_DelegatesToQuickFixApplication(bool innerResult)
     {
-        quickFixApplication.CanBeApplied(snapshot).Returns(true);
+        quickFixApplication.CanBeApplied(snapshot).Returns(innerResult);
 
-        testSubject.CanBeApplied(quickFixApplication, snapshot).Should().BeTrue();
+        testSubject.CanBeApplied(quickFixApplication, snapshot).Should().Be(innerResult);
 
         quickFixApplication.Received(1).CanBeApplied(snapshot);
-    }
-
-    [TestMethod]
-    public void CanBeApplied_ReturnsFalse_WhenQuickFixCannotBeApplied()
-    {
-        quickFixApplication.CanBeApplied(snapshot).Returns(false);
-
-        testSubject.CanBeApplied(quickFixApplication, snapshot).Should().BeFalse();
     }
 
     [TestMethod]
