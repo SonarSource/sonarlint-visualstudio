@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -127,9 +128,17 @@ public class RoslynAnalysisConfigurationProviderTests
         {
             result.ContainsKey(language).Should().BeTrue();
             result[language].Analyzers.Should().BeEquivalentTo(roslynAnalysisProfiles[language].Analyzers);
-            result[language].CodeFixProvidersByRuleKey.Should().BeSameAs(roslynAnalysisProfiles[language].CodeFixProvidersByRuleKey);
             result[language].DiagnosticOptions.Should().BeEquivalentTo(roslynAnalysisProfiles[language].Rules.ToDictionary(x => x.RuleId.RuleKey, x => x.ReportDiagnostic));
             result[language].SonarLintXml.Should().BeEquivalentTo(xmlConfigurations[language]);
+            foreach (var kvp in roslynAnalysisProfiles[language].CodeFixProvidersByRuleKey)
+            {
+                result[language].CodeFixProvidersByRuleKey.Should().ContainKey(kvp.Key);
+                result[language].CodeFixProvidersByRuleKey[kvp.Key].Should().Contain(kvp.Value);
+                if (language.Equals(Language.CSharp))
+                {
+                    result[language].CodeFixProvidersByRuleKey[kvp.Key].Should().Contain(p => p is PragmaWarningGenerateCodeFixProvider);
+                }
+            }
         }
     }
 
@@ -339,7 +348,7 @@ public class RoslynAnalysisConfigurationProviderTests
     private static ImmutableArray<DiagnosticAnalyzer> CreateTestAnalyzers(int count) => Enumerable.Range(0, count).Select(_ => Substitute.For<DiagnosticAnalyzer>()).ToImmutableArray();
 
     private static ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CreateTestCodeFixProviders() =>
-        ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty.Add("any", [Substitute.For<CodeFixProvider>()]);
+        ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty.Add("S001", [Substitute.For<CodeFixProvider>()]).Add("S002", [Substitute.For<CodeFixProvider>()]);
 
     private SonarLintXmlConfigurationFile SetUpXmlProvider(RoslynAnalysisProfile profile)
     {

@@ -228,4 +228,7 @@
   <data name="SQVSPRAGMACodeFixTitle" xml:space="preserve">
     <value>Remove unused #pragma directive</value>
   </data>
+  <data name="PragmaWarningGenerateCodeFixTitle" xml:space="preserve">
+    <value>Suppress {0} with #pragma</value>
+  </data>
 </root>

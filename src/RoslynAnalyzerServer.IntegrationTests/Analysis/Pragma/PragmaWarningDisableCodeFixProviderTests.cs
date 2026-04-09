@@ -20,10 +20,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 using static SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Analysis.Pragma.PragmaTestHelper;
 
@@ -453,56 +449,6 @@ public class PragmaWarningDisableCodeFixProviderTests
         return await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
     }
 
-    private static async Task<string> ApplyCodeFixAsync(string source, Diagnostic diagnostic)
-    {
-        var workspace = new AdhocWorkspace();
-        var document = CreateDocument(workspace, source);
-        var codeFixProvider = new PragmaWarningDisableCodeFixProvider();
-        var actions = new List<CodeAction>();
-
-        var context = new CodeFixContext(
-            document,
-            diagnostic,
-            (action, _) => actions.Add(action),
-            CancellationToken.None);
-
-        await codeFixProvider.RegisterCodeFixesAsync(context);
-        actions.Should().ContainSingle();
-
-        var operations = await actions[0].GetOperationsAsync(CancellationToken.None);
-        foreach (var operation in operations)
-        {
-            operation.Apply(workspace, CancellationToken.None);
-        }
-
-        var changedDocument = workspace.CurrentSolution.GetDocument(document.Id)!;
-        var text = await changedDocument.GetTextAsync();
-        return text.ToString();
-    }
-
-    private static Document CreateDocument(AdhocWorkspace workspace, string source)
-    {
-        var projectId = ProjectId.CreateNewId();
-        var documentId = DocumentId.CreateNewId(projectId);
-
-        var projectInfo = ProjectInfo.Create(
-            projectId,
-            VersionStamp.Default,
-            "TestProject",
-            "TestProject",
-            LanguageNames.CSharp,
-            compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-            metadataReferences: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
-        workspace.AddProject(projectInfo);
-
-        var documentInfo = DocumentInfo.Create(
-            documentId,
-            "Test.cs",
-            loader: TextLoader.From(SourceText.From(source).Container, VersionStamp.Default));
-        workspace.AddDocument(documentInfo);
-
-        return workspace.CurrentSolution.GetDocument(documentId)!;
-    }
-
-    private static string Normalize(string text) => text.Replace("\r\n", "\n").Trim();
+    private static async Task<string> ApplyCodeFixAsync(string source, Diagnostic diagnostic) =>
+        await PragmaTestHelper.ApplyCodeFixAsync(source, diagnostic, new PragmaWarningDisableCodeFixProvider());
 }

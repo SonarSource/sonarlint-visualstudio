@@ -20,8 +20,10 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.CodeFixes;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Synchronization;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -37,6 +39,9 @@ internal class RoslynAnalysisConfigurationProvider(
     IThreadHandling threadHandling,
     ILogger logger) : IRoslynAnalysisConfigurationProvider
 {
+    private static readonly ImmutableDictionary<RoslynLanguage, ImmutableList<CodeFixProvider>> AdditionalCodeFixProvidersByLanguage =
+            ImmutableDictionary.Create<RoslynLanguage, ImmutableList<CodeFixProvider>>()
+                .Add(Language.CSharp, ImmutableList.Create<CodeFixProvider>(new PragmaWarningGenerateCodeFixProvider()));
     private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
     private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
     private AnalysisConfigurationCache? cache;
@@ -94,15 +99,36 @@ internal class RoslynAnalysisConfigurationProvider(
                 continue;
             }
 
+            var enrichedCodeFixProviders = EnrichWithPragmaGenerateProvider(language, analysisProfile);
+
             configurations.Add(
                 language,
                 new RoslynAnalysisConfiguration(
                     sonarLintXmlProvider.Create(analysisProfile),
                     analysisProfile.Rules.ToImmutableDictionary(x => x.RuleId.RuleKey, y => y.ReportDiagnostic),
                     analysisProfile.Analyzers,
-                    analysisProfile.CodeFixProvidersByRuleKey));
+                    enrichedCodeFixProviders));
         }
         return configurations;
+    }
+
+    private static ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> EnrichWithPragmaGenerateProvider(RoslynLanguage language, RoslynAnalysisProfile analysisProfile)
+    {
+        if (!AdditionalCodeFixProvidersByLanguage.TryGetValue(language, out var additionalCodeFixProviders))
+        {
+            return analysisProfile.CodeFixProvidersByRuleKey;
+        }
+
+        var builder = analysisProfile.CodeFixProvidersByRuleKey.ToBuilder();
+
+        foreach (var ruleKey in analysisProfile.Rules.Select(r => r.RuleId.RuleKey))
+        {
+            builder[ruleKey] = builder.TryGetValue(ruleKey, out var providers)
+                ? [..providers, ..additionalCodeFixProviders]
+                : additionalCodeFixProviders;
+        }
+
+        return builder.ToImmutable();
     }
 
     private record struct AnalysisConfigurationCache(AnalysisConfigurationParametersCache Parameters, IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> Configurations);
