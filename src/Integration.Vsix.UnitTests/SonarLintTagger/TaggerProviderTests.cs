@@ -380,6 +380,35 @@ public class TaggerProviderTests
         fileStateManager.Received().AnalyzeAllOpenFiles();
     }
 
+    [TestMethod]
+    public void TryGetCurrentSnapshot_DelegatesToFileStateManager()
+    {
+        var snapshot = Substitute.For<ITextSnapshot>();
+        fileStateManager.TryGetCurrentSnapshot("test.cs", out Arg.Any<ITextSnapshot>())
+            .Returns(x =>
+            {
+                x[1] = snapshot;
+                return true;
+            });
+
+        var result = testSubject.TryGetCurrentSnapshot("test.cs", out var returnedSnapshot);
+
+        result.Should().BeTrue();
+        returnedSnapshot.Should().BeSameAs(snapshot);
+        fileStateManager.Received(1).TryGetCurrentSnapshot("test.cs", out Arg.Any<ITextSnapshot>());
+    }
+
+    [TestMethod]
+    public void TryGetCurrentSnapshot_FileNotFound_ReturnsFalse()
+    {
+        fileStateManager.TryGetCurrentSnapshot("unknown.cs", out Arg.Any<ITextSnapshot>())
+            .Returns(false);
+
+        var result = testSubject.TryGetCurrentSnapshot("unknown.cs", out var returnedSnapshot);
+
+        result.Should().BeFalse();
+    }
+
     #region Dispose tests
 
     [TestMethod]
