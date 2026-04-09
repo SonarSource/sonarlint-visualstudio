@@ -59,13 +59,15 @@ public class QuickFixServiceTests
             MefTestHelpers.CreateExport<IQuickFixApplicationLogic>());
 
     [TestMethod]
-    public void CanBeApplied_SnapshotFound_DelegatesToApplicationLogic()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void CanBeApplied_SnapshotFound_DelegatesToApplicationLogic(bool innerResult)
     {
         var snapshot = Substitute.For<ITextSnapshot>();
         SetupDocumentTracker(FilePath, snapshot);
-        quickFixApplicationLogic.CanBeApplied(quickFixApplication, snapshot).Returns(true);
+        quickFixApplicationLogic.CanBeApplied(quickFixApplication, snapshot).Returns(innerResult);
 
-        testSubject.CanBeApplied(quickFixApplication, FilePath).Should().BeTrue();
+        testSubject.CanBeApplied(quickFixApplication, FilePath).Should().Be(innerResult);
 
         quickFixApplicationLogic.Received(1).CanBeApplied(quickFixApplication, snapshot);
     }
@@ -81,17 +83,19 @@ public class QuickFixServiceTests
     }
 
     [TestMethod]
-    public async Task ApplyAsync_SnapshotFound_DelegatesToApplicationLogic()
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task ApplyAsync_SnapshotFound_DelegatesToApplicationLogic(bool innerResult)
     {
         var snapshot = Substitute.For<ITextSnapshot>();
         SetupDocumentTracker(FilePath, snapshot);
         quickFixApplicationLogic
             .ApplyAsync(quickFixApplication, snapshot, issueViz, Arg.Any<CancellationToken>())
-            .Returns(true);
+            .Returns(innerResult);
 
         var result = await testSubject.ApplyAsync(quickFixApplication, FilePath, issueViz);
 
-        result.Should().BeTrue();
+        result.Should().Be(innerResult);
         await quickFixApplicationLogic.Received(1)
             .ApplyAsync(quickFixApplication, snapshot, issueViz, Arg.Any<CancellationToken>());
     }
