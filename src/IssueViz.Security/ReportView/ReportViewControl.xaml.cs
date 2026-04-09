@@ -25,6 +25,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -34,9 +35,7 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
@@ -56,7 +55,6 @@ internal sealed partial class ReportViewControl : UserControl
 
     private readonly IBrowserService browserService;
     private readonly IChangeStatusWindowService changeStatusWindowService;
-    private readonly IQuickFixService quickFixService;
     private readonly ILogger logger;
 
     public ReportViewModel ReportViewModel { get; }
@@ -85,13 +83,11 @@ internal sealed partial class ReportViewControl : UserControl
         IThreadHandling threadHandling,
         IInitializationProcessorFactory initializationProcessorFactory,
         IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater,
-        ILogger logger,
-        IQuickFixService quickFixService)
+        ILogger logger)
     {
         this.browserService = browserService;
         this.changeStatusWindowService = changeStatusWindowService;
         this.logger = logger.ForVerboseContext(nameof(ReportViewControl));
-        this.quickFixService = quickFixService;
         HotspotsReportViewModel = hotspotsReportViewModel;
         DependencyRisksReportViewModel = dependencyRisksReportViewModel;
         TaintsReportViewModel = taintsReportViewModel;
@@ -572,29 +568,17 @@ internal sealed partial class ReportViewControl : UserControl
             return;
         }
 
-        var issue = issueViewModel.Issue;
-        var quickFixes = issue.QuickFixes;
-        if (quickFixes == null || !quickFixes.Any())
+        var applicableFixes = IssuesReportViewModel.GetApplicableQuickFixes(issueViewModel);
+        if (applicableFixes.Count == 0)
         {
             return;
         }
 
-        var applicableFixes = quickFixes
-            .Where(fix => quickFixService.CanBeApplied(fix, issueViewModel.FilePath))
-            .ToList();
-
-        if (!applicableFixes.Any())
-        {
-            return;
-        }
-
-        var insertIndex = FindQuickFixInsertIndex(contextMenu);
-        contextMenu.Items.Insert(insertIndex++, new Separator { Tag = QuickFixItemTag });
+        contextMenu.Items.Add(new Separator { Tag = QuickFixItemTag });
 
         foreach (var fix in applicableFixes)
         {
-            var menuItem = CreateQuickFixMenuItem(fix, issue, issueViewModel.FilePath);
-            contextMenu.Items.Insert(insertIndex++, menuItem);
+            contextMenu.Items.Add(CreateQuickFixMenuItem(fix));
         }
     }
 
@@ -611,25 +595,19 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private static int FindQuickFixInsertIndex(ContextMenu contextMenu)
-    {
-        // Insert quick fix items at the end of the menu
-        return contextMenu.Items.Count;
-    }
-
-    private MenuItem CreateQuickFixMenuItem(IQuickFixApplication fix, IAnalysisIssueVisualization issueViz, string filePath)
+    private MenuItem CreateQuickFixMenuItem(QuickFixViewModel quickFix)
     {
         var menuItem = new MenuItem
         {
-            Header = "Fix: " + fix.Message,
+            Header = "Fix: " + quickFix.Message,
             Tag = QuickFixItemTag,
             Icon = new CrispImage { Moniker = KnownMonikers.IntellisenseLightBulb }
         };
-        menuItem.Click += async (s, args) =>
+        menuItem.Click += (s, args) =>
         {
             try
             {
-                await quickFixService.ApplyAsync(fix, filePath, issueViz);
+                IssuesReportViewModel.ApplyQuickFixAsync(quickFix).Forget();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
