@@ -39,6 +39,9 @@ internal class RoslynAnalysisConfigurationProvider(
     IThreadHandling threadHandling,
     ILogger logger) : IRoslynAnalysisConfigurationProvider
 {
+    private static readonly ImmutableDictionary<RoslynLanguage, ImmutableList<CodeFixProvider>> AdditionalCodeFixProvidersByLanguage =
+            ImmutableDictionary.Create<RoslynLanguage, ImmutableList<CodeFixProvider>>()
+                .Add(Language.CSharp, ImmutableList.Create<CodeFixProvider>(new PragmaWarningGenerateCodeFixProvider()));
     private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
     private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
     private AnalysisConfigurationCache? cache;
@@ -96,7 +99,7 @@ internal class RoslynAnalysisConfigurationProvider(
                 continue;
             }
 
-            var enrichedCodeFixProviders = EnrichWithPragmaGenerateProvider(analysisProfile);
+            var enrichedCodeFixProviders = EnrichWithPragmaGenerateProvider(language, analysisProfile);
 
             configurations.Add(
                 language,
@@ -109,18 +112,20 @@ internal class RoslynAnalysisConfigurationProvider(
         return configurations;
     }
 
-    private static ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> EnrichWithPragmaGenerateProvider(RoslynAnalysisProfile analysisProfile)
+    private static ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> EnrichWithPragmaGenerateProvider(RoslynLanguage language, RoslynAnalysisProfile analysisProfile)
     {
-        var pragmaGenerateProvider = new PragmaWarningGenerateCodeFixProvider();
+        if (!AdditionalCodeFixProvidersByLanguage.TryGetValue(language, out var additionalCodeFixProviders))
+        {
+            return analysisProfile.CodeFixProvidersByRuleKey;
+        }
+
         var builder = analysisProfile.CodeFixProvidersByRuleKey.ToBuilder();
 
-        foreach (var ruleKey in analysisProfile.Rules.Where(r => r.IsActive).Select(r => r.RuleId.RuleKey))
+        foreach (var ruleKey in analysisProfile.Rules.Select(r => r.RuleId.RuleKey))
         {
-            var existing = builder.TryGetValue(ruleKey, out var providers)
-                ? providers.ToList()
-                : new List<CodeFixProvider>();
-            existing.Add(pragmaGenerateProvider);
-            builder[ruleKey] = existing;
+            builder[ruleKey] = builder.TryGetValue(ruleKey, out var providers)
+                ? [..providers, ..additionalCodeFixProviders]
+                : additionalCodeFixProviders;
         }
 
         return builder.ToImmutable();

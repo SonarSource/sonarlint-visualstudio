@@ -49,7 +49,7 @@ public class PragmaWarningGenerateCodeFixProvider : CodeFixProvider
             return;
         }
 
-        foreach (var diagnostic in context.Diagnostics.Where(diagnostic => !IsFilLevelIssue(diagnostic.Location.GetMappedLineSpan())))
+        foreach (var diagnostic in context.Diagnostics.Where(diagnostic => !IsFileLevelIssue(diagnostic.Location.GetMappedLineSpan())))
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
@@ -60,5 +60,5 @@ public class PragmaWarningGenerateCodeFixProvider : CodeFixProvider
         }
     }
 
-    private static bool IsFilLevelIssue(FileLinePositionSpan locationSourceSpan) => locationSourceSpan is { StartLinePosition: { Character: 0, Line: 0 }, EndLinePosition: { Character: 0, Line: 0 } };
+    private static bool IsFileLevelIssue(FileLinePositionSpan locationSourceSpan) => locationSourceSpan is { StartLinePosition: { Character: 0, Line: 0 }, EndLinePosition: { Character: 0, Line: 0 } };
 }
