@@ -39,7 +39,7 @@ public class RoslynProjectCompilationProviderTests
     private DiagnosticAnalyzer analyzer3 = null!;
     private AnalyzerOptions analyzerOptions = null!;
     private ImmutableArray<DiagnosticAnalyzer> analyzers;
-    private ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> codeFixProviders = null!;
+    private ImmutableDictionary<string, ImmutableList<CodeFixProvider>> codeFixProviders = null!;
     private IRoslynCompilationWrapper compilation = null!;
     private CompilationOptions compilationOptions = null!;
     private IRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers = null!;
@@ -223,7 +223,7 @@ public class RoslynProjectCompilationProviderTests
             additionalSonarLintXml,
             ImmutableDictionary<string, ReportDiagnostic>.Empty,
             additionalAnalyzersSet,
-            ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty);
+            ImmutableDictionary<string, ImmutableList<CodeFixProvider>>.Empty);
         additionalConfigurations = ImmutableDictionary<RoslynLanguage, RoslynAnalysisConfiguration>.Empty
             .Add(Language.CSharp, additionalConfiguration);
         additionalCompilationWithAnalyzers = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
@@ -243,7 +243,7 @@ public class RoslynProjectCompilationProviderTests
 
     private void SetUpCodeFixProviders()
     {
-        codeFixProviders = ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty.Add("1", [Substitute.For<CodeFixProvider>()]);
+        codeFixProviders = ImmutableDictionary<string, ImmutableList<CodeFixProvider>>.Empty.Add("1", ImmutableList.Create(Substitute.For<CodeFixProvider>()));
     }
 
     private void SetUpProject()

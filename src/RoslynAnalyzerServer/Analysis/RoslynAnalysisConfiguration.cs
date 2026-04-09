@@ -30,4 +30,4 @@ internal record struct RoslynAnalysisConfiguration(
     SonarLintXmlConfigurationFile SonarLintXml,
     ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions,
     ImmutableArray<DiagnosticAnalyzer> Analyzers,
-    ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CodeFixProvidersByRuleKey);
+    ImmutableDictionary<string, ImmutableList<CodeFixProvider>> CodeFixProvidersByRuleKey);

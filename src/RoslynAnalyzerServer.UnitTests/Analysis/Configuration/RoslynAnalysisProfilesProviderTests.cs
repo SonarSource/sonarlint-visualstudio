@@ -96,7 +96,7 @@ public class RoslynAnalysisProfilesProviderTests
             new Dictionary<string, string> { { "sonar.vbnet.property2", "value2" } });
     }
 
-    private static void ValidateProfile(RoslynAnalysisProfile profile, IEnumerable<DiagnosticAnalyzer> diagnosticAnalyzers, ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> codeFixProviders, List<RoslynRuleConfiguration> rules, Dictionary<string, string> analysisProperties) =>
+    private static void ValidateProfile(RoslynAnalysisProfile profile, IEnumerable<DiagnosticAnalyzer> diagnosticAnalyzers, ImmutableDictionary<string, ImmutableList<CodeFixProvider>> codeFixProviders, List<RoslynRuleConfiguration> rules, Dictionary<string, string> analysisProperties) =>
         profile.Should().BeEquivalentTo(new RoslynAnalysisProfile(diagnosticAnalyzers.ToImmutableArray(), codeFixProviders, rules, analysisProperties), options => options.ComparingByMembers<RoslynRuleConfiguration>().ComparingByMembers<RoslynAnalysisProfile>());
 
     private static RoslynRuleConfiguration CreateRuleConfiguration(
@@ -109,7 +109,7 @@ public class RoslynAnalysisProfilesProviderTests
             parameters);
 
     private static ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> CreateSupportedDiagnosticsForLanguages(
-        Dictionary<RoslynLanguage, (DiagnosticAnalyzer[] analyzers, string[] RuleKeys, Dictionary<string, IReadOnlyCollection<CodeFixProvider>> CodeFixProviders)> contents) =>
+        Dictionary<RoslynLanguage, (DiagnosticAnalyzer[] analyzers, string[] RuleKeys, Dictionary<string, ImmutableList<CodeFixProvider>> CodeFixProviders)> contents) =>
         contents.ToImmutableDictionary(
             x => x.Key,
             y => new AnalyzerAssemblyContents(y.Value.analyzers.ToImmutableArray(), y.Value.RuleKeys.ToImmutableHashSet(), y.Value.CodeFixProviders.ToImmutableDictionary()));

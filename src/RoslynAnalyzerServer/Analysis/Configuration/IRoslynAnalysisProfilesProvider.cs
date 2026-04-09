@@ -36,6 +36,6 @@ internal interface IRoslynAnalysisProfilesProvider
 
 internal record struct RoslynAnalysisProfile(
     ImmutableArray<DiagnosticAnalyzer> Analyzers,
-    ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CodeFixProvidersByRuleKey,
+    ImmutableDictionary<string, ImmutableList<CodeFixProvider>> CodeFixProvidersByRuleKey,
     List<RoslynRuleConfiguration> Rules,
     Dictionary<string, string> AnalysisProperties);

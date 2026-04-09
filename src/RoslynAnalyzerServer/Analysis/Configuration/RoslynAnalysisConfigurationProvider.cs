@@ -112,7 +112,7 @@ internal class RoslynAnalysisConfigurationProvider(
         return configurations;
     }
 
-    private static ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> EnrichWithPragmaGenerateProvider(RoslynLanguage language, RoslynAnalysisProfile analysisProfile)
+    private static ImmutableDictionary<string, ImmutableList<CodeFixProvider>> EnrichWithPragmaGenerateProvider(RoslynLanguage language, RoslynAnalysisProfile analysisProfile)
     {
         if (!AdditionalCodeFixProvidersByLanguage.TryGetValue(language, out var additionalCodeFixProviders))
         {
@@ -124,7 +124,7 @@ internal class RoslynAnalysisConfigurationProvider(
         foreach (var ruleKey in analysisProfile.Rules.Select(r => r.RuleId.RuleKey))
         {
             builder[ruleKey] = builder.TryGetValue(ruleKey, out var providers)
-                ? [..providers, ..additionalCodeFixProviders]
+                ? providers.AddRange(additionalCodeFixProviders)
                 : additionalCodeFixProviders;
         }
 

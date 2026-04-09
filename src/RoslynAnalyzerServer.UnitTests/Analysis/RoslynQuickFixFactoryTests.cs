@@ -40,14 +40,14 @@ public class RoslynQuickFixFactoryTests
     private IRoslynSolutionWrapper solution = null!;
     private Diagnostic diagnostic = null!;
     private IRoslynDocumentWrapper document = null!;
-    private IReadOnlyCollection<CodeFixProvider> codeFixProviders = null!;
+    private ImmutableList<CodeFixProvider> codeFixProviders = null!;
     private CancellationToken token;
     private RoslynQuickFixFactory testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        codeFixProviders = [Substitute.For<CodeFixProvider>(), Substitute.For<CodeFixProvider>()];
+        codeFixProviders = ImmutableList.Create(Substitute.For<CodeFixProvider>(), Substitute.For<CodeFixProvider>());
         document = Substitute.For<IRoslynDocumentWrapper>();
         diagnostic = CreateDiagnostic("rule1");
         workspaceWrapper = Substitute.For<IRoslynWorkspaceWrapper>();
@@ -146,7 +146,7 @@ public class RoslynQuickFixFactoryTests
     }
 
     private static RoslynAnalysisConfiguration CreateAnalysisConfiguration(
-        Dictionary<string, IReadOnlyCollection<CodeFixProvider>> codeFixProvidersByRuleKey) =>
+        Dictionary<string, ImmutableList<CodeFixProvider>> codeFixProvidersByRuleKey) =>
         new(null!,
             null!,
             default,
