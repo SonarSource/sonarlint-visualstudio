@@ -381,32 +381,23 @@ public class TaggerProviderTests
     }
 
     [TestMethod]
-    public void TryGetCurrentSnapshot_DelegatesToFileStateManager()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryGetCurrentSnapshot_DelegatesToFileStateManager(bool innerResult)
     {
         var snapshot = Substitute.For<ITextSnapshot>();
         fileStateManager.TryGetCurrentSnapshot("test.cs", out Arg.Any<ITextSnapshot>())
             .Returns(x =>
             {
                 x[1] = snapshot;
-                return true;
+                return innerResult;
             });
 
         var result = testSubject.TryGetCurrentSnapshot("test.cs", out var returnedSnapshot);
 
-        result.Should().BeTrue();
+        result.Should().Be(innerResult);
         returnedSnapshot.Should().BeSameAs(snapshot);
         fileStateManager.Received(1).TryGetCurrentSnapshot("test.cs", out Arg.Any<ITextSnapshot>());
-    }
-
-    [TestMethod]
-    public void TryGetCurrentSnapshot_FileNotFound_ReturnsFalse()
-    {
-        fileStateManager.TryGetCurrentSnapshot("unknown.cs", out Arg.Any<ITextSnapshot>())
-            .Returns(false);
-
-        var result = testSubject.TryGetCurrentSnapshot("unknown.cs", out var returnedSnapshot);
-
-        result.Should().BeFalse();
     }
 
     #region Dispose tests
