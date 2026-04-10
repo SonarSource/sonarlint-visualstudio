@@ -63,7 +63,7 @@ internal interface IDocumentTrackerUpdater
 [ContentType("text")]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker, IDocumentTrackerEx, IDocumentTrackerUpdater, IDisposable
+internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTrackerEx, IDocumentTrackerUpdater, IDisposable
 {
     internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
     private readonly IAnalysisRequester analysisRequester;

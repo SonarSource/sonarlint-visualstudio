@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 internal class QuickFixViewModel(IQuickFixApplication quickFix, IAnalysisIssueVisualization issueViz, string filePath)
 {
     public string Message => quickFix.Message;
-    public IQuickFixApplication QuickFix { get; } = quickFix;
+    public IQuickFixApplication QuickFix => quickFix;
     public IAnalysisIssueVisualization IssueViz { get; } = issueViz;
     public string FilePath { get; } = filePath;
 }
