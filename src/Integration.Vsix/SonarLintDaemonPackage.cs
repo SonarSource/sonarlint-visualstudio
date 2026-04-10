@@ -79,7 +79,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private IAnalysisConfigMonitor analysisConfigMonitor;
         private IBuildEventNotifier buildEventNotifier;
         private IRoslynEnvironmentInitializer roslynEnvironment;
-        private IFailedPluginNotification failedPluginNotification;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -136,7 +135,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 buildEventNotifier = await this.GetMefServiceAsync<IBuildEventNotifier>();
                 await buildEventNotifier.InitializationProcessor.InitializeAsync();
 
-                failedPluginNotification = await this.GetMefServiceAsync<IFailedPluginNotification>();
+                // todo https://sonarsource.atlassian.net/browse/SLVS-2915 re-enable gold bar when non-enterprise c# display bug is fixed
+                // failedPluginNotification = await this.GetMefServiceAsync<IFailedPluginNotification>();
 
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 slCoreHandler.EnableSloop();
@@ -182,8 +182,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 buildEventNotifier?.Dispose();
                 buildEventNotifier = null;
 
-                failedPluginNotification?.Dispose();
-                failedPluginNotification = null;
+                // todo https://sonarsource.atlassian.net/browse/SLVS-2915 re-enable gold bar when non-enterprise c# display bug is fixed
+                // failedPluginNotification?.Dispose();
+                // failedPluginNotification = null;
             }
         }
 
