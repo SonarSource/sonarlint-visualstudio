@@ -168,6 +168,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube: Change issue status on the server.
+        /// </summary>
+        public static string ChangeStatusActionText {
+            get {
+                return ResourceManager.GetString("ChangeStatusActionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change Status.
         /// </summary>
         public static string ChangeStatusMenuItem {

@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
             }
         }
 
-        public event EventHandler<Editor.LocationTagging.IssuesChangedEventArgs> IssuesChanged;
+        public event EventHandler<IssueVisualization.Editor.LocationTagging.IssuesChangedEventArgs> IssuesChanged;
 
         public IEnumerable<IAnalysisIssueLocationVisualization> GetLocations(string filePath)
         {
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
 
             if (filePaths.Any())
             {
-                IssuesChanged.Invoke(this, new Editor.LocationTagging.IssuesChangedEventArgs(filePaths));
+                IssuesChanged.Invoke(this, new IssueVisualization.Editor.LocationTagging.IssuesChangedEventArgs(filePaths));
             }
         }
 
