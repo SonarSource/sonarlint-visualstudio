@@ -347,8 +347,8 @@ public class RoslynAnalysisConfigurationProviderTests
 
     private static ImmutableArray<DiagnosticAnalyzer> CreateTestAnalyzers(int count) => Enumerable.Range(0, count).Select(_ => Substitute.For<DiagnosticAnalyzer>()).ToImmutableArray();
 
-    private static ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CreateTestCodeFixProviders() =>
-        ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty.Add("S001", [Substitute.For<CodeFixProvider>()]).Add("S002", [Substitute.For<CodeFixProvider>()]);
+    private static ImmutableDictionary<string, ImmutableList<CodeFixProvider>> CreateTestCodeFixProviders() =>
+        ImmutableDictionary<string, ImmutableList<CodeFixProvider>>.Empty.Add("S001", ImmutableList.Create(Substitute.For<CodeFixProvider>())).Add("S002", ImmutableList.Create(Substitute.For<CodeFixProvider>()));
 
     private SonarLintXmlConfigurationFile SetUpXmlProvider(RoslynAnalysisProfile profile)
     {

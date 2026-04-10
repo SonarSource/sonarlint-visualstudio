@@ -40,4 +40,4 @@ public interface IRoslynAnalyzerAssemblyContentsLoader : IRequireInitialization
 internal readonly record struct AnalyzerAssemblyContents(
     ImmutableArray<DiagnosticAnalyzer> Analyzers,
     ImmutableHashSet<string> SupportedRuleKeys,
-    ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CodeFixProvidersByRuleKey);
+    ImmutableDictionary<string, ImmutableList<CodeFixProvider>> CodeFixProvidersByRuleKey);

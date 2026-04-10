@@ -51,7 +51,7 @@ public class PragmaSuppressionAnalysisConfigurationFactoryTests
             new SonarLintXmlConfigurationFile("any", "any"),
             ImmutableDictionary.Create<string, ReportDiagnostic>().Add("S1234", ReportDiagnostic.Warn),
             ImmutableArray.Create<DiagnosticAnalyzer>(),
-            ImmutableDictionary.Create<string, IReadOnlyCollection<CodeFixProvider>>());
+            ImmutableDictionary.Create<string, ImmutableList<CodeFixProvider>>());
 
         sonarConfigurations = new Dictionary<RoslynLanguage, RoslynAnalysisConfiguration>
         {

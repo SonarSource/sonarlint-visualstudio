@@ -92,35 +92,35 @@ internal class RoslynAnalyzerProvider : IRoslynAnalyzerProvider, IRoslynAnalyzer
         {
             var supportedDiagnostics = ImmutableHashSet.CreateBuilder<string>();
             var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            var codeFixProviders = ImmutableDictionary.CreateBuilder<string, IReadOnlyCollection<CodeFixProvider>>();
+            var codeFixProvidersBuilder = new Dictionary<string, List<CodeFixProvider>>();
 
             foreach (var assemblyContents in languageAndAnalyzers.Value.Select(roslynAnalyzerLoader.LoadAnalyzerAssembly))
             {
                 analyzers.AddRange(assemblyContents.Analyzers);
                 supportedDiagnostics.UnionWith(assemblyContents.Analyzers.SelectMany(x => x.SupportedDiagnostics.Select(y => y.Id)));
-                AddCodeFixProviders(assemblyContents, codeFixProviders);
+                AddCodeFixProviders(assemblyContents, codeFixProvidersBuilder);
             }
 
             var immutableArray = supportedDiagnostics.ToImmutable();
-            builder.Add(languageAndAnalyzers.Key, new AnalyzerAssemblyContents(analyzers.ToImmutable(), immutableArray.ToImmutableHashSet(), codeFixProviders.ToImmutable()));
+            builder.Add(languageAndAnalyzers.Key,
+                new AnalyzerAssemblyContents(analyzers.ToImmutable(), immutableArray.ToImmutableHashSet(), codeFixProvidersBuilder.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableList())));
         }
 
         return builder.ToImmutable();
     }
 
-    private static void AddCodeFixProviders(LoadedAnalyzerClasses classes, ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Builder codeFixProviders)
+    private static void AddCodeFixProviders(LoadedAnalyzerClasses classes, Dictionary<string, List<CodeFixProvider>> codeFixProvidersBuilder)
     {
         foreach (var codeFixProvider in classes.CodeFixProviders)
         {
             foreach (var fixableDiagnosticId in codeFixProvider.FixableDiagnosticIds)
             {
-                if (!codeFixProviders.ContainsKey(fixableDiagnosticId))
+                if (!codeFixProvidersBuilder.ContainsKey(fixableDiagnosticId))
                 {
-                    codeFixProviders[fixableDiagnosticId] = new List<CodeFixProvider>();
+                    codeFixProvidersBuilder[fixableDiagnosticId] = new();
                 }
-                ((List<CodeFixProvider>)codeFixProviders[fixableDiagnosticId]).Add(codeFixProvider);
+                codeFixProvidersBuilder[fixableDiagnosticId].Add(codeFixProvider);
             }
         }
     }
-
 }

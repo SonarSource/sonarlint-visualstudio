@@ -273,7 +273,7 @@ public class RoslynAnalysisServiceIntegrationTests
                 .Add(TestBadClassNameAnalyzer.DiagnosticId, ReportDiagnostic.Warn)
                 .Add("AD0001", ReportDiagnostic.Error),
             ImmutableArray.Create<DiagnosticAnalyzer>(new TestBadClassNameAnalyzer()),
-            ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty);
+            ImmutableDictionary<string, ImmutableList<CodeFixProvider>>.Empty);
 
     private static IRoslynAnalysisConfigurationProvider CreateMockedConfigurationProvider()
     {
