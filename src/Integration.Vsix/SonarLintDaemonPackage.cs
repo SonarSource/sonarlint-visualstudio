@@ -79,6 +79,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private IAnalysisConfigMonitor analysisConfigMonitor;
         private IBuildEventNotifier buildEventNotifier;
         private IRoslynEnvironmentInitializer roslynEnvironment;
+        // todo https://sonarsource.atlassian.net/browse/SLVS-2915 re-enable gold bar when non-enterprise c# display bug is fixed
+        // private IFailedPluginNotification failedPluginNotification;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
