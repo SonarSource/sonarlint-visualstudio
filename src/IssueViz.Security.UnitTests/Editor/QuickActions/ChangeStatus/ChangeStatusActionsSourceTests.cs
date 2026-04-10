@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Security.Editor.QuickActions.ChangeStatus;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -49,120 +50,9 @@ public class ChangeStatusActionsSourceTests
     }
 
     [TestMethod]
-    public void TryGetTelemetryId_False()
+    public void IsSubclassOfIssueActionsSourceBase()
     {
-        var testSubject = CreateTestSubject();
-
-        testSubject.TryGetTelemetryId(out var guid).Should().BeFalse();
-        guid.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void Ctor_RegisterToTagAggregatorEvents()
-    {
-        var lightBulbBroker = Substitute.For<ILightBulbBroker>();
-        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
-
-        CreateTestSubject(issueLocationsTagAggregator, lightBulbBroker);
-
-        issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(Substitute.For<IMappingSpan>()));
-        lightBulbBroker.Received(1).DismissSession(textView);
-    }
-
-    [TestMethod]
-    public void Dispose_UnregisterFromTagAggregatorEvents()
-    {
-        var lightBulbBroker = Substitute.For<ILightBulbBroker>();
-        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
-
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator, lightBulbBroker);
-        testSubject.Dispose();
-
-        issueLocationsTagAggregator.Received(1).Dispose();
-        issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(Substitute.For<IMappingSpan>()));
-        lightBulbBroker.DidNotReceive().DismissSession(Arg.Any<ITextView>());
-    }
-
-    [TestMethod]
-    public void OnTagsChanged_DismissLightBulbSession()
-    {
-        var lightBulbBroker = Substitute.For<ILightBulbBroker>();
-        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
-
-        CreateTestSubject(issueLocationsTagAggregator, lightBulbBroker);
-
-        lightBulbBroker.DidNotReceive().DismissSession(Arg.Any<ITextView>());
-
-        issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(Substitute.For<IMappingSpan>()));
-        lightBulbBroker.Received(1).DismissSession(textView);
-    }
-
-    [TestMethod]
-    public void OnTagsChanged_NonCriticalException_ExceptionIsCaught()
-    {
-        var lightBulbBroker = Substitute.For<ILightBulbBroker>();
-        lightBulbBroker
-            .When(x => x.DismissSession(textView))
-            .Throw(new NotImplementedException("this is a test"));
-
-        var testSubject = CreateTestSubject(lightBulbBroker: lightBulbBroker);
-
-        var act = async () => await testSubject.HandleTagsChangedAsync();
-        act.Should().NotThrow();
-
-        lightBulbBroker.Received(1).DismissSession(textView);
-    }
-
-    [TestMethod]
-    public void OnTagsChanged_CriticalException_ExceptionIsNotCaught()
-    {
-        var lightBulbBroker = Substitute.For<ILightBulbBroker>();
-        lightBulbBroker
-            .When(x => x.DismissSession(textView))
-            .Throw(new StackOverflowException("this is a test"));
-
-        var testSubject = CreateTestSubject(lightBulbBroker: lightBulbBroker);
-
-        var act = async () => await testSubject.HandleTagsChangedAsync();
-        act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
-
-        lightBulbBroker.Received(1).DismissSession(textView);
-    }
-
-    [TestMethod]
-    public void OnTagsChanged_NoSubscribersToSuggestedActionsChanged_NoException()
-    {
-        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
-
-        CreateTestSubject(issueLocationsTagAggregator);
-
-        var act = () => issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(Substitute.For<IMappingSpan>()));
-        act.Should().NotThrow();
-    }
-
-    [TestMethod]
-    public void OnTagsChanged_HasSubscribersToSuggestedActionsChanged_RaisesSuggestedActionsChanged()
-    {
-        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
-
-        var raised = false;
-
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
-        testSubject.SuggestedActionsChanged += (_, _) => raised = true;
-
-        issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(Substitute.For<IMappingSpan>()));
-
-        raised.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public async Task HasSuggestedActionsAsync_NoIssueTags_False()
-    {
-        var testSubject = CreateTestSubject();
-
-        var hasSuggestedActions = await testSubject.HasSuggestedActionsAsync(null, new SnapshotSpan(), CancellationToken.None);
-
-        hasSuggestedActions.Should().BeFalse();
+        typeof(ChangeStatusActionsSource).Should().BeAssignableTo<IssueActionsSourceBase>();
     }
 
     [TestMethod]
@@ -194,32 +84,6 @@ public class ChangeStatusActionsSourceTests
     }
 
     [TestMethod]
-    public async Task HasSuggestedActionsAsync_NonCriticalException_Suppressed()
-    {
-        var tagAggregator = CreateThrowingAggregator(new InvalidOperationException("this is a test"));
-
-        var testSubject = CreateTestSubject(tagAggregator);
-
-        var hasSuggestedActions = await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
-
-        hasSuggestedActions.Should().BeFalse();
-        tagAggregator.Received().GetTags(Arg.Any<SnapshotSpan>());
-    }
-
-    [TestMethod]
-    public void HasSuggestedActionsAsync_CriticalException_IsNotSuppressed()
-    {
-        var tagAggregator = CreateThrowingAggregator(new StackOverflowException("this is a test"));
-
-        var testSubject = CreateTestSubject(tagAggregator);
-
-        var func = async () => await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
-
-        func.Should().ThrowExactly<StackOverflowException>().And
-            .Message.Should().Be("this is a test");
-    }
-
-    [TestMethod]
     public void GetSuggestedActions_MixedIssues_OneActionPerUnresolvedServerIssue()
     {
         var issues = new[]
@@ -242,40 +106,10 @@ public class ChangeStatusActionsSourceTests
         changeStatusActions.Select(x => x.DisplayText).Should().OnlyContain(x => x == Resources.ChangeStatusActionText);
     }
 
-    [TestMethod]
-    public void GetSuggestedActions_NonCriticalException_Suppressed()
-    {
-        var tagAggregator = CreateThrowingAggregator(new InvalidOperationException("this is a test"));
-
-        var testSubject = CreateTestSubject(tagAggregator);
-
-        var actual = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
-
-        actual.Should().NotBeNull();
-        actual.Should().BeEmpty();
-        tagAggregator.Received().GetTags(Arg.Any<SnapshotSpan>());
-    }
-
-    [TestMethod]
-    public void GetSuggestedActions_CriticalException_IsNotSuppressed()
-    {
-        var tagAggregator = CreateThrowingAggregator(new StackOverflowException("this is a test"));
-
-        var testSubject = CreateTestSubject(tagAggregator);
-
-        Action act = () => testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
-
-        act.Should().ThrowExactly<StackOverflowException>().And
-            .Message.Should().Be("this is a test");
-    }
-
     private ChangeStatusActionsSource CreateTestSubject(
-        ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator = null,
-        ILightBulbBroker lightBulbBroker = null,
-        IThreadHandling threadHandling = null)
+        ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator = null)
     {
         issueLocationsTagAggregator ??= Substitute.For<ITagAggregator<IIssueLocationTag>>();
-        lightBulbBroker ??= Substitute.For<ILightBulbBroker>();
         var logger = Substitute.For<ILogger>();
         logger.ForVerboseContext(Arg.Any<string[]>()).Returns(logger);
 
@@ -284,16 +118,14 @@ public class ChangeStatusActionsSourceTests
             .CreateTagAggregator<IIssueLocationTag>(textBuffer)
             .Returns(issueLocationsTagAggregator);
 
-        threadHandling ??= new NoOpThreadHandler();
-
         return new ChangeStatusActionsSource(
-            lightBulbBroker,
+            Substitute.For<ILightBulbBroker>(),
             bufferTagAggregatorFactoryService,
             textView,
             textBuffer,
             muteIssuesService,
             logger,
-            threadHandling);
+            new NoOpThreadHandler());
     }
 
     private static IAnalysisIssueVisualization CreateIssueViz(string issueServerKey, bool isResolved)
@@ -323,13 +155,6 @@ public class ChangeStatusActionsSourceTests
         tagSpan.Tag.Returns(tag);
 
         return tagSpan;
-    }
-
-    private static ITagAggregator<IIssueLocationTag> CreateThrowingAggregator(Exception ex)
-    {
-        var throwingAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
-        throwingAggregator.GetTags(Arg.Any<SnapshotSpan>()).Returns(_ => throw ex);
-        return throwingAggregator;
     }
 
     private static ITextView CreateTextView()

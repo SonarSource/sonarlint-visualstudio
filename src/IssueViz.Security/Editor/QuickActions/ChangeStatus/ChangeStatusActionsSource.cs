@@ -22,120 +22,33 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Editor.QuickActions.ChangeStatus;
 
-internal sealed class ChangeStatusActionsSource : ISuggestedActionsSource
+internal sealed class ChangeStatusActionsSource(
+    ILightBulbBroker lightBulbBroker,
+    IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
+    ITextView textView,
+    ITextBuffer textBuffer,
+    IMuteIssuesService muteIssuesService,
+    ILogger logger,
+    IThreadHandling threadHandling)
+    : IssueActionsSourceBase(lightBulbBroker, bufferTagAggregatorFactoryService, textView, textBuffer, logger, threadHandling)
 {
-    private readonly ILightBulbBroker lightBulbBroker;
-    private readonly ITextView textView;
-    private readonly ILogger logger;
-    private readonly IThreadHandling threadHandling;
-    private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
-    private readonly IMuteIssuesService muteIssuesService;
+    protected override SuggestedActionSetPriority Priority => SuggestedActionSetPriority.Low;
 
-    public ChangeStatusActionsSource(
-        ILightBulbBroker lightBulbBroker,
-        IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
-        ITextView textView,
-        ITextBuffer textBuffer,
-        IMuteIssuesService muteIssuesService,
-        ILogger logger,
-        IThreadHandling threadHandling)
+    protected override bool TryGetMatchingIssues(IEnumerable<IAnalysisIssueVisualization> issueVisualizations, out IEnumerable<IAnalysisIssueVisualization> matchingIssues)
     {
-        this.lightBulbBroker = lightBulbBroker;
-        this.textView = textView;
-        this.muteIssuesService = muteIssuesService;
-        this.logger = logger.ForVerboseContext(nameof(ChangeStatusActionsSource));
-        this.threadHandling = threadHandling;
-
-        issueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(textBuffer);
-        issueLocationsTagAggregator.TagsChanged += TagAggregator_TagsChanged;
-    }
-
-    public event EventHandler<EventArgs> SuggestedActionsChanged;
-
-    public IEnumerable<SuggestedActionSet> GetSuggestedActions(
-        ISuggestedActionCategorySet requestedActionCategories,
-        SnapshotSpan range,
-        CancellationToken cancellationToken)
-    {
-        var allActions = new List<ISuggestedAction>();
-
-        try
-        {
-            if (IsOnServerIssue(range, out var serverIssues))
-            {
-                allActions.AddRange(serverIssues.Select(issueViz => new ChangeStatusSuggestedAction(issueViz, muteIssuesService)));
-            }
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger.LogVerbose($"Exception getting suggested actions: {ex}");
-        }
-
-        return allActions.Any()
-            ? [new SuggestedActionSet(allActions, priority: SuggestedActionSetPriority.Low)]
-            : [];
-    }
-
-    public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
-    {
-        var hasActions = false;
-        try
-        {
-            await threadHandling.RunOnUIThreadAsync(() => hasActions = IsOnServerIssue(range, out _));
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger.LogVerbose($"Exception checking for suggested actions: {ex}");
-        }
-        return hasActions;
-    }
-
-    private bool IsOnServerIssue(SnapshotSpan range, out IEnumerable<IAnalysisIssueVisualization> serverIssues)
-    {
-        var tagSpans = issueLocationsTagAggregator.GetTags(range);
-
-        serverIssues = tagSpans
-            .Select(x => x.Tag.Location)
-            .OfType<IAnalysisIssueVisualization>()
+        matchingIssues = issueVisualizations
             .Where(x => !x.IsResolved && x.IssueServerKey != null);
 
-        return serverIssues.Any();
+        return matchingIssues.Any();
     }
 
-    public bool TryGetTelemetryId(out Guid telemetryId)
-    {
-        telemetryId = Guid.Empty;
-        return false;
-    }
-
-    public void Dispose()
-    {
-        issueLocationsTagAggregator.TagsChanged -= TagAggregator_TagsChanged;
-        issueLocationsTagAggregator.Dispose();
-    }
-
-    private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
-        => HandleTagsChangedAsync().Forget();
-
-    internal /* for testing */ async Task HandleTagsChangedAsync()
-    {
-        try
-        {
-            await threadHandling.RunOnUIThreadAsync(() => lightBulbBroker.DismissSession(textView));
-
-            SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger.LogVerbose($"Exception handling TagsChanged event: {ex}");
-        }
-    }
+    protected override IEnumerable<ISuggestedAction> CreateActions(IEnumerable<IAnalysisIssueVisualization> matchingIssues) =>
+        matchingIssues.Select(issueViz => new ChangeStatusSuggestedAction(issueViz, muteIssuesService));
 }
