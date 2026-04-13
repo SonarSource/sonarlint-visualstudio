@@ -917,7 +917,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
                 return ResourceManager.GetString("ShowBuildErrorNotificationTooltip", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Experimental.
+        /// </summary>
+        public static string ExperimentalGroupHeader {
+            get {
+                return ResourceManager.GetString("ExperimentalGroupHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Use absolute file paths instead of IDE-relative paths.
+        /// </summary>
+        public static string UseAbsoluteFilePathsCheckbox {
+            get {
+                return ResourceManager.GetString("UseAbsoluteFilePathsCheckbox", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to When enabled, file paths sent to the analysis backend are absolute (with the drive colon stripped) instead of being made relative to the solution drive root. Reload the solution after changing this setting..
+        /// </summary>
+        public static string UseAbsoluteFilePathsTooltip {
+            get {
+                return ResourceManager.GetString("UseAbsoluteFilePathsTooltip", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Show region selection for SonarQube Cloud.
         /// </summary>

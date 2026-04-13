@@ -89,6 +89,12 @@ internal sealed class SonarLintSettings : ISonarLintSettings, IDisposable
         set => SetValue(nameof(PragmaRuleSeverity), (int)value);
     }
 
+    public bool UseAbsoluteFilePaths
+    {
+        get => GetValueOrDefault(nameof(UseAbsoluteFilePaths), false);
+        set => SetValue(nameof(UseAbsoluteFilePaths), value);
+    }
+
     public void Dispose() => disposed = true;
 
     internal bool GetValueOrDefault(string key, bool defaultValue)

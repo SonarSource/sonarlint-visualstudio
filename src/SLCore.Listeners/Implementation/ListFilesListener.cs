@@ -23,6 +23,7 @@ using System.IO;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
@@ -41,6 +42,7 @@ public class ListFilesListener(
     IActiveConfigScopeTracker activeConfigScopeTracker,
     IClientFileDtoFactory clientFileDtoFactory,
     ICanonicalFilePathsCache canonicalFilePathsCache,
+    ISonarLintSettings sonarLintSettings,
     ILogger logger)
     : IListFilesListener
 {
@@ -88,7 +90,10 @@ public class ListFilesListener(
         }
 
         var solutionFiles = solutionWorkspaceService.ListFiles();
-        return (solutionFiles, GetSolutionModeRoot(solutionWorkspaceService.GetSolutionFilePath()), gitWorkspaceService.GetRepoRoot());
+        var root = sonarLintSettings.UseAbsoluteFilePaths
+            ? GetSolutionModeRootAbsolute()
+            : GetSolutionModeRoot(solutionWorkspaceService.GetSolutionFilePath());
+        return (solutionFiles, root, gitWorkspaceService.GetRepoRoot());
     }
 
     private List<ClientFileDto> GetClientFilesDtos(
@@ -101,6 +106,21 @@ public class ListFilesListener(
             .ToList();
 
     private string GetFolderModeRoot() => NormalizeRoot(folderWorkspaceService.FindRootDirectory());
+
+    private string GetSolutionModeRootAbsolute()
+    {
+        var solutionFilePath = solutionWorkspaceService.GetSolutionFilePath();
+        if (solutionFilePath != null && solutionFilePath.StartsWith(@"\\"))
+        {
+            var hostEnd = solutionFilePath.IndexOf(Path.DirectorySeparatorChar, 2);
+            if (hostEnd > 2)
+            {
+                return solutionFilePath.Substring(0, hostEnd + 1);
+            }
+        }
+
+        return string.Empty;
+    }
 
     private static string GetSolutionModeRoot(string filePath) => NormalizeRoot(Path.GetPathRoot(filePath));
 
