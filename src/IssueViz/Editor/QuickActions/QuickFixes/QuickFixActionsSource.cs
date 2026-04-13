@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -38,23 +37,20 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
     private readonly ILogger logger;
     private readonly IThreadHandling threadHandling;
     private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
-    private readonly IMessageBox messageBox;
-    private readonly IQuickFixesTelemetryManager quickFixesTelemetryManager;
+    private readonly IQuickFixApplicationLogic quickFixApplicationLogic;
 
     public QuickFixActionsSource(ILightBulbBroker lightBulbBroker,
         IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
         ITextView textView,
         ITextBuffer textBuffer,
-        IQuickFixesTelemetryManager quickFixesTelemetryManager,
-        IMessageBox messageBox,
+        IQuickFixApplicationLogic quickFixApplicationLogic,
         ILogger logger,
         IThreadHandling threadHandling)
     {
         this.lightBulbBroker = lightBulbBroker;
         this.textBuffer = textBuffer;
         this.textView = textView;
-        this.quickFixesTelemetryManager = quickFixesTelemetryManager;
-        this.messageBox = messageBox;
+        this.quickFixApplicationLogic = quickFixApplicationLogic;
         this.logger = logger;
         this.threadHandling = threadHandling;
 
@@ -79,7 +75,7 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
                 {
                     var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textBuffer.CurrentSnapshot));
 
-                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixesTelemetryManager, messageBox, logger, threadHandling)));
+                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixApplicationLogic, threadHandling)));
                 }
             }
         }

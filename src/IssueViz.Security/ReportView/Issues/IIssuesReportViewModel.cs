@@ -24,6 +24,7 @@ using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
@@ -42,6 +43,9 @@ internal interface IIssuesReportViewModel : IDisposable
     void ReopenIssue(IssueViewModel issueViewModel);
 
     void ShowIssueVisualization();
+
+    IReadOnlyList<QuickFixViewModel> GetApplicableQuickFixes(IssueViewModel issueViewModel);
+    Task ApplyQuickFixAsync(QuickFixViewModel quickFix);
 }
 
 [Export(typeof(IIssuesReportViewModel))]
@@ -51,6 +55,7 @@ internal sealed class IssuesReportViewModel(
     ILocalIssuesStore localIssuesStore,
     IShowInBrowserService showInBrowserService,
     IMuteIssuesService muteIssuesService,
+    IQuickFixService quickFixService,
     IThreadHandling threadHandling) : IssuesReportViewModelBase(localIssuesStore, threadHandling), IIssuesReportViewModel
 {
     public IEnumerable<IIssueViewModel> GetIssueViewModels() => localIssuesStore.GetAll().Select(x => new IssueViewModel(x));
@@ -79,6 +84,25 @@ internal sealed class IssuesReportViewModel(
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();
+
+    public IReadOnlyList<QuickFixViewModel> GetApplicableQuickFixes(IssueViewModel issueViewModel)
+    {
+        var quickFixes = issueViewModel.Issue.QuickFixes;
+        if (quickFixes == null || !quickFixes.Any())
+        {
+            return [];
+        }
+
+        return quickFixes
+            .Where(fix => quickFixService.CanBeApplied(fix, issueViewModel.FilePath))
+            .Select(fix => new QuickFixViewModel(fix, issueViewModel.Issue, issueViewModel.FilePath))
+            .ToList();
+    }
+
+    public async Task ApplyQuickFixAsync(QuickFixViewModel quickFix)
+    {
+        await quickFixService.ApplyAsync(quickFix.QuickFix, quickFix.FilePath, quickFix.IssueViz);
+    }
 
     protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new IssueViewModel(issue);
 }

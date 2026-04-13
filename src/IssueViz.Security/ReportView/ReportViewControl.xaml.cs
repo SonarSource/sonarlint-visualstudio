@@ -24,6 +24,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -49,6 +51,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 internal sealed partial class ReportViewControl : UserControl
 {
     public static readonly Uri ClearAllFiltersUri = new Uri("sonarlint://clearfilters");
+    private const string QuickFixItemTag = "QuickFixItem";
 
     private readonly IBrowserService browserService;
     private readonly IChangeStatusWindowService changeStatusWindowService;
@@ -549,5 +552,68 @@ internal sealed partial class ReportViewControl : UserControl
         {
             groupViewModel.IsExpanded = isExpanded;
         }
+    }
+
+    private void IssuesContextMenu_OnOpened(object sender, RoutedEventArgs e)
+    {
+        if (sender is not ContextMenu contextMenu)
+        {
+            return;
+        }
+
+        RemoveQuickFixMenuItems(contextMenu);
+
+        if (contextMenu.DataContext is not IssueViewModel issueViewModel)
+        {
+            return;
+        }
+
+        var applicableFixes = IssuesReportViewModel.GetApplicableQuickFixes(issueViewModel);
+        if (applicableFixes.Count == 0)
+        {
+            return;
+        }
+
+        contextMenu.Items.Add(new Separator { Tag = QuickFixItemTag });
+
+        foreach (var fix in applicableFixes)
+        {
+            contextMenu.Items.Add(CreateQuickFixMenuItem(fix));
+        }
+    }
+
+    private static void RemoveQuickFixMenuItems(ContextMenu contextMenu)
+    {
+        var itemsToRemove = contextMenu.Items
+            .OfType<FrameworkElement>()
+            .Where(item => QuickFixItemTag.Equals(item.Tag))
+            .ToList();
+
+        foreach (var item in itemsToRemove)
+        {
+            contextMenu.Items.Remove(item);
+        }
+    }
+
+    private MenuItem CreateQuickFixMenuItem(QuickFixViewModel quickFix)
+    {
+        var menuItem = new MenuItem
+        {
+            Header = "Fix: " + quickFix.Message,
+            Tag = QuickFixItemTag,
+            Icon = new CrispImage { Moniker = KnownMonikers.IntellisenseLightBulb }
+        };
+        menuItem.Click += (s, args) =>
+        {
+            try
+            {
+                IssuesReportViewModel.ApplyQuickFixAsync(quickFix).Forget();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // suppress
+            }
+        };
+        return menuItem;
     }
 }

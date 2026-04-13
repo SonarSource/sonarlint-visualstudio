@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
@@ -105,6 +106,9 @@ public class TaggerProviderTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported_DocumentEvents() => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, IDocumentTracker>(GetRequiredExports());
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported_DocumentEventsEx() => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, IDocumentTrackerEx>(GetRequiredExports());
 
     [TestMethod]
     public void MefCtor_Check_SameInstanceExported() => MefTestHelpers.CheckMultipleExportsReturnSameInstance<TaggerProvider, ITaggerProvider, IDocumentTracker>(GetRequiredExports());
@@ -378,6 +382,26 @@ public class TaggerProviderTests
         mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, EventArgs.Empty);
 
         fileStateManager.Received().AnalyzeAllOpenFiles();
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryGetCurrentSnapshot_DelegatesToFileStateManager(bool innerResult)
+    {
+        var snapshot = Substitute.For<ITextSnapshot>();
+        fileStateManager.TryGetCurrentSnapshot("test.cs", out Arg.Any<ITextSnapshot>())
+            .Returns(x =>
+            {
+                x[1] = snapshot;
+                return innerResult;
+            });
+
+        var result = testSubject.TryGetCurrentSnapshot("test.cs", out var returnedSnapshot);
+
+        result.Should().Be(innerResult);
+        returnedSnapshot.Should().BeSameAs(snapshot);
+        fileStateManager.Received(1).TryGetCurrentSnapshot("test.cs", out Arg.Any<ITextSnapshot>());
     }
 
     #region Dispose tests

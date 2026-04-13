@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
@@ -35,11 +36,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 [TestClass]
 public class IssuesReportViewModelTests
 {
-    private ILocalIssuesStore localIssuesStore;
-    private IssuesReportViewModel testSubject;
-    private IShowInBrowserService showInBrowserService;
-    private IThreadHandling threadHandling;
-    private IMuteIssuesService muteIssuesService;
+    private ILocalIssuesStore localIssuesStore = null!;
+    private IssuesReportViewModel testSubject = null!;
+    private IShowInBrowserService showInBrowserService = null!;
+    private IThreadHandling threadHandling = null!;
+    private IMuteIssuesService muteIssuesService = null!;
+    private IQuickFixService quickFixService = null!;
 
     [TestInitialize]
     public void TestInitialize()
@@ -48,8 +50,9 @@ public class IssuesReportViewModelTests
         showInBrowserService = Substitute.For<IShowInBrowserService>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         muteIssuesService = Substitute.For<IMuteIssuesService>();
+        quickFixService = Substitute.For<IQuickFixService>();
 
-        testSubject = new IssuesReportViewModel(localIssuesStore, showInBrowserService, muteIssuesService, threadHandling);
+        testSubject = new IssuesReportViewModel(localIssuesStore, showInBrowserService, muteIssuesService, quickFixService, threadHandling);
     }
 
     [TestMethod]
@@ -58,6 +61,7 @@ public class IssuesReportViewModelTests
             MefTestHelpers.CreateExport<ILocalIssuesStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
             MefTestHelpers.CreateExport<IMuteIssuesService>(),
+            MefTestHelpers.CreateExport<IQuickFixService>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
         );
 
@@ -175,6 +179,80 @@ public class IssuesReportViewModelTests
         testSubject.ReopenIssue(null);
 
         muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void GetApplicableQuickFixes_NoQuickFixes_ReturnsEmpty()
+    {
+        var issueVm = CreateIssueViewModelWithQuickFixes(null);
+
+        var result = testSubject.GetApplicableQuickFixes(issueVm);
+
+        result.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void GetApplicableQuickFixes_EmptyQuickFixes_ReturnsEmpty()
+    {
+        var issueVm = CreateIssueViewModelWithQuickFixes([]);
+
+        var result = testSubject.GetApplicableQuickFixes(issueVm);
+
+        result.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void GetApplicableQuickFixes_SomeApplicable_ReturnsFilteredList()
+    {
+        var fix1 = Substitute.For<IQuickFixApplication>();
+        fix1.Message.Returns("Fix 1");
+        var fix2 = Substitute.For<IQuickFixApplication>();
+        fix2.Message.Returns("Fix 2");
+        var issueVm = CreateIssueViewModelWithQuickFixes([fix1, fix2]);
+        quickFixService.CanBeApplied(fix1, issueVm.FilePath).Returns(true);
+        quickFixService.CanBeApplied(fix2, issueVm.FilePath).Returns(false);
+
+        var result = testSubject.GetApplicableQuickFixes(issueVm);
+
+        result.Should().HaveCount(1);
+        result[0].QuickFix.Should().BeSameAs(fix1);
+        result[0].Message.Should().Be("Fix 1");
+        result[0].FilePath.Should().Be(issueVm.FilePath);
+        result[0].IssueViz.Should().BeSameAs(issueVm.Issue);
+    }
+
+    [TestMethod]
+    public void GetApplicableQuickFixes_NoneApplicable_ReturnsEmpty()
+    {
+        var fix1 = Substitute.For<IQuickFixApplication>();
+        var issueVm = CreateIssueViewModelWithQuickFixes([fix1]);
+        quickFixService.CanBeApplied(fix1, issueVm.FilePath).Returns(false);
+
+        var result = testSubject.GetApplicableQuickFixes(issueVm);
+
+        result.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task ApplyQuickFixAsync_DelegatesToQuickFixService()
+    {
+        var fix = Substitute.For<IQuickFixApplication>();
+        var issueViz = Substitute.For<IAnalysisIssueVisualization>();
+        var quickFixVm = new QuickFixViewModel(fix, issueViz, "test.cs");
+
+        await testSubject.ApplyQuickFixAsync(quickFixVm);
+
+        await quickFixService.Received(1).ApplyAsync(fix, "test.cs", issueViz, Arg.Any<CancellationToken>());
+    }
+
+    private static IssueViewModel CreateIssueViewModelWithQuickFixes(IReadOnlyList<IQuickFixApplication> quickFixes)
+    {
+        var analysisIssue = Substitute.For<IAnalysisIssue>();
+        analysisIssue.PrimaryLocation.FilePath.Returns("test-file.cs");
+        var issueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        issueVisualization.Issue.Returns(analysisIssue);
+        issueVisualization.QuickFixes.Returns(quickFixes);
+        return new IssueViewModel(issueVisualization);
     }
 
     private static IssueViewModel CreateIssueViewModel(string issueKey)

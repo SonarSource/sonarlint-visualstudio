@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Telemetry;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 
@@ -37,8 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 internal class QuickFixActionsSourceProvider(
     IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
     ILightBulbBroker lightBulbBroker,
-    IQuickFixesTelemetryManager quickFixesTelemetryManager,
-    IMessageBox messageBox,
+    IQuickFixApplicationLogic quickFixApplicationLogic,
     ILogger logger,
     IThreadHandling threadHandling)
     : ISuggestedActionsSourceProvider
@@ -62,8 +60,7 @@ internal class QuickFixActionsSourceProvider(
             bufferTagAggregatorFactoryService,
             textView,
             textBuffer,
-            quickFixesTelemetryManager,
-            messageBox,
+            quickFixApplicationLogic,
             logger,
             threadHandling);
     }

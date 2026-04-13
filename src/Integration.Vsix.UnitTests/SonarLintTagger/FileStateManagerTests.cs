@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -161,6 +162,46 @@ public class FileStateManagerTests
 
         liveAnalysisStateFactory.Received(1).Create(fileState);
         analysisState.Received(1).HandleLiveAnalysisEvent(true);
+    }
+
+    [TestMethod]
+    public void TryGetCurrentSnapshot_FileNotOpened_ReturnsFalse()
+    {
+        var result = fileStateManager.TryGetCurrentSnapshot("unknown.cs", out var snapshot);
+
+        result.Should().BeFalse();
+        snapshot.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void TryGetCurrentSnapshot_FileOpened_SnapshotAvailable_ReturnsTrue()
+    {
+        var textSnapshot = Substitute.For<ITextSnapshot>();
+        var fileState = CreateFileState("target.cs");
+        var analysisState = CreateLiveAnalysisState();
+        liveAnalysisStateFactory.Create(fileState).Returns(analysisState);
+        fileState.UpdateFileState().Returns(new FileSnapshot("target.cs", textSnapshot));
+        fileStateManager.Opened(fileState);
+
+        var result = fileStateManager.TryGetCurrentSnapshot("target.cs", out var snapshot);
+
+        result.Should().BeTrue();
+        snapshot.Should().BeSameAs(textSnapshot);
+    }
+
+    [TestMethod]
+    public void TryGetCurrentSnapshot_FileOpened_SnapshotNull_ReturnsFalse()
+    {
+        var fileState = CreateFileState("target.cs");
+        var analysisState = CreateLiveAnalysisState();
+        liveAnalysisStateFactory.Create(fileState).Returns(analysisState);
+        fileState.UpdateFileState().Returns((FileSnapshot)null);
+        fileStateManager.Opened(fileState);
+
+        var result = fileStateManager.TryGetCurrentSnapshot("target.cs", out var snapshot);
+
+        result.Should().BeFalse();
+        snapshot.Should().BeNull();
     }
 
     private static IFileState CreateFileState(string filePath = "file.cs", params AnalysisLanguage[] languages)
