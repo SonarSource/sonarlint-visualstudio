@@ -20,41 +20,35 @@
 
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Editor.QuickActions.ChangeStatus;
 
-internal sealed class QuickFixActionsSource(
+internal sealed class ChangeStatusActionsSource(
     ILightBulbBroker lightBulbBroker,
     IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
     ITextView textView,
     ITextBuffer textBuffer,
-    IQuickFixesTelemetryManager quickFixesTelemetryManager,
-    IMessageBox messageBox,
+    IMuteIssuesService muteIssuesService,
     ILogger logger,
     IThreadHandling threadHandling)
     : IssueActionsSourceBase(lightBulbBroker, bufferTagAggregatorFactoryService, textView, textBuffer, logger, threadHandling)
 {
-    private readonly ITextBuffer textBuffer = textBuffer;
-    private readonly IThreadHandling threadHandling = threadHandling;
-
-    protected override SuggestedActionSetPriority Priority => SuggestedActionSetPriority.Medium;
+    protected override SuggestedActionSetPriority Priority => SuggestedActionSetPriority.Low;
 
     protected override bool TryGetMatchingIssues(IEnumerable<IAnalysisIssueVisualization> issueVisualizations, out IEnumerable<IAnalysisIssueVisualization> matchingIssues)
     {
         matchingIssues = issueVisualizations
-            .Where(x => x.QuickFixes.Any(fix => fix.CanBeApplied(textBuffer.CurrentSnapshot)));
+            .Where(x => !x.IsResolved && x.IssueServerKey != null);
 
         return matchingIssues.Any();
     }
 
     protected override IEnumerable<ISuggestedAction> CreateActions(IEnumerable<IAnalysisIssueVisualization> matchingIssues) =>
-        matchingIssues.SelectMany(issueViz =>
-            issueViz.QuickFixes
-                .Where(x => x.CanBeApplied(textBuffer.CurrentSnapshot))
-                .Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixesTelemetryManager, messageBox, Logger, threadHandling)));
+        matchingIssues.Select(issueViz => new ChangeStatusSuggestedAction(issueViz, muteIssuesService));
 }
