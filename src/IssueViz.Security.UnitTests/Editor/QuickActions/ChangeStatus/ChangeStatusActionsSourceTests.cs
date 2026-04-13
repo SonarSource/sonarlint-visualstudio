@@ -99,10 +99,10 @@ public class ChangeStatusActionsSourceTests
         var testSubject = CreateTestSubject(issueLocationsTagAggregator);
 
         var suggestedActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
-        suggestedActionsSet.Count().Should().Be(1);
+        suggestedActionsSet.Should().HaveCount(1);
 
         var changeStatusActions = suggestedActionsSet.Single().Actions.OfType<ChangeStatusSuggestedAction>().ToList();
-        changeStatusActions.Count.Should().Be(2);
+        changeStatusActions.Should().HaveCount(2);
         changeStatusActions.Select(x => x.DisplayText).Should().OnlyContain(x => x == Resources.ChangeStatusActionText);
     }
 

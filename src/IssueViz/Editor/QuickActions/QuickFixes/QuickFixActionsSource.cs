@@ -56,5 +56,5 @@ internal sealed class QuickFixActionsSource(
         matchingIssues.SelectMany(issueViz =>
             issueViz.QuickFixes
                 .Where(x => x.CanBeApplied(textBuffer.CurrentSnapshot))
-                .Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixesTelemetryManager, messageBox, logger, threadHandling)));
+                .Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixesTelemetryManager, messageBox, Logger, threadHandling)));
 }

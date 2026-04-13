@@ -35,7 +35,7 @@ internal abstract class IssueActionsSourceBase : ISuggestedActionsSource
     private readonly ITextView textView;
     private readonly IThreadHandling threadHandling;
     private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
-    protected readonly ILogger logger;
+    protected readonly ILogger Logger;
 
     protected IssueActionsSourceBase(
         ILightBulbBroker lightBulbBroker,
@@ -47,7 +47,7 @@ internal abstract class IssueActionsSourceBase : ISuggestedActionsSource
     {
         this.lightBulbBroker = lightBulbBroker;
         this.textView = textView;
-        this.logger = logger.ForVerboseContext(GetType().Name);
+        Logger = logger.ForVerboseContext(GetType().Name);
         this.threadHandling = threadHandling;
 
         issueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(textBuffer);
@@ -78,7 +78,7 @@ internal abstract class IssueActionsSourceBase : ISuggestedActionsSource
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.LogVerbose($"Exception getting suggested actions: {ex}");
+            Logger.LogVerbose($"Exception getting suggested actions: {ex}");
         }
 
         return allActions.Any()
@@ -95,7 +95,7 @@ internal abstract class IssueActionsSourceBase : ISuggestedActionsSource
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.LogVerbose($"Exception checking for suggested actions: {ex}");
+            Logger.LogVerbose($"Exception checking for suggested actions: {ex}");
         }
         return hasActions;
     }
@@ -125,7 +125,7 @@ internal abstract class IssueActionsSourceBase : ISuggestedActionsSource
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.LogVerbose($"Exception handling TagsChanged event: {ex}");
+            Logger.LogVerbose($"Exception handling TagsChanged event: {ex}");
         }
     }
 

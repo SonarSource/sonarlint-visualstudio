@@ -121,7 +121,7 @@ public class IssueActionsSourceBaseTests
         var testSubject = CreateTestSubject(lightBulbBroker: lightBulbBroker);
 
         var act = async () => await testSubject.HandleTagsChangedAsync();
-        act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+        act.Should().ThrowExactly<StackOverflowException>().WithMessage("this is a test");
 
         lightBulbBroker.Received(1).DismissSession(textView);
     }
