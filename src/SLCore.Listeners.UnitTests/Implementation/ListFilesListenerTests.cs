@@ -157,25 +157,24 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var files = result.files.ToList();
             files.Should().BeEquivalentTo(clientFileDtos);
             folderWorkspaceService.DidNotReceive().ListFiles();
-            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\", gitRepoRoot);
+            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "", gitRepoRoot);
             gitWorkspaceService.Received(1).GetRepoRoot();
             sharedBindingConfigProvider.Received().GetSharedBindingFilePathOrNull();
             canonicalFilePathsCache.Received().Add(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(DefaultFiles)));
         }
 
         [TestMethod]
-        public async Task ListFilesAsync_SolutionWorkSpace_NoFilesNoRoot_ReturnsEmptyAndLogs()
+        public async Task ListFilesAsync_SolutionWorkSpace_NoFiles_ReturnsEmpty()
         {
-            SetUpSolutionFiles(filePaths: [], solutionFilePath: null);
+            SetUpSolutionFiles(filePaths: []);
 
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
             var files = result.files.ToList();
             files.Should().BeEmpty();
             folderWorkspaceService.DidNotReceive().ListFiles();
-            activeConfigScopeTracker.DidNotReceiveWithAnyArgs().TryUpdateRootOnCurrentConfigScope(default, default, default);
-            sharedBindingConfigProvider.DidNotReceive().GetSharedBindingFilePathOrNull();
-            logger.AssertPartialOutputStringExists(SLCoreStrings.ListFiles_NoRoot);
+            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "", Arg.Any<string>());
+            sharedBindingConfigProvider.Received().GetSharedBindingFilePathOrNull();
         }
 
         [TestMethod]
@@ -184,8 +183,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             SetUpFolderWorkSpaceService(null);
             string[] filePaths = ["C:\\Code\\Project\\File1.js", "D:\\Code\\Project\\CanNotConvert.js"];
             var filePath0Dto = CreateDefaultClientFileDto();
-            SetUpDtoFactory(filePaths[0], filePath0Dto, "C:\\");
-            SetUpDtoFactory(filePaths[1], null, "C:\\");
+            SetUpDtoFactory(filePaths[0], filePath0Dto, "");
+            SetUpDtoFactory(filePaths[1], null, "");
             SetUpSolutionWorkspaceService(filePaths, DefaultSolutionFilePath);
 
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
@@ -193,16 +192,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var files = result.files.ToList();
             files.Should().BeEquivalentTo([filePath0Dto]);
             folderWorkspaceService.DidNotReceive().ListFiles();
-            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\", Arg.Any<string>());
+            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "", Arg.Any<string>());
             sharedBindingConfigProvider.Received().GetSharedBindingFilePathOrNull();
         }
 
         [TestMethod]
-        [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\Code\\MySolution.sln", "C:\\", null)]
-        [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\Code\\MySolution.sln", "C:\\", "some path")]
-        [DataRow("C:\\привет\\project\\file1.js", "C:\\привет\\project\\file2.js", "C:\\привет\\MySolution.sln", "C:\\", "C:\\привет\\")]
-        [DataRow("D:\\привет\\project\\file1.js", "D:\\привет\\project\\file2.js", "D:\\привет\\MySolution.sln", "D:\\", "D:\\привет\\")]
-        [DataRow("\\\\servername\\work\\project\\file1.js", "\\\\servername\\work\\project\\file2.js", "\\\\servername\\work\\MySolution.sln", "\\\\servername\\work\\", "\\\\servername\\work\\repo\\")]
+        [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\Code\\MySolution.sln", "", null)]
+        [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\Code\\MySolution.sln", "", "some path")]
+        [DataRow("C:\\привет\\project\\file1.js", "C:\\привет\\project\\file2.js", "C:\\привет\\MySolution.sln", "", "C:\\привет\\")]
+        [DataRow("D:\\привет\\project\\file1.js", "D:\\привет\\project\\file2.js", "D:\\привет\\MySolution.sln", "", "D:\\привет\\")]
+        [DataRow("\\\\servername\\work\\project\\file1.js", "\\\\servername\\work\\project\\file2.js", "\\\\servername\\work\\MySolution.sln", "\\\\servername\\", "\\\\servername\\work\\repo\\")]
         public async Task ListFilesAsync_SolutionWorkSpace_UpdatesRootPath(string filePath1, string filepath2, string solutionFilePath, string expectedRootPath, string expectedBaseDir)
         {
             gitWorkspaceService.GetRepoRoot().Returns(expectedBaseDir);
@@ -219,7 +218,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         [TestMethod]
         public async Task ListFilesAsync_SharedBindingPresentButNotConverted_IgnoresSharedBinding()
         {
-            const string rootPath = "C:\\";
+            const string rootPath = "";
             const string sharedbindingJson = "C:\\Code\\.sonarlint\\sharedbinding.json";
             var clientFileDtos = SetUpSolutionFiles(rootPath);
             SetUpSharedBinding(sharedbindingJson, rootPath, false);
@@ -234,7 +233,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         [TestMethod]
         public async Task ListFilesAsync_SharedBindingPresent_AppendsSharedBindingToFileList()
         {
-            const string rootPath = "C:\\";
+            const string rootPath = "";
             const string sharedbindingJson = "C:\\Code\\.sonarlint\\sharedbinding.json";
             var clientFileDtos = SetUpSolutionFiles(rootPath);
             var sharedBindingDto = SetUpSharedBinding(sharedbindingJson, rootPath);
@@ -268,7 +267,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             return sharedBindingDto;
         }
 
-        private List<ClientFileDto> SetUpSolutionFiles(string rootPath = "C:\\", string[] filePaths = null, string solutionFilePath = DefaultSolutionFilePath)
+        private List<ClientFileDto> SetUpSolutionFiles(string rootPath = "", string[] filePaths = null, string solutionFilePath = DefaultSolutionFilePath)
         {
             SetUpFolderWorkSpaceService(null);
             filePaths ??= DefaultFiles;
