@@ -34,6 +34,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private bool isShowBuildErrorNotificationEnabled;
     private CredentialStoreType credentialStoreType;
     private PragmaRuleSeverity pragmaRuleSeverity;
+    private bool useAbsoluteFilePaths;
     private readonly ISonarLintSettings slSettings;
     private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater;
     private readonly IBrowserService browserService;
@@ -123,6 +124,16 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         }
     }
 
+    public bool UseAbsoluteFilePaths
+    {
+        get => useAbsoluteFilePaths;
+        set
+        {
+            useAbsoluteFilePaths = value;
+            RaisePropertyChanged();
+        }
+    }
+
     public GeneralOptionsDialogControlViewModel(
         ISonarLintSettings slSettings,
         IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater,
@@ -143,6 +154,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         IsShowBuildErrorNotificationEnabled = slSettings.IsShowBuildErrorNotificationEnabled;
         CredentialStoreType = slSettings.CredentialStoreType;
         PragmaRuleSeverity = slSettings.PragmaRuleSeverity;
+        UseAbsoluteFilePaths = slSettings.UseAbsoluteFilePaths;
     }
 
     private void FocusOnNewCodeServiceUpdaterOnChanged(object sender, NewCodeStatusChangedEventArgs e) => IsFocusOnNewCodeEnabled = e.NewStatus.IsEnabled;
@@ -156,6 +168,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.IsShowBuildErrorNotificationEnabled = IsShowBuildErrorNotificationEnabled;
         slSettings.CredentialStoreType = CredentialStoreType;
         slSettings.PragmaRuleSeverity = PragmaRuleSeverity;
+        slSettings.UseAbsoluteFilePaths = UseAbsoluteFilePaths;
         focusOnNewCodeServiceUpdater.SetPreference(IsFocusOnNewCodeEnabled);
     }
 

@@ -420,6 +420,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Experimental.
+        /// </summary>
+        public static string ExperimentalGroupHeader {
+            get {
+                return ResourceManager.GetString("ExperimentalGroupHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add.
         /// </summary>
         public static string FileExclusions_AddButton {
@@ -1108,6 +1117,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string ToolsOptions_ExampleJson {
             get {
                 return ResourceManager.GetString("ToolsOptions_ExampleJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multi-drive support.
+        /// </summary>
+        public static string UseAbsoluteFilePathsCheckbox {
+            get {
+                return ResourceManager.GetString("UseAbsoluteFilePathsCheckbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When enabled, file paths sent to the analysis backend are absolute (with the drive colon stripped) instead of being made relative to the solution drive root. Reload the solution after changing this setting..
+        /// </summary>
+        public static string UseAbsoluteFilePathsTooltip {
+            get {
+                return ResourceManager.GetString("UseAbsoluteFilePathsTooltip", resourceCulture);
             }
         }
     }

@@ -34,15 +34,34 @@ public class ClientFileDtoFactory(ILogger logger) : IClientFileDtoFactory
 
     public ClientFileDto CreateOrNull(string configScopeId, string rootPath, SourceFile sourceFile)
     {
-        if (rootPath is not null && sourceFile?.FilePath is not null && RelativePathHelper.GetRelativePathToRootFolder(rootPath, sourceFile.FilePath) is {} ideRelativePath)
+        if (rootPath is not null && sourceFile?.FilePath is not null)
         {
-            var uri = new FileUri(sourceFile.FilePath);
-            return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath, sourceFile.Content);
+            var ideRelativePath = rootPath == string.Empty
+                ? RemoveDollar(RemoveColon(sourceFile.FilePath))
+                : RelativePathHelper.GetRelativePathToRootFolder(rootPath, sourceFile.FilePath);
+
+            if (ideRelativePath is not null)
+            {
+                var uri = new FileUri(sourceFile.FilePath);
+                return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath, sourceFile.Content);
+            }
         }
 
         logger.WriteLine(
             new MessageLevelContext {Context = [configScopeId]},
             SLCoreStrings.ClientFile_NotRelative_Skipped, sourceFile?.FilePath, rootPath);
         return null;
+    }
+
+    private static string RemoveColon(string filePath)
+    {
+        var colonIndex = filePath.IndexOf(':');
+        return colonIndex >= 0 ? filePath.Remove(colonIndex, 1) : filePath;
+    }
+
+    private static string RemoveDollar(string filePath)
+    {
+        var colonIndex = filePath.IndexOf('$');
+        return colonIndex >= 0 ? filePath.Remove(colonIndex, 1) : filePath;
     }
 }
