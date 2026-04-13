@@ -30,6 +30,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
 
@@ -153,6 +154,21 @@
                           IsChecked="{Binding Path=ShowCloudRegion}"
                           VerticalContentAlignment="Center" />
             </StackPanel>
+
+            <GroupBox Grid.Row="6" Margin="5,0,0,5" Header="{x:Static res:Strings.ExperimentalGroupHeader}">
+                <StackPanel Margin="5">
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox Content="{x:Static res:Strings.UseAbsoluteFilePathsCheckbox}"
+                                  IsChecked="{Binding Path=UseAbsoluteFilePaths}" />
+                        <imaging:CrispImage Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusHelpOutline}"
+                                            Margin="5, 0">
+                            <imaging:CrispImage.ToolTip>
+                                <TextBlock Text="{x:Static res:Strings.UseAbsoluteFilePathsTooltip}" />
+                            </imaging:CrispImage.ToolTip>
+                        </imaging:CrispImage>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
 
         </Grid>
     </ScrollViewer>
