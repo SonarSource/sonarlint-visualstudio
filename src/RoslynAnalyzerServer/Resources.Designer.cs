@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Attempt {0} to start server on port {1} failed due to {2}..
+        ///   Looks up a localized string similar to Attempt {0} to start server on port {1} failed due to {2}.
         /// </summary>
         internal static string HttpServerAttemptFailed {
             get {

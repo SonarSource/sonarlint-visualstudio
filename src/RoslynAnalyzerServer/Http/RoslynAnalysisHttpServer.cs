@@ -64,11 +64,11 @@ internal sealed class RoslynAnalysisHttpServer(
                 }
                 await StartListenAsync(attempt, currentConfiguration.Port);
             }
-            logger.LogVerbose(Resources.HttpServerFailedToStartAttempts, settings.MaxStartAttempts);
+            logger.WriteLine(Resources.HttpServerFailedToStartAttempts, settings.MaxStartAttempts);
         }
         catch (Exception ex)
         {
-            logger.LogVerbose(Resources.HttpServerFailure, ex);
+            logger.WriteLine(Resources.HttpServerFailure, ex);
         }
     }
 
@@ -96,7 +96,7 @@ internal sealed class RoslynAnalysisHttpServer(
         }
         catch (HttpListenerException ex)
         {
-            logger.LogVerbose(Resources.HttpServerAttemptFailed, attempt, port, ex.Message);
+            logger.WriteLine(Resources.HttpServerAttemptFailed, attempt, port, ex);
         }
     }
 
@@ -118,7 +118,7 @@ internal sealed class RoslynAnalysisHttpServer(
             }
             catch (Exception ex)
             {
-                logger.WriteLine(Resources.HttpServerAttemptFailed, ex);
+                logger.WriteLine(Resources.HttpServerFailure, ex);
                 if (context != null)
                 {
                     httpRequestHandler.CloseRequest(context, HttpStatusCode.InternalServerError);

@@ -130,7 +130,7 @@
     <value>The analysis request timed out after {0} ms.</value>
   </data>
   <data name="HttpServerAttemptFailed" xml:space="preserve">
-    <value>Attempt {0} to start server on port {1} failed due to {2}.</value>
+    <value>Attempt {0} to start server on port {1} failed due to {2}</value>
   </data>
   <data name="HttpServerLogContext" xml:space="preserve">
     <value>Http Server</value>
