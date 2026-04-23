@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -40,6 +40,15 @@ public class FileStateManagerTests
     }
 
     [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckMultipleExportsReturnSameInstance<FileStateManager, IFileStateManager, IAnalysisStateProvider>(
+            MefTestHelpers.CreateExport<ILiveAnalysisStateFactory>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<FileStateManager>();
+
+    [TestMethod]
     public void Opened_FileState_CreatesAnalysisStateAndHandlesLiveAnalysis()
     {
         var fileState = CreateFileState();
@@ -53,6 +62,36 @@ public class FileStateManagerTests
     }
 
     [TestMethod]
+    public void Opened_SubscribesToLinkedAnalysisRequiredEvent()
+    {
+        var fileState = CreateFileState();
+        var analysisState = CreateLiveAnalysisState();
+        liveAnalysisStateFactory.Create(fileState).Returns(analysisState);
+
+        fileStateManager.Opened(fileState);
+
+        analysisState.Received(1).LinkedAnalysisRequired += Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
+    }
+
+    [TestMethod]
+    public void LinkedAnalysisRequired_WhenRaised_ProxiesToGeneralEvent()
+    {
+        var fileState = CreateFileState();
+        var analysisState = CreateLiveAnalysisState();
+        liveAnalysisStateFactory.Create(fileState).Returns(analysisState);
+        fileStateManager.Opened(fileState);
+        LinkedAnalysisRequiredEventArgs capturedArgs = null;
+        fileStateManager.LinkedAnalysisRequired += (_, e) => capturedArgs = e;
+        var token = new CancellationToken(false);
+
+        analysisState.LinkedAnalysisRequired += Raise.EventWith(analysisState, new LinkedAnalysisRequiredEventArgs(fileState, token));
+
+        capturedArgs.Should().NotBeNull();
+        capturedArgs.File.Should().BeSameAs(fileState);
+        capturedArgs.Token.Should().Be(token);
+    }
+
+    [TestMethod]
     public void Closed_FileState_RemovesStateAndDisposesAnalysisState()
     {
         var fileState = CreateFileState();
@@ -62,7 +101,11 @@ public class FileStateManagerTests
         fileStateManager.Opened(fileState);
         fileStateManager.Closed(fileState);
 
-        analysisState.Received(1).Dispose();
+        Received.InOrder(() =>
+        {
+            analysisState.LinkedAnalysisRequired -= Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
+            analysisState.Dispose();
+        });
         fileStateManager.GetAllStates().Should().BeEmpty();
     }
 

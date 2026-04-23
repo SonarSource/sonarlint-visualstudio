@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.CSharpVB;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 using SonarLint.VisualStudio.Integration.SupportedLanguages;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
@@ -71,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string CommandSetGuidString = "1F83EA11-3B07-45B3-BF39-307FD4F42194";
 
         private ILogger logger;
+        private ILinkedFileAnalyzer linkedFileAnalyzer;
         private IActiveCompilationDatabaseTracker activeCompilationDatabaseTracker;
         private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
@@ -116,6 +118,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await MuteIssueCommand.InitializeAsync(this, logger);
                 await DisableRuleCommand.InitializeAsync(this, logger);
 
+                linkedFileAnalyzer = await this.GetMefServiceAsync<ILinkedFileAnalyzer>();
+
                 activeCompilationDatabaseTracker = await this.GetMefServiceAsync<IActiveCompilationDatabaseTracker>();
                 await activeCompilationDatabaseTracker.InitializationProcessor.InitializeAsync();
 
@@ -131,7 +135,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 projectDocumentsEventsListener.Initialize();
 
                 roslynEnvironment = await this.GetMefServiceAsync<IRoslynEnvironmentInitializer>();
-                await roslynEnvironment.InitializationProcessor.InitializeAsync();
+                if (roslynEnvironment != null)
+                {
+                    await roslynEnvironment.InitializationProcessor.InitializeAsync();
+                }
 
                 buildEventNotifier = await this.GetMefServiceAsync<IBuildEventNotifier>();
                 await buildEventNotifier.InitializationProcessor.InitializeAsync();
@@ -160,6 +167,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
+                linkedFileAnalyzer?.Dispose();
+                linkedFileAnalyzer = null;
+
                 analysisConfigMonitor?.Dispose();
                 analysisConfigMonitor = null;
 

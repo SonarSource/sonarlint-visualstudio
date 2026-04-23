@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 internal interface IFileStateManager
 {
+    event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequired;
+
     Document[] GetOpenDocuments();
 
     void AnalyzeAllOpenFiles();
@@ -57,6 +59,8 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
 {
     private readonly object locker = new();
     private ImmutableDictionary<IFileState, ILiveAnalysisState> states = ImmutableDictionary<IFileState, ILiveAnalysisState>.Empty;
+
+    public event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequired;
 
     public Document[] GetOpenDocuments()
     {
@@ -90,8 +94,8 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
 
     private ILiveAnalysisState CreateAnalysisState(IFileState file)
     {
-
         var state = liveAnalysisStateFactory.Create(file);
+        state.LinkedAnalysisRequired += OnStateLinkedAnalysisRequired;
         states = states.Add(file, state);
         return state;
     }
@@ -105,6 +109,7 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
                 return;
             }
             states = states.Remove(file);
+            state.LinkedAnalysisRequired -= OnStateLinkedAnalysisRequired;
             state.Dispose();
         }
     }
@@ -126,6 +131,9 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
             state.HandleLiveAnalysisEvent(performLinkedAnalysis);
         }
     }
+
+    private void OnStateLinkedAnalysisRequired(object sender, LinkedAnalysisRequiredEventArgs e) =>
+        LinkedAnalysisRequired?.Invoke(this, e);
 
     public bool TryGetCurrentSnapshot(string filePath, out ITextSnapshot snapshot)
     {

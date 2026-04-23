@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 public class LinkedFileAnalyzerTests
 {
     private IAnalysisStateProvider analysisStateProviderInstance;
+    private IFileStateManager fileStateManager;
     private ILogger logger;
     private IRoslynProjectWrapper project;
     private IRoslynSolutionWrapper solution;
@@ -48,7 +49,8 @@ public class LinkedFileAnalyzerTests
         workspaceWrapper.GetCurrentSolution().Returns(solution);
         logger = Substitute.For<ILogger>();
         analysisStateProviderInstance = Substitute.For<IAnalysisStateProvider>();
-        testSubject = new LinkedFileAnalyzer(typeReferenceFinder, new Lazy<IAnalysisStateProvider>(() => analysisStateProviderInstance), workspaceWrapper, logger);
+        fileStateManager = Substitute.For<IFileStateManager>();
+        testSubject = new LinkedFileAnalyzer(typeReferenceFinder, analysisStateProviderInstance, workspaceWrapper, fileStateManager, logger);
     }
 
     [TestMethod]
@@ -57,25 +59,40 @@ public class LinkedFileAnalyzerTests
             MefTestHelpers.CreateExport<ITypeReferenceFinder>(),
             MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>(),
             MefTestHelpers.CreateExport<ILogger>(),
-            MefTestHelpers.CreateExport<IAnalysisStateProvider>());
+            MefTestHelpers.CreateExport<IAnalysisStateProvider>(),
+            MefTestHelpers.CreateExport<IFileStateManager>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
         MefTestHelpers.CheckIsSingletonMefComponent<LinkedFileAnalyzer>();
 
     [TestMethod]
-    public void ScheduleLinkedAnalysis_FileNotInSolution_NoAnalysis()
+    public void Ctor_SubscribesToLinkedAnalysisRequiredEvent()
+    {
+        fileStateManager.Received(1).LinkedAnalysisRequired += Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
+    }
+
+    [TestMethod]
+    public void Dispose_UnsubscribesFromLinkedAnalysisRequiredEvent()
+    {
+        testSubject.Dispose();
+
+        fileStateManager.Received(1).LinkedAnalysisRequired -= Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
+    }
+
+    [TestMethod]
+    public void LinkedAnalysisRequired_FileNotInSolution_NoAnalysis()
     {
         var file = CreateFileState("missing.cs");
         SetupSolutionContainsFile(file, false);
 
-        testSubject.ScheduleLinkedAnalysis(file, CancellationToken.None);
+        RaiseLinkedAnalysisRequired(file, CancellationToken.None);
 
         typeReferenceFinder.DidNotReceiveWithAnyArgs().GetCrossFileReferencesInScopeAsync(default, default, default, default);
     }
 
     [TestMethod]
-    public void ScheduleLinkedAnalysis_NoOtherFiles_NoAnalysis()
+    public void LinkedAnalysisRequired_NoOtherFiles_NoAnalysis()
     {
         var file = CreateFileState("file.cs");
         var doc = Substitute.For<IRoslynDocumentWrapper>();
@@ -84,55 +101,55 @@ public class LinkedFileAnalyzerTests
         analysisStateProviderInstance.GetAllStates().Returns([liveAnalysisState]);
         SetupTypeReferenceFinderReturns(doc, [], []);
 
-        testSubject.ScheduleLinkedAnalysis(file, CancellationToken.None);
+        RaiseLinkedAnalysisRequired(file, CancellationToken.None);
 
         VerifyNotAnalyzed(liveAnalysisState);
     }
 
     [TestMethod]
-    public void ScheduleLinkedAnalysis_OtherFilesNotInSolution_NoAnalysis()
+    public void LinkedAnalysisRequired_OtherFilesNotInSolution_NoAnalysis()
     {
         var file = SetUpExisingFileInSolution("file.cs", out var doc, out var fileAnalysisState);
         SetUpFileNotInSolution("file.js", out var jsFileAnalysisState);
         SetupTypeReferenceFinderReturns(doc, [], []);
         analysisStateProviderInstance.GetAllStates().Returns([fileAnalysisState, jsFileAnalysisState]);
 
-        testSubject.ScheduleLinkedAnalysis(file, CancellationToken.None);
+        RaiseLinkedAnalysisRequired(file, CancellationToken.None);
 
         VerifyNotAnalyzed(fileAnalysisState);
         VerifyNotAnalyzed(jsFileAnalysisState);
     }
 
     [TestMethod]
-    public void ScheduleLinkedAnalysis_OtherFileAlreadyBeingAnalyzed_NoAnalysis()
+    public void LinkedAnalysisRequired_OtherFileAlreadyBeingAnalyzed_NoAnalysis()
     {
         var file = SetUpExisingFileInSolution("file.cs", out var doc, out var fileAnalysisState);
         SetUpFileAlreadyAnalyzed("file2.cs", out var alreadyAnalyzedState);
         SetupTypeReferenceFinderReturns(doc, [], []);
         analysisStateProviderInstance.GetAllStates().Returns([fileAnalysisState, alreadyAnalyzedState]);
 
-        testSubject.ScheduleLinkedAnalysis(file, CancellationToken.None);
+        RaiseLinkedAnalysisRequired(file, CancellationToken.None);
 
         VerifyNotAnalyzed(fileAnalysisState);
         VerifyNotAnalyzed(alreadyAnalyzedState);
     }
 
     [TestMethod]
-    public void ScheduleLinkedAnalysis_OtherFileNotLinked_NoAnalysis()
+    public void LinkedAnalysisRequired_OtherFileNotLinked_NoAnalysis()
     {
         var file = SetUpExisingFileInSolution("file.cs", out var doc, out var fileAnalysisState);
         SetUpExisingFileInSolution("file2.cs", out var doc2, out var file2AnalysisState);
         SetupTypeReferenceFinderReturns(doc, [doc2], []);
         analysisStateProviderInstance.GetAllStates().Returns([fileAnalysisState, file2AnalysisState]);
 
-        testSubject.ScheduleLinkedAnalysis(file, CancellationToken.None);
+        RaiseLinkedAnalysisRequired(file, CancellationToken.None);
 
         VerifyNotAnalyzed(fileAnalysisState);
         VerifyNotAnalyzed(file2AnalysisState);
     }
 
     [TestMethod]
-    public void ScheduleLinkedAnalysis_LinkedDocumentsFoundAndAnalyzed()
+    public void LinkedAnalysisRequired_LinkedDocumentsFoundAndAnalyzed()
     {
         var file = SetUpExisingFileInSolution("file.cs", out var doc, out var fileAnalysisState);
         SetUpExisingFileInSolution("file2.cs", out var doc2, out var file2AnalysisState);
@@ -140,7 +157,7 @@ public class LinkedFileAnalyzerTests
         analysisStateProviderInstance.GetAllStates().Returns([fileAnalysisState, file2AnalysisState]);
         var cts = new CancellationTokenSource();
 
-        testSubject.ScheduleLinkedAnalysis(file, cts.Token);
+        RaiseLinkedAnalysisRequired(file, cts.Token);
 
         VerifyNotAnalyzed(fileAnalysisState);
         file2AnalysisState.Received(1).HandleLiveAnalysisEvent(false);
@@ -149,7 +166,7 @@ public class LinkedFileAnalyzerTests
     }
 
     [TestMethod]
-    public void ScheduleLinkedAnalysis_Complex()
+    public void LinkedAnalysisRequired_Complex()
     {
         var file = SetUpExisingFileInSolution("file.cs", out var doc, out var fileAnalysisState);
         SetUpFileAlreadyAnalyzed("alreadyAnalyzed.cs", out var alreadyAnalyzed);
@@ -160,7 +177,7 @@ public class LinkedFileAnalyzerTests
         SetupTypeReferenceFinderReturns(doc, [doc3, notLinkedDoc, doc6], [doc3, doc6]);
         analysisStateProviderInstance.GetAllStates().Returns([fileAnalysisState, alreadyAnalyzed, file3AnalysisState, jsFileAnalysisState, notLinkedDocAnalysisState, file6AnalysisState]);
 
-        testSubject.ScheduleLinkedAnalysis(file, CancellationToken.None);
+        RaiseLinkedAnalysisRequired(file, CancellationToken.None);
 
         VerifyNotAnalyzed(fileAnalysisState);
         VerifyNotAnalyzed(alreadyAnalyzed);
@@ -171,14 +188,17 @@ public class LinkedFileAnalyzerTests
     }
 
     [TestMethod]
-    public void ScheduleLinkedAnalysis_DoesNotThrow()
+    public void LinkedAnalysisRequired_DoesNotThrow()
     {
         project.ContainsDocument(default, out _).ThrowsForAnyArgs(new Exception());
 
-        var act = () => testSubject.ScheduleLinkedAnalysis(Substitute.For<IFileState>(), CancellationToken.None);
+        var act = () => RaiseLinkedAnalysisRequired(Substitute.For<IFileState>(), CancellationToken.None);
 
         act.Should().NotThrow();
     }
+
+    private void RaiseLinkedAnalysisRequired(IFileState file, CancellationToken token) =>
+        fileStateManager.LinkedAnalysisRequired += Raise.EventWith(fileStateManager, new LinkedAnalysisRequiredEventArgs(file, token));
 
     private void SetupSolutionContainsFile(IFileState fileState, bool contains, IRoslynDocumentWrapper document = null) =>
         project.ContainsDocument(fileState.FilePath, out Arg.Any<IRoslynDocumentWrapper>())

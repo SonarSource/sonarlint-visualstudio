@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -33,17 +33,24 @@ internal interface ILiveAnalysisStateFactory
 [method: ImportingConstructor]
 internal class LiveAnalysisStateFactory(
     ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory,
-    IFileTracker fileTracker,
-    ILinkedFileAnalyzer linkedFileAnalyzer) : ILiveAnalysisStateFactory
+    IFileTracker fileTracker) : ILiveAnalysisStateFactory
 {
     public ILiveAnalysisState Create(IFileState fileState) =>
-        new LiveAnalysisState(taskExecutorWithDebounceFactory.Create(), fileState, fileTracker, linkedFileAnalyzer);
+        new LiveAnalysisState(taskExecutorWithDebounceFactory.Create(), fileState, fileTracker);
+}
+
+internal class LinkedAnalysisRequiredEventArgs(IFileState file, CancellationToken token) : EventArgs
+{
+    public IFileState File { get; } = file;
+    public CancellationToken Token { get; } = token;
 }
 
 internal interface ILiveAnalysisState : IDisposable
 {
     IFileState FileState { get; }
     bool IsWaiting { get; }
+
+    event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequired;
 
     void HandleLiveAnalysisEvent(bool triggerLinkedAnalysis);
 
@@ -53,8 +60,7 @@ internal interface ILiveAnalysisState : IDisposable
 internal sealed class LiveAnalysisState(
     ITaskExecutorWithDebounce executor,
     IFileState file,
-    IFileTracker fileTracker,
-    ILinkedFileAnalyzer linkedFileAnalyzer)
+    IFileTracker fileTracker)
     : ILiveAnalysisState
 {
     internal static readonly TimeSpan LiveAnalysisDebounceDuration = TimeSpan.FromMilliseconds(700);
@@ -66,6 +72,8 @@ internal sealed class LiveAnalysisState(
     public IFileState FileState => file;
 
     public bool IsWaiting => !disposed && !executor.IsScheduled;
+
+    public event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequired;
 
     public void HandleLiveAnalysisEvent(bool triggerLinkedAnalysis)
     {
@@ -80,7 +88,7 @@ internal sealed class LiveAnalysisState(
                 AnalyzeFile();
                 if (triggerLinkedAnalysis)
                 {
-                    executor.Debounce(token => linkedFileAnalyzer.ScheduleLinkedAnalysis(file, token), LinkCalculationDebounceDuration);
+                    executor.Debounce(token => LinkedAnalysisRequired?.Invoke(this, new LinkedAnalysisRequiredEventArgs(file, token)), LinkCalculationDebounceDuration);
                 }
             },
             LiveAnalysisDebounceDuration);

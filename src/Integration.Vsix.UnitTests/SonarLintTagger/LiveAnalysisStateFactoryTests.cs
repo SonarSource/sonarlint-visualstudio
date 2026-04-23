@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -28,7 +28,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 public class LiveAnalysisStateFactoryTests
 {
     private ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory;
-    private ILinkedFileAnalyzer linkedFileAnalyzer;
     private IFileTracker fileTracker;
     private LiveAnalysisStateFactory testSubject;
 
@@ -37,16 +36,14 @@ public class LiveAnalysisStateFactoryTests
     {
         taskExecutorWithDebounceFactory = Substitute.For<ITaskExecutorWithDebounceFactory>();
         fileTracker = Substitute.For<IFileTracker>();
-        linkedFileAnalyzer = Substitute.For<ILinkedFileAnalyzer>();
-        testSubject = new LiveAnalysisStateFactory(taskExecutorWithDebounceFactory, fileTracker, linkedFileAnalyzer);
+        testSubject = new LiveAnalysisStateFactory(taskExecutorWithDebounceFactory, fileTracker);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<LiveAnalysisStateFactory, ILiveAnalysisStateFactory>(
             MefTestHelpers.CreateExport<ITaskExecutorWithDebounceFactory>(),
-            MefTestHelpers.CreateExport<IFileTracker>(),
-            MefTestHelpers.CreateExport<ILinkedFileAnalyzer>());
+            MefTestHelpers.CreateExport<IFileTracker>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>

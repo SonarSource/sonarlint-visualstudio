@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -25,24 +25,41 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
-internal interface ILinkedFileAnalyzer
-{
-    void ScheduleLinkedAnalysis(IFileState file, CancellationToken token);
-}
+internal interface ILinkedFileAnalyzer : IDisposable { }
 
 [Export(typeof(ILinkedFileAnalyzer))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method:ImportingConstructor]
-internal class LinkedFileAnalyzer(
-    ITypeReferenceFinder typeReferenceFinder,
-    Lazy<IAnalysisStateProvider> analysisStateProvider,
-    IRoslynWorkspaceWrapper workspaceWrapper,
-    ILogger logger)
-    : ILinkedFileAnalyzer
+internal class LinkedFileAnalyzer : ILinkedFileAnalyzer
 {
-    private readonly ILogger logger = logger.ForVerboseContext(nameof(LinkedFileAnalyzer));
+    private readonly ITypeReferenceFinder typeReferenceFinder;
+    private readonly IAnalysisStateProvider analysisStateProvider;
+    private readonly IRoslynWorkspaceWrapper workspaceWrapper;
+    private readonly ILogger logger;
+    private readonly IFileStateManager fileStateManager;
 
-    public void ScheduleLinkedAnalysis(IFileState file, CancellationToken token) => RunLinkedAnalysisAsync(file, token).Forget();
+    [ImportingConstructor]
+    public LinkedFileAnalyzer(
+        ITypeReferenceFinder typeReferenceFinder,
+        IAnalysisStateProvider analysisStateProvider,
+        IRoslynWorkspaceWrapper workspaceWrapper,
+        IFileStateManager fileStateManager,
+        ILogger logger)
+    {
+        this.typeReferenceFinder = typeReferenceFinder;
+        this.analysisStateProvider = analysisStateProvider;
+        this.workspaceWrapper = workspaceWrapper;
+        this.fileStateManager = fileStateManager;
+        this.logger = logger.ForVerboseContext(nameof(LinkedFileAnalyzer));
+        fileStateManager.LinkedAnalysisRequired += OnLinkedAnalysisRequired;
+    }
+
+    public void Dispose() =>
+        fileStateManager.LinkedAnalysisRequired -= OnLinkedAnalysisRequired;
+
+    private void OnLinkedAnalysisRequired(object sender, LinkedAnalysisRequiredEventArgs e) =>
+        ScheduleLinkedAnalysis(e.File, e.Token);
+
+    private void ScheduleLinkedAnalysis(IFileState file, CancellationToken token) => RunLinkedAnalysisAsync(file, token).Forget();
 
     private async Task RunLinkedAnalysisAsync(IFileState file, CancellationToken token)
     {
@@ -67,7 +84,7 @@ internal class LinkedFileAnalyzer(
             return;
         }
 
-        var states = analysisStateProvider.Value.GetAllStates();
+        var states = analysisStateProvider.GetAllStates();
         var otherDocuments = GetRoslynDocuments(
             states,
             file,
