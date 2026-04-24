@@ -29,7 +29,7 @@ internal interface ILinkedFileAnalyzer : IDisposable { }
 
 [Export(typeof(ILinkedFileAnalyzer))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class LinkedFileAnalyzer : ILinkedFileAnalyzer
+internal sealed class LinkedFileAnalyzer : ILinkedFileAnalyzer
 {
     private readonly ITypeReferenceFinder typeReferenceFinder;
     private readonly ILinkedFileStateManager linkedFileStateManager;
