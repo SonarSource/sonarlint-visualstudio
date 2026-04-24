@@ -39,12 +39,6 @@ internal class LiveAnalysisStateFactory(
         new LiveAnalysisState(taskExecutorWithDebounceFactory.Create(), fileState, fileTracker);
 }
 
-internal class LinkedAnalysisRequiredEventArgs(IFileState file, CancellationToken token) : EventArgs
-{
-    public IFileState File { get; } = file;
-    public CancellationToken Token { get; } = token;
-}
-
 internal interface ILiveAnalysisState : IDisposable
 {
     IFileState FileState { get; }
