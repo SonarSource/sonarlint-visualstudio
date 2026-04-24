@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -90,7 +90,7 @@ public class LiveAnalysisStateTests
         var fileSnapshot = CreateFileSnapshot();
         fileState.UpdateFileState().Returns(fileSnapshot);
         LinkedAnalysisRequiredEventArgs capturedArgs = null;
-        testSubject.LinkedAnalysisRequired += (_, e) => capturedArgs = e;
+        testSubject.LinkedAnalysisRequested += (_, e) => capturedArgs = e;
 
         testSubject.HandleLiveAnalysisEvent(true);
 
@@ -122,7 +122,7 @@ public class LiveAnalysisStateTests
         var fileSnapshot = CreateFileSnapshot();
         fileState.UpdateFileState().Returns(fileSnapshot);
         LinkedAnalysisRequiredEventArgs capturedArgs = null;
-        testSubject.LinkedAnalysisRequired += (_, e) => capturedArgs = e;
+        testSubject.LinkedAnalysisRequested += (_, e) => capturedArgs = e;
 
         testSubject.HandleLiveAnalysisEvent(false);
 

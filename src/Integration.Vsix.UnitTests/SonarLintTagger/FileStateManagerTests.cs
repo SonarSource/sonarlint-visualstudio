@@ -70,7 +70,7 @@ public class FileStateManagerTests
 
         fileStateManager.Opened(fileState);
 
-        analysisState.Received(1).LinkedAnalysisRequired += Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
+        analysisState.Received(1).LinkedAnalysisRequested += Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
     }
 
     [TestMethod]
@@ -81,10 +81,10 @@ public class FileStateManagerTests
         liveAnalysisStateFactory.Create(fileState).Returns(analysisState);
         fileStateManager.Opened(fileState);
         LinkedAnalysisRequiredEventArgs capturedArgs = null;
-        fileStateManager.LinkedAnalysisRequired += (_, e) => capturedArgs = e;
+        fileStateManager.LinkedAnalysisRequested += (_, e) => capturedArgs = e;
         var token = new CancellationToken(false);
 
-        analysisState.LinkedAnalysisRequired += Raise.EventWith(analysisState, new LinkedAnalysisRequiredEventArgs(fileState, token));
+        analysisState.LinkedAnalysisRequested += Raise.EventWith(analysisState, new LinkedAnalysisRequiredEventArgs(fileState, token));
 
         capturedArgs.Should().NotBeNull();
         capturedArgs.File.Should().BeSameAs(fileState);
@@ -103,7 +103,7 @@ public class FileStateManagerTests
 
         Received.InOrder(() =>
         {
-            analysisState.LinkedAnalysisRequired -= Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
+            analysisState.LinkedAnalysisRequested -= Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
             analysisState.Dispose();
         });
         fileStateManager.GetAllStates().Should().BeEmpty();

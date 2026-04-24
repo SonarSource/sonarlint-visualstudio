@@ -47,13 +47,13 @@ internal class LinkedFileAnalyzer : ILinkedFileAnalyzer
         this.linkedFileStateManager = linkedFileStateManager;
         this.workspaceWrapper = workspaceWrapper;
         this.logger = logger.ForVerboseContext(nameof(LinkedFileAnalyzer));
-        linkedFileStateManager.LinkedAnalysisRequired += OnLinkedAnalysisRequired;
+        linkedFileStateManager.LinkedAnalysisRequested += OnLinkedAnalysisRequested;
     }
 
     public void Dispose() =>
-        linkedFileStateManager.LinkedAnalysisRequired -= OnLinkedAnalysisRequired;
+        linkedFileStateManager.LinkedAnalysisRequested -= OnLinkedAnalysisRequested;
 
-    private void OnLinkedAnalysisRequired(object sender, LinkedAnalysisRequiredEventArgs e) =>
+    private void OnLinkedAnalysisRequested(object sender, LinkedAnalysisRequiredEventArgs e) =>
         ScheduleLinkedAnalysis(e.File, e.Token);
 
     private void ScheduleLinkedAnalysis(IFileState file, CancellationToken token) => RunLinkedAnalysisAsync(file, token).Forget();

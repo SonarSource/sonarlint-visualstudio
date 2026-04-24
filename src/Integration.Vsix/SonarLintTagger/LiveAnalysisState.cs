@@ -44,7 +44,7 @@ internal interface ILiveAnalysisState : IDisposable
     IFileState FileState { get; }
     bool IsWaiting { get; }
 
-    event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequired;
+    event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequested;
 
     void HandleLiveAnalysisEvent(bool triggerLinkedAnalysis);
 
@@ -67,7 +67,7 @@ internal sealed class LiveAnalysisState(
 
     public bool IsWaiting => !disposed && !executor.IsScheduled;
 
-    public event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequired;
+    public event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequested;
 
     public void HandleLiveAnalysisEvent(bool triggerLinkedAnalysis)
     {
@@ -82,7 +82,7 @@ internal sealed class LiveAnalysisState(
                 AnalyzeFile();
                 if (triggerLinkedAnalysis)
                 {
-                    executor.Debounce(token => LinkedAnalysisRequired?.Invoke(this, new LinkedAnalysisRequiredEventArgs(file, token)), LinkCalculationDebounceDuration);
+                    executor.Debounce(token => LinkedAnalysisRequested?.Invoke(this, new LinkedAnalysisRequiredEventArgs(file, token)), LinkCalculationDebounceDuration);
                 }
             },
             LiveAnalysisDebounceDuration);

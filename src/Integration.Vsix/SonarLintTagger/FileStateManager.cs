@@ -46,7 +46,7 @@ internal interface IFileStateManager
 
 internal interface ILinkedFileStateManager
 {
-    event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequired;
+    event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequested;
 
     IEnumerable<ILiveAnalysisState> GetAllStates();
 }
@@ -60,7 +60,7 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
     private readonly object locker = new();
     private ImmutableDictionary<IFileState, ILiveAnalysisState> states = ImmutableDictionary<IFileState, ILiveAnalysisState>.Empty;
 
-    public event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequired;
+    public event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequested;
 
     public Document[] GetOpenDocuments()
     {
@@ -95,7 +95,7 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
     private ILiveAnalysisState CreateAnalysisState(IFileState file)
     {
         var state = liveAnalysisStateFactory.Create(file);
-        state.LinkedAnalysisRequired += OnStateLinkedAnalysisRequired;
+        state.LinkedAnalysisRequested += OnStateLinkedAnalysisRequested;
         states = states.Add(file, state);
         return state;
     }
@@ -109,7 +109,7 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
                 return;
             }
             states = states.Remove(file);
-            state.LinkedAnalysisRequired -= OnStateLinkedAnalysisRequired;
+            state.LinkedAnalysisRequested -= OnStateLinkedAnalysisRequested;
             state.Dispose();
         }
     }
@@ -132,8 +132,8 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
         }
     }
 
-    private void OnStateLinkedAnalysisRequired(object sender, LinkedAnalysisRequiredEventArgs e) =>
-        LinkedAnalysisRequired?.Invoke(this, e);
+    private void OnStateLinkedAnalysisRequested(object sender, LinkedAnalysisRequiredEventArgs e) =>
+        LinkedAnalysisRequested?.Invoke(this, e);
 
     public bool TryGetCurrentSnapshot(string filePath, out ITextSnapshot snapshot)
     {

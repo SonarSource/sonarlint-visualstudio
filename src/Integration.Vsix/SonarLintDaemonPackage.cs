@@ -118,7 +118,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await MuteIssueCommand.InitializeAsync(this, logger);
                 await DisableRuleCommand.InitializeAsync(this, logger);
 
-                linkedFileAnalyzer = await this.GetMefServiceAsync<ILinkedFileAnalyzer>();
 
                 activeCompilationDatabaseTracker = await this.GetMefServiceAsync<IActiveCompilationDatabaseTracker>();
                 await activeCompilationDatabaseTracker.InitializationProcessor.InitializeAsync();
@@ -134,11 +133,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
                 projectDocumentsEventsListener.Initialize();
 
-                roslynEnvironment = await this.GetMefServiceAsync<IRoslynEnvironmentInitializer>();
-                if (roslynEnvironment != null)
-                {
-                    await roslynEnvironment.InitializationProcessor.InitializeAsync();
-                }
+                await InitializeRoslynInfrastructureAsync();
 
                 buildEventNotifier = await this.GetMefServiceAsync<IBuildEventNotifier>();
                 await buildEventNotifier.InitializationProcessor.InitializeAsync();
@@ -153,6 +148,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger?.WriteLine(Strings.ERROR_InitializingDaemon, ex);
             }
             logger?.WriteLine(Strings.Daemon_InitializationComplete);
+        }
+
+        private async Task InitializeRoslynInfrastructureAsync()
+        {
+            linkedFileAnalyzer = await this.GetMefServiceAsync<ILinkedFileAnalyzer>();
+            roslynEnvironment = await this.GetMefServiceAsync<IRoslynEnvironmentInitializer>();
+            if (roslynEnvironment != null)
+            {
+                await roslynEnvironment.InitializationProcessor.InitializeAsync();
+            }
         }
 
         private async Task MigrateBindingsToServerConnectionsIfNeededAsync()

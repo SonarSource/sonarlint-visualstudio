@@ -66,7 +66,7 @@ public class LinkedFileAnalyzerTests
     [TestMethod]
     public void Ctor_SubscribesToLinkedAnalysisRequiredEvent()
     {
-        linkedFileStateManagerInstance.Received(1).LinkedAnalysisRequired += Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
+        linkedFileStateManagerInstance.Received(1).LinkedAnalysisRequested += Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
     }
 
     [TestMethod]
@@ -74,7 +74,7 @@ public class LinkedFileAnalyzerTests
     {
         testSubject.Dispose();
 
-        linkedFileStateManagerInstance.Received(1).LinkedAnalysisRequired -= Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
+        linkedFileStateManagerInstance.Received(1).LinkedAnalysisRequested -= Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
     }
 
     [TestMethod]
@@ -195,7 +195,7 @@ public class LinkedFileAnalyzerTests
     }
 
     private void RaiseLinkedAnalysisRequired(IFileState file, CancellationToken token) =>
-        linkedFileStateManagerInstance.LinkedAnalysisRequired += Raise.EventWith(linkedFileStateManagerInstance, new LinkedAnalysisRequiredEventArgs(file, token));
+        linkedFileStateManagerInstance.LinkedAnalysisRequested += Raise.EventWith(linkedFileStateManagerInstance, new LinkedAnalysisRequiredEventArgs(file, token));
 
     private void SetupSolutionContainsFile(IFileState fileState, bool contains, IRoslynDocumentWrapper document = null) =>
         project.ContainsDocument(fileState.FilePath, out Arg.Any<IRoslynDocumentWrapper>())
