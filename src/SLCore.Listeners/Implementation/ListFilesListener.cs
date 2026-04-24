@@ -88,7 +88,7 @@ public class ListFilesListener(
         }
 
         var solutionFiles = solutionWorkspaceService.ListFiles();
-        return (solutionFiles, GetSolutionModeRoot(solutionWorkspaceService.GetSolutionFilePath()), gitWorkspaceService.GetRepoRoot());
+        return (solutionFiles, GetSolutionModeRoot(), gitWorkspaceService.GetRepoRoot());
     }
 
     private List<ClientFileDto> GetClientFilesDtos(
@@ -102,7 +102,20 @@ public class ListFilesListener(
 
     private string GetFolderModeRoot() => NormalizeRoot(folderWorkspaceService.FindRootDirectory());
 
-    private static string GetSolutionModeRoot(string filePath) => NormalizeRoot(Path.GetPathRoot(filePath));
+    private string GetSolutionModeRoot()
+    {
+        var solutionFilePath = solutionWorkspaceService.GetSolutionFilePath();
+        if (solutionFilePath != null && solutionFilePath.StartsWith(@"\\"))
+        {
+            var hostEnd = solutionFilePath.IndexOf(Path.DirectorySeparatorChar, 2);
+            if (hostEnd > 2)
+            {
+                return solutionFilePath.Substring(0, hostEnd + 1);
+            }
+        }
+
+        return string.Empty;
+    }
 
     private static string NormalizeRoot(string root)
     {

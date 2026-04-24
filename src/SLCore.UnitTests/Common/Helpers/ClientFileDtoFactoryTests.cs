@@ -123,6 +123,27 @@ public class ClientFileDtoFactoryTests
     }
 
     [TestMethod]
+    [DataRow(@"C:\my\file", @"C\my\file")]
+    [DataRow(@"D:\other\file", @"D\other\file")]
+    [DataRow(@"C:\Code\My Project\File1.js", @"C\Code\My Project\File1.js")]
+    [DataRow(@"C:\привет\project\file1.js", @"C\привет\project\file1.js")]
+    [DataRow(@"\\servername\work\project\file1.js", @"\\servername\work\project\file1.js")]
+    public void Create_EmptyRoot_RemovesColonFromPath(string filePath, string expectedRelativePath)
+    {
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", "", new SourceFile(filePath));
+
+        result.ideRelativePath.Should().BeEquivalentTo(expectedRelativePath);
+    }
+
+    [TestMethod]
+    public void Create_EmptyRoot_ConstructsValidDto()
+    {
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", "", new SourceFile(@"C:\Code\Project\File1.js"));
+
+        ValidateDto(result, @"C:\Code\Project\File1.js", @"C\Code\Project\File1.js");
+    }
+
+    [TestMethod]
     public void Create_WithNonRelativezablePath_ReturnsNullAndLogs()
     {
         const string filePath = @"C:\folder\project\file1.js";
