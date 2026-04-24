@@ -27,8 +27,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 internal interface IFileStateManager
 {
-    event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequired;
-
     Document[] GetOpenDocuments();
 
     void AnalyzeAllOpenFiles();
@@ -46,16 +44,18 @@ internal interface IFileStateManager
     bool TryGetCurrentSnapshot(string filePath, out ITextSnapshot snapshot);
 }
 
-internal interface IAnalysisStateProvider
+internal interface ILinkedFileStateManager
 {
+    event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequired;
+
     IEnumerable<ILiveAnalysisState> GetAllStates();
 }
 
-[Export(typeof(IAnalysisStateProvider))]
+[Export(typeof(ILinkedFileStateManager))]
 [Export(typeof(IFileStateManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFactory) : IFileStateManager, IAnalysisStateProvider
+internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFactory) : IFileStateManager, ILinkedFileStateManager
 {
     private readonly object locker = new();
     private ImmutableDictionary<IFileState, ILiveAnalysisState> states = ImmutableDictionary<IFileState, ILiveAnalysisState>.Empty;

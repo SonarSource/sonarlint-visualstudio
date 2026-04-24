@@ -29,8 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 [TestClass]
 public class LinkedFileAnalyzerTests
 {
-    private IAnalysisStateProvider analysisStateProviderInstance;
-    private IFileStateManager fileStateManager;
+    private ILinkedFileStateManager linkedFileStateManagerInstance;
     private ILogger logger;
     private IRoslynProjectWrapper project;
     private IRoslynSolutionWrapper solution;
@@ -48,9 +47,8 @@ public class LinkedFileAnalyzerTests
         solution.Projects.Returns([project]);
         workspaceWrapper.GetCurrentSolution().Returns(solution);
         logger = Substitute.For<ILogger>();
-        analysisStateProviderInstance = Substitute.For<IAnalysisStateProvider>();
-        fileStateManager = Substitute.For<IFileStateManager>();
-        testSubject = new LinkedFileAnalyzer(typeReferenceFinder, analysisStateProviderInstance, workspaceWrapper, fileStateManager, logger);
+        linkedFileStateManagerInstance = Substitute.For<ILinkedFileStateManager>();
+        testSubject = new LinkedFileAnalyzer(typeReferenceFinder, linkedFileStateManagerInstance, workspaceWrapper, logger);
     }
 
     [TestMethod]
@@ -59,8 +57,7 @@ public class LinkedFileAnalyzerTests
             MefTestHelpers.CreateExport<ITypeReferenceFinder>(),
             MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>(),
             MefTestHelpers.CreateExport<ILogger>(),
-            MefTestHelpers.CreateExport<IAnalysisStateProvider>(),
-            MefTestHelpers.CreateExport<IFileStateManager>());
+            MefTestHelpers.CreateExport<ILinkedFileStateManager>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
@@ -69,7 +66,7 @@ public class LinkedFileAnalyzerTests
     [TestMethod]
     public void Ctor_SubscribesToLinkedAnalysisRequiredEvent()
     {
-        fileStateManager.Received(1).LinkedAnalysisRequired += Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
+        linkedFileStateManagerInstance.Received(1).LinkedAnalysisRequired += Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
     }
 
     [TestMethod]
@@ -77,7 +74,7 @@ public class LinkedFileAnalyzerTests
     {
         testSubject.Dispose();
 
-        fileStateManager.Received(1).LinkedAnalysisRequired -= Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
+        linkedFileStateManagerInstance.Received(1).LinkedAnalysisRequired -= Arg.Any<EventHandler<LinkedAnalysisRequiredEventArgs>>();
     }
 
     [TestMethod]
@@ -98,7 +95,7 @@ public class LinkedFileAnalyzerTests
         var doc = Substitute.For<IRoslynDocumentWrapper>();
         SetupSolutionContainsFile(file, true, doc);
         var liveAnalysisState = CreateLiveAnalysisState(file);
-        analysisStateProviderInstance.GetAllStates().Returns([liveAnalysisState]);
+        linkedFileStateManagerInstance.GetAllStates().Returns([liveAnalysisState]);
         SetupTypeReferenceFinderReturns(doc, [], []);
 
         RaiseLinkedAnalysisRequired(file, CancellationToken.None);
@@ -112,7 +109,7 @@ public class LinkedFileAnalyzerTests
         var file = SetUpExisingFileInSolution("file.cs", out var doc, out var fileAnalysisState);
         SetUpFileNotInSolution("file.js", out var jsFileAnalysisState);
         SetupTypeReferenceFinderReturns(doc, [], []);
-        analysisStateProviderInstance.GetAllStates().Returns([fileAnalysisState, jsFileAnalysisState]);
+        linkedFileStateManagerInstance.GetAllStates().Returns([fileAnalysisState, jsFileAnalysisState]);
 
         RaiseLinkedAnalysisRequired(file, CancellationToken.None);
 
@@ -126,7 +123,7 @@ public class LinkedFileAnalyzerTests
         var file = SetUpExisingFileInSolution("file.cs", out var doc, out var fileAnalysisState);
         SetUpFileAlreadyAnalyzed("file2.cs", out var alreadyAnalyzedState);
         SetupTypeReferenceFinderReturns(doc, [], []);
-        analysisStateProviderInstance.GetAllStates().Returns([fileAnalysisState, alreadyAnalyzedState]);
+        linkedFileStateManagerInstance.GetAllStates().Returns([fileAnalysisState, alreadyAnalyzedState]);
 
         RaiseLinkedAnalysisRequired(file, CancellationToken.None);
 
@@ -140,7 +137,7 @@ public class LinkedFileAnalyzerTests
         var file = SetUpExisingFileInSolution("file.cs", out var doc, out var fileAnalysisState);
         SetUpExisingFileInSolution("file2.cs", out var doc2, out var file2AnalysisState);
         SetupTypeReferenceFinderReturns(doc, [doc2], []);
-        analysisStateProviderInstance.GetAllStates().Returns([fileAnalysisState, file2AnalysisState]);
+        linkedFileStateManagerInstance.GetAllStates().Returns([fileAnalysisState, file2AnalysisState]);
 
         RaiseLinkedAnalysisRequired(file, CancellationToken.None);
 
@@ -154,7 +151,7 @@ public class LinkedFileAnalyzerTests
         var file = SetUpExisingFileInSolution("file.cs", out var doc, out var fileAnalysisState);
         SetUpExisingFileInSolution("file2.cs", out var doc2, out var file2AnalysisState);
         SetupTypeReferenceFinderReturns(doc, [doc2], [doc2]);
-        analysisStateProviderInstance.GetAllStates().Returns([fileAnalysisState, file2AnalysisState]);
+        linkedFileStateManagerInstance.GetAllStates().Returns([fileAnalysisState, file2AnalysisState]);
         var cts = new CancellationTokenSource();
 
         RaiseLinkedAnalysisRequired(file, cts.Token);
@@ -175,7 +172,7 @@ public class LinkedFileAnalyzerTests
         SetUpExisingFileInSolution("file5.cs", out var notLinkedDoc, out var notLinkedDocAnalysisState);
         SetUpExisingFileInSolution("file6.cs", out var doc6, out var file6AnalysisState);
         SetupTypeReferenceFinderReturns(doc, [doc3, notLinkedDoc, doc6], [doc3, doc6]);
-        analysisStateProviderInstance.GetAllStates().Returns([fileAnalysisState, alreadyAnalyzed, file3AnalysisState, jsFileAnalysisState, notLinkedDocAnalysisState, file6AnalysisState]);
+        linkedFileStateManagerInstance.GetAllStates().Returns([fileAnalysisState, alreadyAnalyzed, file3AnalysisState, jsFileAnalysisState, notLinkedDocAnalysisState, file6AnalysisState]);
 
         RaiseLinkedAnalysisRequired(file, CancellationToken.None);
 
@@ -198,7 +195,7 @@ public class LinkedFileAnalyzerTests
     }
 
     private void RaiseLinkedAnalysisRequired(IFileState file, CancellationToken token) =>
-        fileStateManager.LinkedAnalysisRequired += Raise.EventWith(fileStateManager, new LinkedAnalysisRequiredEventArgs(file, token));
+        linkedFileStateManagerInstance.LinkedAnalysisRequired += Raise.EventWith(linkedFileStateManagerInstance, new LinkedAnalysisRequiredEventArgs(file, token));
 
     private void SetupSolutionContainsFile(IFileState fileState, bool contains, IRoslynDocumentWrapper document = null) =>
         project.ContainsDocument(fileState.FilePath, out Arg.Any<IRoslynDocumentWrapper>())

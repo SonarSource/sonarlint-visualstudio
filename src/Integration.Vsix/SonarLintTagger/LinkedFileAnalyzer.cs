@@ -32,29 +32,26 @@ internal interface ILinkedFileAnalyzer : IDisposable { }
 internal class LinkedFileAnalyzer : ILinkedFileAnalyzer
 {
     private readonly ITypeReferenceFinder typeReferenceFinder;
-    private readonly IAnalysisStateProvider analysisStateProvider;
+    private readonly ILinkedFileStateManager linkedFileStateManager;
     private readonly IRoslynWorkspaceWrapper workspaceWrapper;
     private readonly ILogger logger;
-    private readonly IFileStateManager fileStateManager;
 
     [ImportingConstructor]
     public LinkedFileAnalyzer(
         ITypeReferenceFinder typeReferenceFinder,
-        IAnalysisStateProvider analysisStateProvider,
+        ILinkedFileStateManager linkedFileStateManager,
         IRoslynWorkspaceWrapper workspaceWrapper,
-        IFileStateManager fileStateManager,
         ILogger logger)
     {
         this.typeReferenceFinder = typeReferenceFinder;
-        this.analysisStateProvider = analysisStateProvider;
+        this.linkedFileStateManager = linkedFileStateManager;
         this.workspaceWrapper = workspaceWrapper;
-        this.fileStateManager = fileStateManager;
         this.logger = logger.ForVerboseContext(nameof(LinkedFileAnalyzer));
-        fileStateManager.LinkedAnalysisRequired += OnLinkedAnalysisRequired;
+        linkedFileStateManager.LinkedAnalysisRequired += OnLinkedAnalysisRequired;
     }
 
     public void Dispose() =>
-        fileStateManager.LinkedAnalysisRequired -= OnLinkedAnalysisRequired;
+        linkedFileStateManager.LinkedAnalysisRequired -= OnLinkedAnalysisRequired;
 
     private void OnLinkedAnalysisRequired(object sender, LinkedAnalysisRequiredEventArgs e) =>
         ScheduleLinkedAnalysis(e.File, e.Token);
@@ -84,7 +81,7 @@ internal class LinkedFileAnalyzer : ILinkedFileAnalyzer
             return;
         }
 
-        var states = analysisStateProvider.GetAllStates();
+        var states = linkedFileStateManager.GetAllStates();
         var otherDocuments = GetRoslynDocuments(
             states,
             file,

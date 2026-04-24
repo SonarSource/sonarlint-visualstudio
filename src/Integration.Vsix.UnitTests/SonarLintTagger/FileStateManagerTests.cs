@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -41,7 +41,7 @@ public class FileStateManagerTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckMultipleExportsReturnSameInstance<FileStateManager, IFileStateManager, IAnalysisStateProvider>(
+        MefTestHelpers.CheckMultipleExportsReturnSameInstance<FileStateManager, IFileStateManager, ILinkedFileStateManager>(
             MefTestHelpers.CreateExport<ILiveAnalysisStateFactory>());
 
     [TestMethod]
