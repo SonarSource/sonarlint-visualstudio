@@ -158,6 +158,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 await roslynEnvironment.InitializationProcessor.InitializeAsync();
             }
+            else
+            {
+                logger.WriteLine(Strings.RoslynInitializationFailed);
+            }
         }
 
         private async Task MigrateBindingsToServerConnectionsIfNeededAsync()

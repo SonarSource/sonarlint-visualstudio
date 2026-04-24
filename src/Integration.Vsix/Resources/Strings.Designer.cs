@@ -808,7 +808,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
                 return ResourceManager.GetString("PluginStatuses_PremiumPluginsTooltip", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Active.
         /// </summary>
@@ -861,6 +861,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string RestartIdeToApplyOptionLabel {
             get {
                 return ResourceManager.GetString("RestartIdeToApplyOptionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Roslyn analysis initialization failed. C# and VB.NET analysis are unavailable for this session. Make sure to install dotnet-related workloads via VisualStudio Installer.
+        /// </summary>
+        public static string RoslynInitializationFailed {
+            get {
+                return ResourceManager.GetString("RoslynInitializationFailed", resourceCulture);
             }
         }
         

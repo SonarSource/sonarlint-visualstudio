@@ -513,5 +513,8 @@ Set the severity level for how these findings are reported, or choose None to di
   </data>
   <data name="PluginStatuses_StatusFailed" xml:space="preserve">
     <value>Failed</value>
+  </data>  
+  <data name="RoslynInitializationFailed" xml:space="preserve">
+    <value>Roslyn analysis initialization failed. C# and VB.NET analysis are unavailable for this session. Make sure to install dotnet-related workloads via VisualStudio Installer</value>
   </data>
 </root>
