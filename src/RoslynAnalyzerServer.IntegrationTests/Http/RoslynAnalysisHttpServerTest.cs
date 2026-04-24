@@ -87,7 +87,7 @@ public class RoslynAnalysisHttpServerTest
 
         serverStarter2.StartListeningOnBackgroundThread();
 
-        serverStarter2.MockedLogger.Received(1).LogVerbose(Resources.HttpServerAttemptFailed, 1, busyPort, Arg.Any<string>());
+        serverStarter2.MockedLogger.Received(1).WriteLine(Resources.HttpServerAttemptFailed, 1, busyPort, Arg.Any<Exception>());
         await VerifyServerReachable(CreateClientRequestConfig(serverStarter2));
     }
 
@@ -102,8 +102,8 @@ public class RoslynAnalysisHttpServerTest
         serverStarter2.StartListeningOnBackgroundThread();
 
         serverStarter2.MockedLogger.Received(maxAttempts)
-            .LogVerbose(Resources.HttpServerAttemptFailed, Arg.Is<int>(x => x >= 1 && x <= maxAttempts), busyPort, Arg.Is<string>(x => x.Contains("Failed to listen on prefix")));
-        serverStarter2.MockedLogger.Received(1).LogVerbose(Resources.HttpServerFailedToStartAttempts, maxAttempts);
+            .WriteLine(Resources.HttpServerAttemptFailed, Arg.Is<int>(x => x >= 1 && x <= maxAttempts), busyPort, Arg.Is<Exception>(x => x.Message.Contains("Failed to listen on prefix")));
+        serverStarter2.MockedLogger.Received(1).WriteLine(Resources.HttpServerFailedToStartAttempts, maxAttempts);
     }
 
     [TestMethod]
