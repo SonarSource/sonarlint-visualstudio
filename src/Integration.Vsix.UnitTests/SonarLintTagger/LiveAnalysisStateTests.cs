@@ -31,7 +31,6 @@ public class LiveAnalysisStateTests
     private ITaskExecutorWithDebounce executor;
     private IFileState fileState;
     private IFileTracker fileTracker;
-    private ILinkedFileAnalyzer linkedFileAnalyzer;
     private LiveAnalysisState testSubject;
 
     private const string FilePath = "file.cs";
@@ -43,8 +42,7 @@ public class LiveAnalysisStateTests
         executor = Substitute.For<ITaskExecutorWithDebounce>();
         fileState = Substitute.For<IFileState>();
         fileTracker = Substitute.For<IFileTracker>();
-        linkedFileAnalyzer = Substitute.For<ILinkedFileAnalyzer>();
-        testSubject = new LiveAnalysisState(executor, fileState, fileTracker, linkedFileAnalyzer);
+        testSubject = new LiveAnalysisState(executor, fileState, fileTracker);
     }
 
     [TestMethod]
@@ -86,11 +84,13 @@ public class LiveAnalysisStateTests
     }
 
     [TestMethod]
-    public void HandleLiveAnalysisEvent_ShouldDebounceAnalyzeFile_AndScheduleLinkedAnalysis_WhenTriggered()
+    public void HandleLiveAnalysisEvent_ShouldDebounceAnalyzeFile_AndRaiseLinkedAnalysisRequired_WhenTriggered()
     {
         SetUpExecuteImmediately();
         var fileSnapshot = CreateFileSnapshot();
         fileState.UpdateFileState().Returns(fileSnapshot);
+        LinkedAnalysisRequiredEventArgs capturedArgs = null;
+        testSubject.LinkedAnalysisRequested += (_, e) => capturedArgs = e;
 
         testSubject.HandleLiveAnalysisEvent(true);
 
@@ -100,8 +100,10 @@ public class LiveAnalysisStateTests
             fileState.UpdateFileState();
             fileTracker.AddFiles(Arg.Is<SourceFile[]>(s => s.Single().FilePath == FilePath && s.Single().Content == Content));
             executor.Debounce(Arg.Any<Action<CancellationToken>>(), LiveAnalysisState.LinkCalculationDebounceDuration);
-            linkedFileAnalyzer.ScheduleLinkedAnalysis(testSubject.FileState, Arg.Any<CancellationToken>());
         });
+        capturedArgs.Should().NotBeNull();
+        capturedArgs.File.Should().BeSameAs(fileState);
+        capturedArgs.Token.Should().Be(CancellationToken.None);
     }
 
     private void SetUpExecuteImmediately() =>
@@ -114,11 +116,13 @@ public class LiveAnalysisStateTests
             });
 
     [TestMethod]
-    public void HandleLiveAnalysisEvent_ShouldNotScheduleLinkedAnalysis_WhenNotTriggered()
+    public void HandleLiveAnalysisEvent_ShouldNotRaiseLinkedAnalysisRequired_WhenNotTriggered()
     {
         SetUpExecuteImmediately();
         var fileSnapshot = CreateFileSnapshot();
         fileState.UpdateFileState().Returns(fileSnapshot);
+        LinkedAnalysisRequiredEventArgs capturedArgs = null;
+        testSubject.LinkedAnalysisRequested += (_, e) => capturedArgs = e;
 
         testSubject.HandleLiveAnalysisEvent(false);
 
@@ -128,7 +132,7 @@ public class LiveAnalysisStateTests
             fileState.UpdateFileState();
             fileTracker.AddFiles(Arg.Is<SourceFile[]>(s => s.Single().FilePath == FilePath && s.Single().Content == Content));
         });
-        linkedFileAnalyzer.DidNotReceiveWithAnyArgs().ScheduleLinkedAnalysis(default, default);
+        capturedArgs.Should().BeNull();
     }
 
     [TestMethod]

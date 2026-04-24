@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -44,19 +44,23 @@ internal interface IFileStateManager
     bool TryGetCurrentSnapshot(string filePath, out ITextSnapshot snapshot);
 }
 
-internal interface IAnalysisStateProvider
+internal interface ILinkedFileStateManager
 {
+    event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequested;
+
     IEnumerable<ILiveAnalysisState> GetAllStates();
 }
 
-[Export(typeof(IAnalysisStateProvider))]
+[Export(typeof(ILinkedFileStateManager))]
 [Export(typeof(IFileStateManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFactory) : IFileStateManager, IAnalysisStateProvider
+internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFactory) : IFileStateManager, ILinkedFileStateManager
 {
     private readonly object locker = new();
     private ImmutableDictionary<IFileState, ILiveAnalysisState> states = ImmutableDictionary<IFileState, ILiveAnalysisState>.Empty;
+
+    public event EventHandler<LinkedAnalysisRequiredEventArgs> LinkedAnalysisRequested;
 
     public Document[] GetOpenDocuments()
     {
@@ -90,8 +94,8 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
 
     private ILiveAnalysisState CreateAnalysisState(IFileState file)
     {
-
         var state = liveAnalysisStateFactory.Create(file);
+        state.LinkedAnalysisRequested += OnStateLinkedAnalysisRequested;
         states = states.Add(file, state);
         return state;
     }
@@ -105,6 +109,7 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
                 return;
             }
             states = states.Remove(file);
+            state.LinkedAnalysisRequested -= OnStateLinkedAnalysisRequested;
             state.Dispose();
         }
     }
@@ -126,6 +131,9 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
             state.HandleLiveAnalysisEvent(performLinkedAnalysis);
         }
     }
+
+    private void OnStateLinkedAnalysisRequested(object sender, LinkedAnalysisRequiredEventArgs e) =>
+        LinkedAnalysisRequested?.Invoke(this, e);
 
     public bool TryGetCurrentSnapshot(string filePath, out ITextSnapshot snapshot)
     {
