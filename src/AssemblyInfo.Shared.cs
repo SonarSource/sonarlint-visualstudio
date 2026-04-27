@@ -22,9 +22,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 // Note: keep the version numbers in sync with the VSIX (source.extension.manifest)
-[assembly: AssemblyVersion("10.2.0")]
-[assembly: AssemblyFileVersion("10.2.0.0")] // This should exactly match the VSIX version
-[assembly: AssemblyInformationalVersion("Version:10.2.0.0 Branch:not-set Sha1:not-set Configuration:not-set")]
+[assembly: AssemblyVersion("10.3.0")]
+[assembly: AssemblyFileVersion("10.3.0.0")] // This should exactly match the VSIX version
+[assembly: AssemblyInformationalVersion("Version:10.3.0.0 Branch:not-set Sha1:not-set Configuration:not-set")]
 [assembly: AssemblyConfiguration("")]
 [assembly: ComVisible(false)]
 [assembly: AssemblyProduct("SonarQube for Visual Studio")]
