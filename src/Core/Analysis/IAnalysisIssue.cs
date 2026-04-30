@@ -152,7 +152,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public enum DependencyRiskType
     {
         Vulnerability,
-        ProhibitedLicense
+        ProhibitedLicense,
+        Malware
     }
 
     public enum DependencyRiskStatus

@@ -283,6 +283,7 @@ public class ModelConversionExtensionsTests
     [TestMethod]
     [DataRow(SlCoreDependencyRiskType.VULNERABILITY, CoreDependencyRiskType.Vulnerability)]
     [DataRow(SlCoreDependencyRiskType.PROHIBITED_LICENSE, CoreDependencyRiskType.ProhibitedLicense)]
+    [DataRow(SlCoreDependencyRiskType.MALWARE, CoreDependencyRiskType.Malware)]
     public void ToDependencyRiskType_ConvertsCorrectly(SlCoreDependencyRiskType dependencyRiskType, CoreDependencyRiskType expectedType) =>
         dependencyRiskType.ToDependencyRiskType().Should().Be(expectedType);
 
