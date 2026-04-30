@@ -41,7 +41,7 @@ public enum DependencyRiskSeverity
 
 public enum DependencyRiskType
 {
-    VULNERABILITY, PROHIBITED_LICENSE
+    VULNERABILITY, PROHIBITED_LICENSE, MALWARE
 }
 
 public enum DependencyRiskStatus

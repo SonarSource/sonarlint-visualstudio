@@ -137,6 +137,7 @@ public static class ModelConversionExtensions
         {
             SlCoreDependencyRiskType.VULNERABILITY => CoreDependencyRiskType.Vulnerability,
             SlCoreDependencyRiskType.PROHIBITED_LICENSE => CoreDependencyRiskType.ProhibitedLicense,
+            SlCoreDependencyRiskType.MALWARE => CoreDependencyRiskType.Malware,
             _ => throw new ArgumentOutOfRangeException(nameof(dependencyRiskType), dependencyRiskType, SLCoreStrings.ModelExtensions_UnexpectedValue)
         };
 
