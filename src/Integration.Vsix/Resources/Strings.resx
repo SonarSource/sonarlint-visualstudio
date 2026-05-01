@@ -474,6 +474,15 @@ Without Connected Mode, any code added or changed in the last 30 days is conside
   <data name="ShowBuildErrorNotificationTooltip" xml:space="preserve">
     <value>Displays a notification after build when warnings are elevated to errors via the TreatWarningsAsErrors MSBuild property.</value>
   </data>
+  <data name="ExperimentalGroupHeader" xml:space="preserve">
+    <value>Experimental</value>
+  </data>
+  <data name="UseAbsoluteFilePathsCheckbox" xml:space="preserve">
+    <value>Use absolute file paths instead of IDE-relative paths</value>
+  </data>
+  <data name="UseAbsoluteFilePathsTooltip" xml:space="preserve">
+    <value>When enabled, file paths sent to the analysis backend are absolute (with the drive colon stripped) instead of being made relative to the solution drive root. Reload the solution after changing this setting.</value>
+  </data>
   <data name="PragmaAnalysisSeverityLabel" xml:space="preserve">
     <value>C# Unused pragma suppression analysis severity:</value>
   </data>

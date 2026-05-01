@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration
         bool IsShowBuildErrorNotificationEnabled { get; set; }
         CredentialStoreType CredentialStoreType { get; set; }
         PragmaRuleSeverity PragmaRuleSeverity { get; set; }
+        bool UseAbsoluteFilePaths { get; set; }
     }
 
     public enum CredentialStoreType
