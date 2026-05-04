@@ -91,7 +91,8 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     {
         logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationRequest);
         var verificationResult = VerifyChain(parameters.chain);
-        ShowInvalidCertificateIfNeeded(verificationResult);
+        // todo SLVS-2938 https://sonarsource.atlassian.net/browse/SLVS-2938 Enable invalid certificate validation
+        // ShowInvalidCertificateIfNeeded(verificationResult);
         logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationResult, verificationResult);
 
         return Task.FromResult(new CheckServerTrustedResponse(verificationResult));

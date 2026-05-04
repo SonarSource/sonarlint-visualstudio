@@ -181,6 +181,7 @@ public class HttpConfigurationListenerTests
         logger.Received(1).WriteLine(Arg.Is<string>(x => x.Contains(exceptionReason)));
     }
 
+    [Ignore] // todo SLVS-2938 https://sonarsource.atlassian.net/browse/SLVS-2938 Enable invalid certificate validation
     [TestMethod]
     public async Task CheckServerTrustedAsync_CertificateIsNotValid_ShowsNotification()
     {
@@ -192,6 +193,7 @@ public class HttpConfigurationListenerTests
         certificateInvalidNotification.Received(1).Show();
     }
 
+    [Ignore] // todo SLVS-2938 https://sonarsource.atlassian.net/browse/SLVS-2938 Enable invalid certificate validation
     [TestMethod]
     public async Task CheckServerTrustedAsync_CertificateIsValid_ClosesNotification()
     {
