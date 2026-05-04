@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
     {
         public virtual bool CheckAccess() => true;
 
-        public virtual T Run<T>(Func<Task<T>> asyncMethod) => asyncMethod().Result;
+        public virtual T Run<T>(Func<Task<T>> asyncMethod) => asyncMethod().ConfigureAwait(false).GetAwaiter().GetResult();
         public virtual Task RunAsync(Func<Task> asyncMethod) => asyncMethod();
 
         public virtual Task RunAsync<T>(Func<Task<T>> asyncMethod) => asyncMethod();
