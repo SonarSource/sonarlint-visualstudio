@@ -176,7 +176,7 @@ jobs:
           VSTEST_TESTHOST_SHUTDOWN_TIMEOUT: 60000
           VSTEST_CONNECTION_TIMEOUT: 60000
         run: |
-          vstest.console.exe --EnableCodeCoverage --InIsolation --Settings:test.runsettings --Blame --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll
+          dotnet test "SonarQube.VisualStudio.sln" --no-build --configuration Release --settings test.runsettings --collect:"Code Coverage" --blame --logger:trx --results-directory TestResults
           dotnet-coverage merge -o "coverage.xml" -f xml "**/*.coverage"
 
       - name: Report Test Results
