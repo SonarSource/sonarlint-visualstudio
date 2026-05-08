@@ -12,7 +12,7 @@
     <EmbeddedSonarJSAnalyzerVersion>12.4.0.40770</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedEsLintBridgeVersion>1.0.0</EmbeddedEsLintBridgeVersion>
     <!-- sonar-html-plugin -->
-    <EmbeddedSonarHtmlAnalyzerVersion>3.25.0.7473</EmbeddedSonarHtmlAnalyzerVersion>
+    <EmbeddedSonarHtmlAnalyzerVersion>3.26.0.7600</EmbeddedSonarHtmlAnalyzerVersion>
     <!-- sonar-text-plugin -->
     <EmbeddedSonarSecretsJarVersion>2.42.0.10784</EmbeddedSonarSecretsJarVersion>
     <!-- sonarqube-ide-visualstudio-roslyn --> 
