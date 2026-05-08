@@ -338,7 +338,8 @@ internal class TypeScriptIssuesFile : ITestingFile
     [
         new("typescript:S2737", new TextRangeDto(3, 2, 3, 7), CleanCodeAttribute.CLEAR, 0),
         new("typescript:S1186", new TextRangeDto(7, 16, 7, 19), CleanCodeAttribute.COMPLETE, 0),
-        new("typescript:S3776", new TextRangeDto(30, 9, 30, 18), CleanCodeAttribute.FOCUSED, 21)
+        new("typescript:S3776", new TextRangeDto(30, 9, 30, 18), CleanCodeAttribute.FOCUSED, 21),
+        new("typescript:S1313", new TextRangeDto(77, 15, 77, 30), CleanCodeAttribute.TRUSTWORTHY, 0)
     ];
 }
 
