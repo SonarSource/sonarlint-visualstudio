@@ -183,6 +183,21 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         }
 
         [TestMethod]
+        public async Task ListFilesAsync_SolutionWorkSpace_NoFilesNoRoot_ReturnsEmptyAndLogs()
+        {
+            SetUpSolutionFiles(filePaths: [], solutionFilePath: null);
+
+            var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
+
+            var files = result.files.ToList();
+            files.Should().BeEmpty();
+            folderWorkspaceService.DidNotReceive().ListFiles();
+            activeConfigScopeTracker.DidNotReceiveWithAnyArgs().TryUpdateRootOnCurrentConfigScope(default, default, default);
+            sharedBindingConfigProvider.DidNotReceive().GetSharedBindingFilePathOrNull();
+            logger.AssertPartialOutputStringExists(SLCoreStrings.ListFiles_NoRoot);
+        }
+
+        [TestMethod]
         public async Task ListFilesAsync_SolutionWorkSpace_IgnoresNonConvertedFiles()
         {
             SetUpFolderWorkSpaceService(null);
@@ -206,8 +221,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\Code\\MySolution.sln", "", "some path")]
         [DataRow("C:\\привет\\project\\file1.js", "C:\\привет\\project\\file2.js", "C:\\привет\\MySolution.sln", "", "C:\\привет\\")]
         [DataRow("D:\\привет\\project\\file1.js", "D:\\привет\\project\\file2.js", "D:\\привет\\MySolution.sln", "", "D:\\привет\\")]
-        [DataRow("\\\\servername\\work\\project\\file1.js", "\\\\servername\\work\\project\\file2.js", "\\\\servername\\work\\MySolution.sln", "\\\\servername\\", "\\\\servername\\work\\repo\\")]
-        [DataRow("\\\\servername\\C$\\Code\\Project\\file1.js", "\\\\servername\\C$\\Code\\Project\\file2.js", "\\\\servername\\C$\\Code\\MySolution.sln", "\\\\servername\\", null)]
+        [DataRow("\\\\servername\\work\\project\\file1.js", "\\\\servername\\work\\project\\file2.js", "\\\\servername\\work\\MySolution.sln", "", "\\\\servername\\work\\repo\\")]
+        [DataRow("\\\\servername\\C$\\Code\\Project\\file1.js", "\\\\servername\\C$\\Code\\Project\\file2.js", "\\\\servername\\C$\\Code\\MySolution.sln", "", null)]
         public async Task ListFilesAsync_SolutionWorkSpace_UpdatesRootPath(string filePath1, string filepath2, string solutionFilePath, string expectedRootPath, string expectedBaseDir)
         {
             gitWorkspaceService.GetRepoRoot().Returns(expectedBaseDir);
