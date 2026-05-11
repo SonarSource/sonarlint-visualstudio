@@ -133,6 +133,7 @@ public class ClientFileDtoFactoryTests
     [DataRow(@"\\servername\D$\folder\sub\file.cs", @"\\servername\D\folder\sub\file.cs")]
     [DataRow(@"\\servername\C$\привет\file1.js", @"\\servername\C\привет\file1.js")]
     [DataRow(@"\\servername\C$\Recovery$\file.cs", @"\\servername\C\Recovery$\file.cs")]
+    [DataRow(@"\\servername\backup$\foo.cs", @"\\servername\backup\foo.cs")]
     public void Create_EmptyRoot_NormalizesAbsolutePath(string filePath, string expectedRelativePath)
     {
         var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", "", new SourceFile(filePath));

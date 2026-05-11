@@ -334,6 +334,27 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             sharedBindingConfigProvider.Received().GetSharedBindingFilePathOrNull();
         }
 
+        [TestMethod]
+        [DataRow(@"C:\Code\Project\File1.js", @"C\Code\Project\File1.js")]
+        [DataRow(@"D:\other\File2.js", @"D\other\File2.js")]
+        [DataRow(@"C:\Recovery$\file.cs", @"C\Recovery$\file.cs")]
+        [DataRow(@"\\host\share\foo.cs", @"\\host\share\foo.cs")]
+        [DataRow(@"\\host\C$\foo.cs", @"\\host\C\foo.cs")]
+        [DataRow(@"\\host\backup$\foo.cs", @"\\host\backup\foo.cs")]
+        public async Task ListFilesAsync_FlagOn_ProducesExpectedIdeRelativePath_WithRealFactory(string filePath, string expectedIdeRelativePath)
+        {
+            var realFactory = new ClientFileDtoFactory(logger);
+            var listener = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, gitWorkspaceService, sharedBindingConfigProvider, activeConfigScopeTracker, realFactory, canonicalFilePathsCache, sonarLintSettings, logger);
+            SetUpFolderWorkSpaceService(null);
+            SetUpSolutionWorkspaceService([filePath], DefaultSolutionFilePath);
+
+            var result = await listener.ListFilesAsync(new ListFilesParams(ConfigScopeId));
+
+            result.files.Should().ContainSingle();
+            result.files.Single().ideRelativePath.Should().Be(expectedIdeRelativePath);
+            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "", Arg.Any<string>());
+        }
+
         private ClientFileDto SetUpSharedBinding(string sharedbindingJson, string rootPath, bool isSharedBindingConverted = true)
         {
             sharedBindingConfigProvider.GetSharedBindingFilePathOrNull().Returns(sharedbindingJson);
