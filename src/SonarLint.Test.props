@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Test framework">
-    <PackageReference Include="MSTest" Version="3.11.1" />
+    <PackageReference Include="MSTest" Version="4.2.2" />
 
     <!-- WARNING! Check before updating to a new version of Moq - any privacy issues? See https://github.com/moq/moq/issues/1372 -->
     <PackageReference Include="Moq" Version="4.18.2" />
@@ -21,7 +21,7 @@
     <PackageReference Include="NSubstitute" Version="5.1.0"/>
     <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17"/>
 
-    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+    <PackageReference Include="FluentAssertions" Version="8.9.0" />
     <PackageReference Include="FluentAssertions.Analyzers" Version="0.11.4" />
   </ItemGroup>
   

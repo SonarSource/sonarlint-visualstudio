@@ -51,9 +51,9 @@
   </ItemGroup>
 
   <ItemGroup Label="Test framework">
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
     <PackageReference Include="Moq" Version="4.18.2" />
-    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+    <PackageReference Include="FluentAssertions" Version="8.9.0" />
   </ItemGroup>
 
   <ItemGroup>

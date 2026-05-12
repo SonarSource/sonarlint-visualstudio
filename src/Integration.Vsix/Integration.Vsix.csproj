@@ -55,7 +55,7 @@
   </ItemGroup>
 
   <ItemGroup Label="VSSDK Build Tools">
-    <PackageReference Condition=" $(VsTargetVersion) == '2022' " Include="Microsoft.VSSDK.BuildTools" Version="17.5.4074" GeneratePathProperty="true">
+    <PackageReference Condition=" $(VsTargetVersion) == '2022' " Include="Microsoft.VSSDK.BuildTools" Version="18.5.40034" GeneratePathProperty="true">
       <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -65,7 +65,7 @@
     <!-- The VSIX signing package is only required for signed builds, but the use of package.lock.json
          files means it's simpler to always include it so the contents of the lock file don't change for
          signed builds. -->
-    <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="16.2.29116.78" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="17.10.34916.79" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup Label="Project references">

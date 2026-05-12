@@ -79,7 +79,7 @@
   <!-- ******************************************************************************* -->
   <ItemGroup Label="MS.VS.LanguageServices" Condition="$(RequiresLanguageServices)=='true'">
     <!-- This package references Roslyn components used by VS. It isn't part of the VSSDK meta-package. -->
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="3.11.0" PrivateAssets="all"/>
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="4.14.0" PrivateAssets="all"/>
   </ItemGroup>
 
 </Project>
