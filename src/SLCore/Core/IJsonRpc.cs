@@ -65,7 +65,7 @@ internal class JsonRpcWrapper : JsonRpc, IJsonRpc
             {
                 monitoringService.ReportException(exception, $"JsonRpcWrapper.CreateErrorDetails:{request.Method ?? "unknown"}");
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //Swallow errors for not supported VS versions
             }

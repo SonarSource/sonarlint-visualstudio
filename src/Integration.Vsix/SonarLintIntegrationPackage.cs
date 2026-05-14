@@ -51,8 +51,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ExcludeFromCodeCoverage]
     public class SonarLintIntegrationPackage : AsyncPackage
     {
-        private PackageCommandManager commandManager;
-
         private ILogger logger;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -72,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine(Strings.SL_Initializing);
 
                 IServiceProvider serviceProvider = this;
-                commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
+                var commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
                 await commandManager.InitializeAsync(this, ShowOptionPage);
 
                 logger.WriteLine(Strings.SL_InitializationComplete);

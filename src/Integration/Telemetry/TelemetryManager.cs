@@ -79,7 +79,7 @@ internal sealed class TelemetryManager(ISlCoreTelemetryHelper telemetryHelper, I
         {
             monitoringService.Reinit();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             //Swallow errors for not supported VS versions
         }
@@ -92,7 +92,7 @@ internal sealed class TelemetryManager(ISlCoreTelemetryHelper telemetryHelper, I
         {
             monitoringService.Close();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             //Swallow errors for not supported VS versions
         }
