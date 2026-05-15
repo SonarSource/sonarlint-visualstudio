@@ -114,17 +114,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             return locationVisualization.Span.IsNavigable();
         }
 
+        public static bool IsNavigable(this SnapshotSpan? span)
+        {
+            return !span.HasValue || !span.Value.IsEmpty;
+        }
+
         /// <summary>
         /// Sets <see cref="IAnalysisIssueLocationVisualization.Span"/> to an empty span.
         /// </summary>
         public static void InvalidateSpan(this IAnalysisIssueLocationVisualization locationVisualization)
         {
             locationVisualization.Span = new SnapshotSpan();
-        }
-
-        public static bool IsNavigable(this SnapshotSpan? span)
-        {
-            return !span.HasValue || !span.Value.IsEmpty;
         }
     }
 }
