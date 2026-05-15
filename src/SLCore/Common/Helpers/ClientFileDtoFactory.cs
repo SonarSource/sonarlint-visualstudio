@@ -32,12 +32,12 @@ public class ClientFileDtoFactory(ILogger logger) : IClientFileDtoFactory
 {
     private readonly ILogger logger = logger.ForVerboseContext(nameof(ClientFileDtoFactory));
 
-    public ClientFileDto CreateOrNull(string configScopeId, string rootPath, SourceFile sourceFile)
+    public ClientFileDto? CreateOrNull(string configScopeId, string? rootPath, SourceFile sourceFile)
     {
         if (rootPath is not null && sourceFile?.FilePath is not null)
         {
             var ideRelativePath = rootPath == string.Empty
-                ? RemoveDollar(RemoveColon(sourceFile.FilePath))
+                ? RemoveColon(sourceFile.FilePath)
                 : RelativePathHelper.GetRelativePathToRootFolder(rootPath, sourceFile.FilePath);
 
             if (ideRelativePath is not null)
@@ -56,12 +56,6 @@ public class ClientFileDtoFactory(ILogger logger) : IClientFileDtoFactory
     private static string RemoveColon(string filePath)
     {
         var colonIndex = filePath.IndexOf(':');
-        return colonIndex >= 0 ? filePath.Remove(colonIndex, 1) : filePath;
-    }
-
-    private static string RemoveDollar(string filePath)
-    {
-        var colonIndex = filePath.IndexOf('$');
         return colonIndex >= 0 ? filePath.Remove(colonIndex, 1) : filePath;
     }
 }

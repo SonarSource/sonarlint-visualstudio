@@ -128,9 +128,9 @@ public class ClientFileDtoFactoryTests
     [DataRow(@"C:\Code\My Project\File1.js", @"C\Code\My Project\File1.js")]
     [DataRow(@"C:\привет\project\file1.js", @"C\привет\project\file1.js")]
     [DataRow(@"\\servername\work\project\file1.js", @"\\servername\work\project\file1.js")]
-    [DataRow(@"\\servername\C$\my\file", @"\\servername\C\my\file")]
-    [DataRow(@"\\servername\D$\folder\sub\file.cs", @"\\servername\D\folder\sub\file.cs")]
-    [DataRow(@"\\servername\C$\привет\file1.js", @"\\servername\C\привет\file1.js")]
+    [DataRow(@"\\servername\C$\my\file", @"\\servername\C$\my\file")]
+    [DataRow(@"\\servername\D$\folder\sub\file.cs", @"\\servername\D$\folder\sub\file.cs")]
+    [DataRow(@"\\servername\C$\привет\file1.js", @"\\servername\C$\привет\file1.js")]
     public void Create_EmptyRoot_RemovesColonFromPath(string filePath, string expectedRelativePath)
     {
         var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", "", new SourceFile(filePath));

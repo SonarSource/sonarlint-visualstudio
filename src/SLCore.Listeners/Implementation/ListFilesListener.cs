@@ -107,20 +107,7 @@ public class ListFilesListener(
 
     private string GetFolderModeRoot() => NormalizeRoot(folderWorkspaceService.FindRootDirectory());
 
-    private string GetSolutionModeRootAbsolute()
-    {
-        var solutionFilePath = solutionWorkspaceService.GetSolutionFilePath();
-        if (solutionFilePath != null && solutionFilePath.StartsWith(@"\\"))
-        {
-            var hostEnd = solutionFilePath.IndexOf(Path.DirectorySeparatorChar, 2);
-            if (hostEnd > 2)
-            {
-                return solutionFilePath.Substring(0, hostEnd + 1);
-            }
-        }
-
-        return string.Empty;
-    }
+    private string GetSolutionModeRootAbsolute() => solutionWorkspaceService.GetSolutionFilePath() is null ? null : string.Empty;
 
     private static string GetSolutionModeRoot(string filePath) => NormalizeRoot(Path.GetPathRoot(filePath));
 

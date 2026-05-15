@@ -27,7 +27,7 @@ internal static class RelativePathHelper
 {
     private static readonly char Separator = Path.DirectorySeparatorChar;
 
-    public static string GetRelativePathToRootFolder(string root, string filePath)
+    public static string? GetRelativePathToRootFolder(string root, string filePath)
     {
         Validate(root, filePath);
 
