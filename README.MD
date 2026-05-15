@@ -43,3 +43,5 @@ Check out the [contributing](CONTRIBUTING.md) page to see the best places to log
 Copyright SonarSource.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
+
+test commit
