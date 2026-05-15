@@ -87,7 +87,8 @@ namespace SonarLint.VisualStudio.Integration
             await threadHandling.RunOnUIThreadAsync(() =>
             {
                 vsMonitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
-                vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
+                var uiContextGuid = BoundSolutionUIContext.Guid;
+                vsMonitorSelection.GetCmdUIContextCookie(ref uiContextGuid, out boundSolutionContextCookie);
             });
 
             HandleActiveSolutionChange();
