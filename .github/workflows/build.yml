@@ -6,6 +6,7 @@ on:
       - master
       - dogfood-on-*
       - branch-*
+      - test/mm/azure-artifact-sigining-action
   pull_request:
   workflow_dispatch:
 
@@ -102,6 +103,7 @@ jobs:
           fi
 
       - name: Prepare Build
+        id: prepare-build
         shell: bash
         env:
           ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
@@ -112,6 +114,7 @@ jobs:
           PROJECT_VERSION="${sonarProjectVersion}.${BUILD_NUMBER}"
           PROJECT_VERSION_WITHOUT_BUILD_NUMBER="${sonarProjectVersion}"
           echo "PROJECT_VERSION=${PROJECT_VERSION}" >> $GITHUB_ENV
+          echo "project-version=${PROJECT_VERSION}" >> $GITHUB_OUTPUT
           echo "PROJECT_VERSION_WITHOUT_BUILD_NUMBER=${PROJECT_VERSION_WITHOUT_BUILD_NUMBER}" >> $GITHUB_ENV
           echo "PROJECT_VERSION: ${PROJECT_VERSION}"
           echo "PROJECT_VERSION_WITHOUT_BUILD_NUMBER: $PROJECT_VERSION_WITHOUT_BUILD_NUMBER"
@@ -143,12 +146,33 @@ jobs:
         shell: bash
         env:
           SONARSOURCE_SNK: ${{ fromJSON(steps.secrets.outputs.vault).SONARSOURCE_SNK }}
-          SIGNING_ACCOUNT: ${{ steps.signing-config.outputs.account }}
-          SIGNING_CERTIFICATE_PROFILE: ${{ steps.signing-config.outputs.profile }}
-          SIGNING_ENDPOINT: ${{ steps.signing-config.outputs.signing-endpoint }}
         run: |
           echo "${SONARSOURCE_SNK}" | base64 -d > "/tmp/SonarSource.snk"
-          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="/tmp/SonarSource.snk" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
+          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=false -p:AssemblyOriginatorKeyFile="/tmp/SonarSource.snk" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
+
+      - name: Create pwsh shim
+        shell: powershell
+        run: |
+          $shimDir = Join-Path $env:RUNNER_TEMP "pwsh-shim"
+          New-Item -ItemType Directory -Path $shimDir -Force | Out-Null
+          $shimPath = Join-Path $shimDir "pwsh.cmd"
+          @(
+            '@echo off'
+            '"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" %*'
+          ) | Set-Content -Path $shimPath -Encoding ascii
+          Add-Content -Path $env:GITHUB_PATH -Value $shimDir
+          Write-Host "Created pwsh shim at $shimPath"
+
+      - name: Sign vsix
+        uses: azure/artifact-signing-action@v2
+        env:
+          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+        with:
+          files: ${{ github.workspace }}\binaries\SonarLint.VSIX-${{ steps.prepare-build.outputs.project-version }}-2022.vsix
+          endpoint: ${{ steps.signing-config.outputs.signing-endpoint }}
+          signing-account-name: ${{ steps.signing-config.outputs.account }}
+          certificate-profile-name: ${{ steps.signing-config.outputs.profile }}
 
       - name: Verify signature
         shell: powershell
