@@ -69,7 +69,7 @@ internal class RaisedFindingProcessor(
         {
             var fileUri = fileAndIssues.Key;
             var localPath = fileUri.LocalPath;
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create([localPath]);
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(localPath);
             var raisedIssues = fileAndIssues.Value ?? [];
             var mainIssues = raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, raisedIssues);
             var additionalIssues = additionalAnalysisIssueStorage.Get(localPath);
