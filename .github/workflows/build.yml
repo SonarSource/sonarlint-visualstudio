@@ -24,7 +24,7 @@ jobs:
     name: Build
     environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release-ready-build' || '' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: "0"
 
@@ -179,7 +179,7 @@ jobs:
           dotnet-coverage merge -o "coverage.xml" -f xml "**/*.coverage"
 
       - name: Report Test Results
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3
         if: success() || failure()
         with:
           name: Test Results
@@ -195,7 +195,7 @@ jobs:
           dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}"
 
       - name: Upload binaries artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: binaries
           path: binaries/*

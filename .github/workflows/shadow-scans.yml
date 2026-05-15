@@ -27,7 +27,7 @@ jobs:
             vault_path: development/kv/data/next
             project_key: SonarSource_sonarlint-visualstudio_b822e41c-dcc7-40ab-a423-2d1dfbb1e248
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
 
