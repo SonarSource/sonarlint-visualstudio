@@ -58,7 +58,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             initializationDependencies = [activeSolutionTracker];
             testLogger = new TestLogger();
             vsMonitorMock = Substitute.For<IVsMonitorSelection>();
-            vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>())
+            var uiContextGuid = BoundSolutionUIContext.Guid;
+            vsMonitorMock.GetCmdUIContextCookie(ref uiContextGuid, out Arg.Any<uint>())
                 .Returns(info =>
                 {
                     info[1] = boundSolutionUiContextCookie;
@@ -98,7 +99,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     Arg.Any<Func<IThreadHandling, Task>>());
                 createdInitializationProcessor.InitializeAsync();
                 threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
-                vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>());
+                var uiContextGuid = BoundSolutionUIContext.Guid;
+                vsMonitorMock.GetCmdUIContextCookie(ref uiContextGuid, out Arg.Any<uint>());
                 activeSolutionTracker.ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
                 createdInitializationProcessor.InitializeAsync();
             });
@@ -118,7 +120,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     Arg.Any<Func<IThreadHandling, Task>>());
                 createdInitializationProcessor.InitializeAsync();
                 threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
-                vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>());
+                var uiContextGuid = BoundSolutionUIContext.Guid;
+                vsMonitorMock.GetCmdUIContextCookie(ref uiContextGuid, out Arg.Any<uint>());
                 activeSolutionTracker.ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
                 createdInitializationProcessor.InitializeAsync();
             });
