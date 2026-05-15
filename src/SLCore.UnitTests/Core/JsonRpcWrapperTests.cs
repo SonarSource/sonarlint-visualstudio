@@ -96,6 +96,39 @@ public class JsonRpcWrapperTests
         monitoringService.DidNotReceive().ReportException(Arg.Any<Exception>(), Arg.Any<string>());
     }
 
+    [TestMethod]
+    public void CreateErrorDetails_InternalError_MonitoringServiceThrows_ExceptionSwallowed()
+    {
+        var monitoringService = Substitute.For<IMonitoringService>();
+        monitoringService.When(x => x.ReportException(Arg.Any<Exception>(), Arg.Any<string>()))
+            .Throw(new Exception("monitoring not supported"));
+        using var sending = new MemoryStream();
+        using var receiving = new MemoryStream();
+        var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService,
+            () => new JsonRpcError.ErrorDetail { Code = JsonRpcErrorCode.InternalError });
+        var request = new JsonRpcRequest { Method = "getFileExclusions" };
+        var exception = new InvalidOperationException("boom");
+
+        var act = () => testSubject.InvokeCreateErrorDetails(request, exception);
+
+        act.Should().NotThrow();
+    }
+
+    [TestMethod]
+    public void CreateBaseErrorDetails_CallsBaseJsonRpcImplementation()
+    {
+        var monitoringService = Substitute.For<IMonitoringService>();
+        using var sending = new MemoryStream();
+        using var receiving = new MemoryStream();
+        var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService);
+        var request = new JsonRpcRequest { Method = "someMethod" };
+        var exception = new InvalidOperationException("boom");
+
+        var result = testSubject.InvokeCreateErrorDetails(request, exception);
+
+        result.Should().NotBeNull();
+    }
+
     private sealed class TestableJsonRpcWrapper : JsonRpcWrapper
     {
         private readonly Func<JsonRpcError.ErrorDetail> createBaseErrorDetails;

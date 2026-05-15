@@ -88,6 +88,16 @@ public class TelemetryManagerTests
     }
 
     [TestMethod]
+    public void OptOut_MonitoringServiceThrows_ExceptionSwallowed()
+    {
+        monitoringService.When(x => x.Close()).Throw(new Exception("monitoring not supported"));
+
+        var act = () => telemetryManager.OptOut();
+
+        act.Should().NotThrow();
+    }
+
+    [TestMethod]
     public void OptIn_CallsRpcService()
     {
         telemetryManager.OptIn();
@@ -98,6 +108,16 @@ public class TelemetryManagerTests
             telemetryService.EnableTelemetry();
             monitoringService.Reinit();
         });
+    }
+
+    [TestMethod]
+    public void OptIn_MonitoringServiceThrows_ExceptionSwallowed()
+    {
+        monitoringService.When(x => x.Reinit()).Throw(new Exception("monitoring not supported"));
+
+        var act = () => telemetryManager.OptIn();
+
+        act.Should().NotThrow();
     }
 
     [TestMethod]
