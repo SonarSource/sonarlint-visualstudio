@@ -72,24 +72,6 @@ namespace SonarLint.VisualStudio.Integration
             return GetMefService<T>(componentModel);
         }
 
-        public static System.Threading.Tasks.Task<T> GetMefServiceAsync<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
-            where T : class
-        {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            return GetMefServiceIteratorAsync<T>(serviceProvider);
-        }
-
-        private static async System.Threading.Tasks.Task<T> GetMefServiceIteratorAsync<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
-            where T : class
-        {
-            IComponentModel componentModel = await serviceProvider.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
-            return GetMefService<T>(componentModel);
-        }
-
         public static T GetMefService<T>(this IComponentModel componentModel)
             where T : class
         {
@@ -114,6 +96,24 @@ namespace SonarLint.VisualStudio.Integration
             {
                 return results[0];
             }
+        }
+
+        public static System.Threading.Tasks.Task<T> GetMefServiceAsync<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
+            where T : class
+        {
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            return GetMefServiceIteratorAsync<T>(serviceProvider);
+        }
+
+        private static async System.Threading.Tasks.Task<T> GetMefServiceIteratorAsync<T>(this Microsoft.VisualStudio.Shell.IAsyncServiceProvider serviceProvider)
+            where T : class
+        {
+            IComponentModel componentModel = await serviceProvider.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            return GetMefService<T>(componentModel);
         }
     }
 }

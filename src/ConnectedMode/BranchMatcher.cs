@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         }
 
         //Commits are in descending order by time
-        private int GetDistance(Commit[] headCommits, Branch branch, int closestDistance)
+        private static int GetDistance(Commit[] headCommits, Branch branch, int closestDistance)
         {
             try
             {
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             }
         }
 
-        private int GetIndexOfCommit(ICommitLog commits, ObjectId commitId, int remainingStepsToClosestDistance)
+        private static int GetIndexOfCommit(ICommitLog commits, ObjectId commitId, int remainingStepsToClosestDistance)
         {
             int i = 0;
             foreach (var commit in commits)
