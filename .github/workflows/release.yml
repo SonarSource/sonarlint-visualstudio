@@ -1,9 +1,16 @@
 name: sonar-release
-# This workflow is triggered when publishing a new github release
 on:
-  release:
-    types:
-      - published
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Full version including build number, e.g. 8.3.0.10161'
+        required: true
+        type: string
+      dryRun:
+        description: 'Flag to enable the dry-run execution'
+        required: false
+        default: false
+        type: boolean
 
 env:
   PYTHONUNBUFFERED: 1
@@ -13,10 +20,12 @@ jobs:
     permissions:
       id-token: write
       contents: write
-    uses: SonarSource/gh-action_release/.github/workflows/main.yaml@v6
+    uses: SonarSource/gh-action_release/.github/workflows/main.yaml@95ca260926950eedcc8c69437f9f12b6f0584de4 # 7.0.1
     with:
+      version: ${{ inputs.version }}
       publishToBinaries: false
       mavenCentralSync: false
+      dryRun: ${{ inputs.dryRun }}
       slackChannel: C02E6L5C01H # squad-devex-private
 
   deploy_to_microsoft_marketplace:
@@ -26,8 +35,10 @@ jobs:
     runs-on: github-windows-latest-s
     name: Deploy to Visual Studio marketplace
     needs: release
+    # Dry-run safety: never push to the VS marketplace during a sandbox test
+    if: ${{ !(inputs.dryRun == true) }}
     env:
-      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      RELEASE_TAG: ${{ inputs.version }}
     steps:
       - uses: actions/checkout@v3
       - name: Get vault secrets
