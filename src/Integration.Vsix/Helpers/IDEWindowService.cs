@@ -29,20 +29,20 @@ using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    [Export(typeof(IIDEWindowService))]
-    internal class IDEWindowService : IIDEWindowService
+    [Export(typeof(IIdeWindowService))]
+    internal class IdeWindowService : IIdeWindowService
     {
         private readonly INativeMethods nativeMethods;
         private readonly ICurrentProcess process;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public IDEWindowService(ILogger logger)
+        public IdeWindowService(ILogger logger)
             : this(new NativeMethods(), new CurrentProcessWrapper(), logger)
         {
         }
 
-        internal /* for testing */ IDEWindowService(INativeMethods nativeMethods, ICurrentProcess process, ILogger logger)
+        internal /* for testing */ IdeWindowService(INativeMethods nativeMethods, ICurrentProcess process, ILogger logger)
         {
             this.nativeMethods = nativeMethods;
             this.process = process;
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void RestoreIfMinimized(IntPtr handle)
         {
-            var placement = new WINDOWPLACEMENT();
+            var placement = new Windowplacement();
             placement.length = (uint)Marshal.SizeOf(placement);
             var success = nativeMethods.GetWindowPlacement(handle, ref placement);
             if (!success)
