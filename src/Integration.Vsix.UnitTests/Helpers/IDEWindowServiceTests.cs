@@ -34,8 +34,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
     public class IDEWindowServiceTests
     {
         private readonly IntPtr ValidHandle = new IntPtr(123);
-        private readonly WINDOWPLACEMENT Minimized = new WINDOWPLACEMENT { showCmd = NativeMethods.SW_SHOWMINIMIZED };
-        private readonly WINDOWPLACEMENT NotMinimized = new WINDOWPLACEMENT { showCmd = 0 };
+        private readonly Windowplacement Minimized = new Windowplacement { showCmd = NativeMethods.SW_SHOWMINIMIZED };
+        private readonly Windowplacement NotMinimized = new Windowplacement { showCmd = 0 };
 
         private Mock<INativeMethods> nativeMock;
         private Mock<ICurrentProcess> processMock;
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<IDEWindowService, IIDEWindowService>(
+            MefTestHelpers.CheckTypeCanBeImported<IdeWindowService, IIdeWindowService>(
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             SetCurrentMainWindowHandleResponse(IntPtr.Zero);
 
-            var testSubject = new IDEWindowService(nativeMock.Object, processMock.Object, logger);
+            var testSubject = new IdeWindowService(nativeMock.Object, processMock.Object, logger);
 
             // Act
             testSubject.BringToFront();
@@ -74,9 +74,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void BringToFront_GetWindowPlacementFails_IsStillBroughtToFront()
         {
-            var testSubject = new IDEWindowService(nativeMock.Object, processMock.Object, logger);
+            var testSubject = new IdeWindowService(nativeMock.Object, processMock.Object, logger);
 
-            SetGetPlacementResponse(false, new WINDOWPLACEMENT());
+            SetGetPlacementResponse(false, new Windowplacement());
 
             // Act
             testSubject.BringToFront();
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void BringToFront_NotMinimized_IsBroughtToFrontButNotRestored()
         {
-            var testSubject = new IDEWindowService(nativeMock.Object, processMock.Object, logger);
+            var testSubject = new IdeWindowService(nativeMock.Object, processMock.Object, logger);
 
             SetGetPlacementResponse(result: true, NotMinimized);
 
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void BringToFront_IsMinimized_IsRestoredAndBroughtToFront()
         {
-            var testSubject = new IDEWindowService(nativeMock.Object, processMock.Object, logger);
+            var testSubject = new IdeWindowService(nativeMock.Object, processMock.Object, logger);
 
             SetGetPlacementResponse(result: true, Minimized);
 
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void BringToFront_NonCriticalExceptions_IsSuppressed()
         {
-            var testSubject = new IDEWindowService(nativeMock.Object, processMock.Object, logger);
+            var testSubject = new IdeWindowService(nativeMock.Object, processMock.Object, logger);
             nativeMock.Setup(x => x.SetForegroundWindow(ValidHandle))
                 .Throws(new InvalidOperationException("thrown from test code"));
 
@@ -130,18 +130,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         private void CheckGetPlacementIsCalled() =>
-            nativeMock.Verify(x => x.GetWindowPlacement(ValidHandle, ref It.Ref<WINDOWPLACEMENT>.IsAny), Times.Once);
+            nativeMock.Verify(x => x.GetWindowPlacement(ValidHandle, ref It.Ref<Windowplacement>.IsAny), Times.Once);
 
         // Delegate required to enable setting ref parameter in the mock
-        private delegate bool GetWindowPlacementDelegate(IntPtr hwnd, ref WINDOWPLACEMENT placement);
+        private delegate bool GetWindowPlacementDelegate(IntPtr hwnd, ref Windowplacement placement);
 
         private void SetCurrentMainWindowHandleResponse(IntPtr handle) =>
             processMock.Setup(x => x.GetMainWindowHandle()).Returns(handle);
 
-        private void SetGetPlacementResponse(bool result, WINDOWPLACEMENT placementToReturn)
+        private void SetGetPlacementResponse(bool result, Windowplacement placementToReturn)
         {
-            nativeMock.Setup(x => x.GetWindowPlacement(It.IsAny<IntPtr>(), ref It.Ref<WINDOWPLACEMENT>.IsAny))
-                .Returns(new GetWindowPlacementDelegate((IntPtr _, ref WINDOWPLACEMENT placement) =>
+            nativeMock.Setup(x => x.GetWindowPlacement(It.IsAny<IntPtr>(), ref It.Ref<Windowplacement>.IsAny))
+                .Returns(new GetWindowPlacementDelegate((IntPtr _, ref Windowplacement placement) =>
                     {
                         placement = placementToReturn;
                         return result;

@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             Button
         }
 
-        private class PrivateInfoBarWrapper : IInfoBar, IVsInfoBarUIEvents
+        private sealed class PrivateInfoBarWrapper : IInfoBar, IVsInfoBarUIEvents
         {
             private readonly IThreadHandling threadHandling;
             private uint? cookie;

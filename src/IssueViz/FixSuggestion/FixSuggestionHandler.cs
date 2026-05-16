@@ -36,7 +36,7 @@ internal class FixSuggestionHandler(
     IDocumentNavigator documentNavigator,
     ITextViewEditor textViewEditor,
     IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
-    IIDEWindowService ideWindowService,
+    IIdeWindowService ideWindowService,
     IFixSuggestionNotification fixSuggestionNotification,
     IDiffViewService diffViewService,
     ITelemetryManager telemetryManager,

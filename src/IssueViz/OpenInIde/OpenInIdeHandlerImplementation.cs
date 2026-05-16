@@ -42,7 +42,7 @@ public interface IOpenInIdeHandlerImplementation
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
 {
-    private readonly IIDEWindowService ideWindowService;
+    private readonly IIdeWindowService ideWindowService;
     private readonly IToolWindowService toolWindowService;
     private readonly IOpenInIdeNotification notification;
     private readonly IIssueSelectionService issueSelectionService;
@@ -58,7 +58,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         IOpenInIdeConverterImplementation converterImplementation,
         IToolWindowService toolWindowService,
         IOpenInIdeNotification notification,
-        IIDEWindowService ideWindowService,
+        IIdeWindowService ideWindowService,
         ILocationNavigator navigator,
         IIssueSelectionService issueSelectionService,
         ILogger logger,

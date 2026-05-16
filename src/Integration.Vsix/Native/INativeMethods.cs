@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Native
 
         bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-        bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
+        bool GetWindowPlacement(IntPtr hWnd, ref Windowplacement lpwndpl);
     }
 
     // Passthrough-implementation of the interface
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Native
 
         public int SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam) => NativeMethodDeclarations.SendMessage(hWnd, Msg, wParam, lParam);
 
-        public bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl) => NativeMethodDeclarations.GetWindowPlacement(hWnd, ref lpwndpl);
+        public bool GetWindowPlacement(IntPtr hWnd, ref Windowplacement lpwndpl) => NativeMethodDeclarations.GetWindowPlacement(hWnd, ref lpwndpl);
 
         public bool SetForegroundWindow(IntPtr hWnd) => NativeMethodDeclarations.SetForegroundWindow(hWnd);
 
@@ -75,12 +75,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Native
 
             [DllImport("user32.dll", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
+            public static extern bool GetWindowPlacement(IntPtr hWnd, ref Windowplacement lpwndpl);
         }
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct WINDOWPLACEMENT
+    public struct Windowplacement
     {
         public uint length;
         public uint flags;

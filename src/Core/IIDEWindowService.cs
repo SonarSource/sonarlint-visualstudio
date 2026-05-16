@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Core
 {
-    public interface IIDEWindowService
+    public interface IIdeWindowService
     {
         /// <summary>
         /// Brings the current IDE window to the front and activates it
