@@ -36,6 +36,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal class MigrationSettingsProvider : IMigrationSettingsProvider
     {
+        private const string SonarLintFolderName = ".sonarlint";
+
         private readonly ISolutionInfoProvider solutionInfoProvider;
 
         [ImportingConstructor]
@@ -56,14 +58,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             // VB.NET addit files   = .sonarlint\{sonar project key}\VB\SonarLint.xml
 
             var solutionDir = await solutionInfoProvider.GetSolutionDirectoryAsync();
-            var rootFolder = Path.Combine(solutionDir, ".sonarlint");
+            var rootFolder = Path.Combine(solutionDir, SonarLintFolderName);
 
             return new LegacySettings(
                 rootFolder,
-                Path.Combine(".sonarlint", sonarProjectKey + Language.CSharp.Id + ".ruleset").ToLowerInvariant(),
-                Path.Combine(".sonarlint", sonarProjectKey, Language.CSharp.Id, "SonarLint.xml"),
-                Path.Combine(".sonarlint", sonarProjectKey + Language.VBNET.Id + ".ruleset").ToLowerInvariant(),
-                Path.Combine(".sonarlint", sonarProjectKey, Language.VBNET.Id, "SonarLint.xml")
+                Path.Combine(SonarLintFolderName, sonarProjectKey + Language.CSharp.Id + ".ruleset").ToLowerInvariant(),
+                Path.Combine(SonarLintFolderName, sonarProjectKey, Language.CSharp.Id, "SonarLint.xml"),
+                Path.Combine(SonarLintFolderName, sonarProjectKey + Language.VBNET.Id + ".ruleset").ToLowerInvariant(),
+                Path.Combine(SonarLintFolderName, sonarProjectKey, Language.VBNET.Id, "SonarLint.xml")
                 );
         }
     }
