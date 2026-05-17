@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Core
         private class WildcardPattern
         {
             private static readonly ConcurrentDictionary<string, WildcardPattern> CACHE = new ConcurrentDictionary<string, WildcardPattern>();
-            private static readonly string SPECIAL_CHARS = "()[]^$.{}+|";
+            private const string SPECIAL_CHARS = "()[]^$.{}+|";
             internal readonly Regex pattern;
 
             private WildcardPattern(string pattern, string directorySeparator)

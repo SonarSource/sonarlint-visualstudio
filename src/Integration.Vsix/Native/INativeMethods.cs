@@ -85,20 +85,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Native
         public uint length;
         public uint flags;
         public uint showCmd;
-        public POINT ptMinPosition;
-        public POINT ptMaxPosition;
-        public RECT rcNormalPosition;
-        public RECT rcDevice;
+        public Point ptMinPosition;
+        public Point ptMaxPosition;
+        public Rect rcNormalPosition;
+        public Rect rcDevice;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct POINT
+    public struct Point
     {
         public int X, Y;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct RECT
+    public struct Rect
     {
         public int Left, Top, Right, Bottom;
     }
