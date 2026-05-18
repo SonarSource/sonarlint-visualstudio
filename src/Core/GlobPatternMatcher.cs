@@ -40,8 +40,8 @@ namespace SonarLint.VisualStudio.Core
 
         public bool IsMatch(string pattern, string input)
         {
-            var wildcardPattern = WildcardPattern.create(pattern);
-            var isMatch = wildcardPattern.match(input);
+            var wildcardPattern = WildcardPattern.Create(pattern);
+            var isMatch = wildcardPattern.Match(input);
 
             logger.LogVerbose("[GlobPatternMatcher]" +
                             $"\n  Pattern: {pattern}" +
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Copied as-is from https://github.com/SonarSource/sonar-plugin-api/blob/a9bd7ff48f0f77811ed909070030678c443c975a/sonar-plugin-api/src/main/java/org/sonar/api/utils/WildcardPattern.java
         /// </summary>
-        private class WildcardPattern
+        private sealed class WildcardPattern
         {
             private static readonly ConcurrentDictionary<string, WildcardPattern> CACHE = new ConcurrentDictionary<string, WildcardPattern>();
             private static readonly string SPECIAL_CHARS = "()[]^$.{}+|";
@@ -63,12 +63,12 @@ namespace SonarLint.VisualStudio.Core
 
             private WildcardPattern(string pattern, string directorySeparator)
             {
-                this.pattern = new Regex(toRegexp(pattern, directorySeparator),
+                this.pattern = new Regex(ToRegexp(pattern, directorySeparator),
                                 RegexOptions.Compiled,
                                 RegexConstants.DefaultTimeout);
             }
 
-            private static string toRegexp(string antPattern, string directorySeparator)
+            private static string ToRegexp(string antPattern, string directorySeparator)
             {
                 var escapedDirectorySeparator = '\\' + directorySeparator;
                 var sb = new StringBuilder(antPattern.Length);
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Core
                         {
                             // Double asterisk
                             // Zero or more directories
-                            if (i + 2 < antPattern.Length && isSlash(antPattern[i + 2]))
+                            if (i + 2 < antPattern.Length && IsSlash(antPattern[i + 2]))
                             {
                                 sb.Append("(?:.*").Append(escapedDirectorySeparator).Append("|)");
                                 i += 2;
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Core
                         // Any single character excluding directory separator
                         sb.Append("[^").Append(escapedDirectorySeparator).Append("]");
                     }
-                    else if (isSlash(ch))
+                    else if (IsSlash(ch))
                     {
                         // Directory separator
                         sb.Append(escapedDirectorySeparator);
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Core
                 return sb.ToString();
             }
 
-            private static bool isSlash(char ch)
+            private static bool IsSlash(char ch)
             {
                 return ch == '/' || ch == '\\';
             }
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Core
             /**
              * Returns true if specified value matches this pattern.
              */
-            public bool match(string value)
+            public bool Match(string value)
             {
                 value = value.TrimStart('/');
                 value = value.TrimEnd('/');
@@ -153,9 +153,9 @@ namespace SonarLint.VisualStudio.Core
              *
              * @see #create(string, string)
              */
-            public static WildcardPattern create(string pattern)
+            public static WildcardPattern Create(string pattern)
             {
-                return create(pattern, "/");
+                return Create(pattern, "/");
             }
 
             /**
@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Core
              * Thus to match Windows-style path "dir\file.ext" against pattern "dir/file.ext" normalization should be performed.
              *
              */
-            public static WildcardPattern create(string pattern, string directorySeparator)
+            public static WildcardPattern Create(string pattern, string directorySeparator)
             {
                 string key = pattern + directorySeparator;
                 return CACHE.GetOrAdd(key, k=> new WildcardPattern(pattern, directorySeparator));
