@@ -272,4 +272,27 @@ public class GeneralOptionsDialogControlViewModelTests
         testSubject.SaveSettings();
         settings.Received().PragmaRuleSeverity = expectedSeverity;
     }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Ctor_SetsUseAbsoluteFilePathsToValueFromSettings(bool expected)
+    {
+        settings.UseAbsoluteFilePaths.Returns(expected);
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
+
+        testSubject.UseAbsoluteFilePaths.Should().Be(expected);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void SaveSettings_SavesUseAbsoluteFilePathsToSettings(bool expected)
+    {
+        testSubject.UseAbsoluteFilePaths = expected;
+
+        testSubject.SaveSettings();
+
+        settings.Received().UseAbsoluteFilePaths = expected;
+    }
 }

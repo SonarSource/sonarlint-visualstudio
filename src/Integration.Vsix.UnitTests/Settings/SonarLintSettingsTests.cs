@@ -463,6 +463,43 @@ public class SonarLintSettingsTests
         value.Should().Be(PragmaRuleSeverity.Warn);
     }
 
+    [TestMethod]
+    public void UseAbsoluteFilePaths_DefaultValue_ShouldBeFalse()
+    {
+        MockComDetachedTestSubject();
+        testSubject.UseAbsoluteFilePaths.Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void UseAbsoluteFilePaths_Should(bool value)
+    {
+        store.GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.UseAbsoluteFilePaths), false).Returns(value);
+
+        testSubject.UseAbsoluteFilePaths.Should().Be(value);
+
+        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.UseAbsoluteFilePaths), false);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void UseAbsoluteFilePaths_SetValue_SetsCorrectly(bool value)
+    {
+        testSubject.UseAbsoluteFilePaths = value;
+
+        store.Received().SetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.UseAbsoluteFilePaths), value);
+    }
+
+    [TestMethod]
+    public void UseAbsoluteFilePaths_WhenDisposed_ReturnsDefault()
+    {
+        MockComDetachedTestSubject();
+        var value = testSubject.UseAbsoluteFilePaths;
+        value.Should().BeFalse();
+    }
+
     private void MockComDetachedTestSubject()
     {
         var comException = new InvalidComObjectException("COM object that has been separated from its underlying RCW cannot be used.");
