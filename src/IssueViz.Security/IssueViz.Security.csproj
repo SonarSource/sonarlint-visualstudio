@@ -45,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Package references">
-    <PackageReference Include="Microsoft.Owin" Version="4.2.2" />
+    <PackageReference Include="Microsoft.Owin" Version="4.2.3" />
     <PackageReference Include="Microsoft.Owin.Host.HttpListener" Version="4.2.2" />
   </ItemGroup>
 
