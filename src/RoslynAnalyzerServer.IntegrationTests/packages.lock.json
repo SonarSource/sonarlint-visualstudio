@@ -48,6 +48,15 @@
           "System.IO.Pipelines": "5.0.1"
         }
       },
+      "Microsoft.NETFramework.ReferenceAssemblies": {
+        "type": "Direct",
+        "requested": "[1.0.3, )",
+        "resolved": "1.0.3",
+        "contentHash": "vUc9Npcs14QsyOD01tnv/m8sQUnGTGOw1BCmKcv77LBJY7OxhJ+zJF7UD/sCL3lYNFuqmQEVlkfS4Quif6FyYg==",
+        "dependencies": {
+          "Microsoft.NETFramework.ReferenceAssemblies.net48": "1.0.3"
+        }
+      },
       "Moq": {
         "type": "Direct",
         "requested": "[4.18.2, )",
@@ -268,6 +277,11 @@
         "type": "Transitive",
         "resolved": "1.1.3",
         "contentHash": "3Wrmi0kJDzClwAC+iBdUBpEKmEle8FQNsCs77fkiOIw/9oYA07bL1EZNX0kQ2OMN3xpwvl0vAtOCYY3ndDNlhQ=="
+      },
+      "Microsoft.NETFramework.ReferenceAssemblies.net48": {
+        "type": "Transitive",
+        "resolved": "1.0.3",
+        "contentHash": "zMk4D+9zyiEWByyQ7oPImPN/Jhpj166Ky0Nlla4eXlNL8hI/BtSJsgR8Inldd4NNpIAH3oh8yym0W2DrhXdSLQ=="
       },
       "Microsoft.ServiceHub.Analyzers": {
         "type": "Transitive",
@@ -1078,8 +1092,8 @@
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
-        "resolved": "13.0.3",
-        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+        "resolved": "13.0.4",
+        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
       },
       "NuGet.Core": {
         "type": "Transitive",
@@ -1521,7 +1535,7 @@
         "dependencies": {
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "Newtonsoft.Json": "[13.0.3, )",
+          "Newtonsoft.Json": "[13.0.4, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
@@ -1533,7 +1547,7 @@
         "type": "Project",
         "dependencies": {
           "BouncyCastle.Cryptography": "[2.4.0, )",
-          "Newtonsoft.Json": "[13.0.3, )",
+          "Newtonsoft.Json": "[13.0.4, )",
           "System.Collections.Immutable": "[5.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )",
           "System.Threading.Channels": "[7.0.0, )"
@@ -1551,7 +1565,7 @@
         "dependencies": {
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "Newtonsoft.Json": "[13.0.3, )",
+          "Newtonsoft.Json": "[13.0.4, )",
           "NuGet.Core": "[2.12.0, )",
           "NuGet.VisualStudio": "[3.3.0, )",
           "Sentry": "[6.0.0, )",
