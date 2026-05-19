@@ -1,0 +1,42 @@
+name: Full release
+
+on:
+  workflow_dispatch:
+    inputs:
+      short-description:
+        description: 'A short description for the release ticket'
+        required: true
+        type: string
+      branch:
+        description: 'The branch from which to release.'
+        required: false
+        default: 'master'
+        type: string
+      new-version:
+        description: 'New Jira version to create after the release (e.g. 8.4). Leave empty to auto-increment the last segment.'
+        required: false
+        type: string
+      dry-run:
+        description: 'Test mode: use Jira sandbox and create a draft GitHub release'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  release:
+    name: Release
+    uses: SonarSource/release-github-actions/.github/workflows/ide-automated-release.yml@706e44289960d7768dc6f953bc1c0df003e812cb # 1.5.9
+    permissions:
+      statuses: read
+      id-token: write
+      contents: write
+      actions: write
+      pull-requests: write
+    with:
+      jira-project-key: "SLVS"
+      project-name: "SonarLint for Visual Studio"
+      short-description: ${{ inputs.short-description }}
+      branch: ${{ inputs.branch }}
+      slack-channel: "C02E6L5C01H"
+      is-test-run: ${{ inputs.dry-run }}
+      new-version: ${{ inputs.new-version }}
