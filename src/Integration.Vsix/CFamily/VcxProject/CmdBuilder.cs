@@ -37,6 +37,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             RegexOptions.Compiled,
             Core.RegexConstants.DefaultTimeout);
 
+        private const string False = "false";
+
         private readonly ILanguageFlagsProvider languageFlagsProvider;
         StringBuilder Cmd { get; set; } = new StringBuilder();
         bool IsHeader { get; set; }
@@ -129,10 +131,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             // binary options
             AddBinaryOption(properties, "CompileAsWinRT", "/ZW", "true");
             AddBinaryOption(properties, "OpenMPSupport", "/openmp", "true");
-            AddBinaryOption(properties, "RuntimeTypeInfo", "/GR-", "false");
+            AddBinaryOption(properties, "RuntimeTypeInfo", "/GR-", False);
             AddBinaryOption(properties, "DisableLanguageExtensions", "/Za", "true");
-            AddBinaryOption(properties, "TreatWChar_tAsBuiltInType", "/Zc:wchar_t-", "false");
-            AddBinaryOption(properties, "ForceConformanceInForLoopScope", "/Zc:forScope-", "false");
+            AddBinaryOption(properties, "TreatWChar_tAsBuiltInType", "/Zc:wchar_t-", False);
+            AddBinaryOption(properties, "ForceConformanceInForLoopScope", "/Zc:forScope-", False);
             AddBinaryOption(properties, "IgnoreStandardIncludePath", "/X", "true");
             AddBinaryOption(properties, "OmitDefaultLibName", "/Zl", "true");
             AddBinaryOption(properties, "UndefineAllPreprocessorDefinitions", "/u", "true");
@@ -212,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             {
                 AddCmdOpt(compileOptionTrue);
             }
-            else if ("false".Equals(optVal))
+            else if (False.Equals(optVal))
             {
                 AddCmdOpt(compileOptionFalse);
             }
@@ -287,7 +289,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 default:
                     throw new ArgumentException($"Unsupported CompileAsManaged: {value}", nameof(value));
                 case "":
-                case "false":
+                case False:
                     return "";
                 case "true":
                     return "/clr";
@@ -329,7 +331,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 default:
                     throw new ArgumentException($"Unsupported ExceptionHandling: {value}", nameof(value));
                 case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
-                case "false":
+                case False:
                     return "";
                 // all options below define macro "_CPPUNWIND":
                 case "Async":
