@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 legacySettings.PartialCSharpRuleSetPath,
                 legacySettings.PartialVBRuleSetPath);
 
-        private IEnumerable<XmlNode> FindRulesetProperties(XmlDocument document, LegacySettings legacySettings)
+        private static IEnumerable<XmlNode> FindRulesetProperties(XmlDocument document, LegacySettings legacySettings)
             => ElementAndValueTailMatcher.Find(document, "CodeAnalysisRuleSet",
                 legacySettings.PartialCSharpRuleSetPath,
                 legacySettings.PartialVBRuleSetPath);

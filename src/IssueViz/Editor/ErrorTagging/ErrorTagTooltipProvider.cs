@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ErrorTagTooltipProvider : IErrorTagTooltipProvider
     {
-        private static readonly Uri dummyUri = new Uri("rules://sonarlint");
+        private static readonly Uri dummyUri = new UriBuilder("rules", "sonarlint").Uri;
         private readonly IVsThemeColorProvider vsThemeColorProvider;
         private readonly INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
         private readonly ILogger logger;

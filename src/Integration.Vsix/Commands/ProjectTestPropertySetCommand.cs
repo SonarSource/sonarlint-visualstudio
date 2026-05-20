@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 command.Visible = true;
                 // Checked if all projects have the same value, and that value is
                 // the same as the value this instance is responsible for.
-                command.Checked = properties.AllEqual() && (properties.First() == this.commandPropertyValue);
+                command.Checked = properties.AllEqual() && (properties[0] == this.commandPropertyValue);
             }
         }
     }
