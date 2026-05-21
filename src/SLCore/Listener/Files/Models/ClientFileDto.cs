@@ -29,7 +29,5 @@ public record ClientFileDto(
     bool? isTest,
     string? charset,
     string? fsPath,
-    string? content = null)
-{
-    public bool isUserDefined => true;
-}
+    string? content = null,
+    bool isUserDefined = true);

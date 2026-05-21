@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.Integration
             return GetAggregateProjectKindsIterator(hierarchy);
         }
 
-        private IEnumerable<Guid> GetAggregateProjectKindsIterator(IVsHierarchy hierarchy)
+        private static IEnumerable<Guid> GetAggregateProjectKindsIterator(IVsHierarchy hierarchy)
         {
             // TODO: is this relevant for core projects?
 
