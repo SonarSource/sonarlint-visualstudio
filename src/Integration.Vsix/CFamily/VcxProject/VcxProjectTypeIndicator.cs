@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             };
         }
 
-        private bool IsAnalyzableVcx(VCProject vcProject)
+        private static bool IsAnalyzableVcx(VCProject vcProject)
         {
             var vcConfig = vcProject.ActiveConfiguration;
             var tools = vcConfig.Tools as IVCCollection;

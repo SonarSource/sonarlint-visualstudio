@@ -74,6 +74,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         internal sealed class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
         {
+            private const string ParagraphElementName = "Paragraph";
             private readonly Dictionary<string, string> diffCodes = new Dictionary<string, string>();
             private readonly List<string> invalidIds = new List<string>();
             private readonly List<string> ids = new List<string>();
@@ -128,37 +129,37 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     ["em"] = () => WriteInlineElementStart("Italic"),
                     ["h1"] = () =>
                     {
-                        WriteBlockElementStart("Paragraph");
+                        WriteBlockElementStart(ParagraphElementName);
                         writer.ApplyStyleToElement(StyleResourceNames.Heading1_Paragraph);
                         PushOutputElementInfo("h1", true);
                     },
                     ["h2"] = () =>
                     {
-                        WriteBlockElementStart("Paragraph");
+                        WriteBlockElementStart(ParagraphElementName);
                         writer.ApplyStyleToElement(StyleResourceNames.Heading2_Paragraph);
                         PushOutputElementInfo("h2", true);
                     },
                     ["h3"] = () =>
                     {
-                        WriteBlockElementStart("Paragraph");
+                        WriteBlockElementStart(ParagraphElementName);
                         writer.ApplyStyleToElement(StyleResourceNames.Heading3_Paragraph);
                         PushOutputElementInfo("h3", true);
                     },
                     ["h4"] = () =>
                     {
-                        WriteBlockElementStart("Paragraph");
+                        WriteBlockElementStart(ParagraphElementName);
                         writer.ApplyStyleToElement(StyleResourceNames.Heading4_Paragraph);
                         PushOutputElementInfo("h4", true);
                     },
                     ["h5"] = () =>
                     {
-                        WriteBlockElementStart("Paragraph");
+                        WriteBlockElementStart(ParagraphElementName);
                         writer.ApplyStyleToElement(StyleResourceNames.Heading5_Paragraph);
                         PushOutputElementInfo("h5", true);
                     },
                     ["h6"] = () =>
                     {
-                        WriteBlockElementStart("Paragraph");
+                        WriteBlockElementStart(ParagraphElementName);
                         writer.ApplyStyleToElement(StyleResourceNames.Heading6_Paragraph);
                         PushOutputElementInfo("h6", true);
                     },
@@ -175,7 +176,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     },
                     ["p"] = () =>
                     {
-                        WriteBlockElementStart("Paragraph");
+                        WriteBlockElementStart(ParagraphElementName);
                         PushOutputElementInfo("p", true);
                     },
                     ["pre"] = () =>
@@ -451,7 +452,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 // input HTML document is not valid. If the input document isn't valid then
                 // we don't try to produce a valid XAML document from it.
 
-                writer.WriteStartElement("Paragraph");
+                writer.WriteStartElement(ParagraphElementName);
                 PushOutputElementInfo(null, true);
             }
 
@@ -594,7 +595,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 diffCodes.Clear();
             }
 
-            private void ReplaceXaml(StringBuilder sb, string oldValue, string newValue)
+            private static void ReplaceXaml(StringBuilder sb, string oldValue, string newValue)
             {
                 var formattedValue = HttpUtility.HtmlEncode(newValue);
                 sb.Replace(oldValue, formattedValue);
