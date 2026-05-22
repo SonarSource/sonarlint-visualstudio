@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
             vSServiceOperation.Execute<IVsStatusbar, IVsStatusbar>(vsStatusBar => DoNotify(vsStatusBar, message, showSpinner));
         }
 
-        private void DoNotify(IVsStatusbar vsStatusBar, string message, bool showSpinner)
+        private static void DoNotify(IVsStatusbar vsStatusBar, string message, bool showSpinner)
         {
             object icon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
             vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);

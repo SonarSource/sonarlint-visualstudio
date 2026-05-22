@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 command.Enabled = true;
                 command.Visible = true;
-                command.Checked = properties.AllEqual() && properties.First();
+                command.Checked = properties.AllEqual() && properties[0];
             }
         }
     }
