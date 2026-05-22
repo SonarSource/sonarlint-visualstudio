@@ -71,7 +71,7 @@ internal class HotspotDetailsDtoToHotspotConverter : IHotspotDetailsDtoToHotspot
     /// </summary>
     private string CalculateLineHash(HotspotDetailsDto hotspotDetailsDto) => hotspotDetailsDto.codeSnippet == null ? null : checksumCalculator.Calculate(hotspotDetailsDto.codeSnippet);
 
-    private HotspotRule GetHotspotRule(HotspotDetailsDto hotspotDetailsDto)
+    private static HotspotRule GetHotspotRule(HotspotDetailsDto hotspotDetailsDto)
     {
         return new HotspotRule(hotspotDetailsDto.rule.key,
             hotspotDetailsDto.rule.name,
@@ -82,7 +82,7 @@ internal class HotspotDetailsDtoToHotspotConverter : IHotspotDetailsDtoToHotspot
             hotspotDetailsDto.rule.fixRecommendations);
     }
 
-    private HotspotPriority GetPriority(string vulnerabilityProbability)
+    private static HotspotPriority GetPriority(string vulnerabilityProbability)
     {
         if (vulnerabilityProbability == null)
         {

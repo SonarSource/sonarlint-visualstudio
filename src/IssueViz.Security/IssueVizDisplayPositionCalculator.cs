@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
                 ? issueViz.Span.Value.Start.GetContainingLine().LineNumber + 1
                 : issueViz.Issue.PrimaryLocation.TextRange.StartLine;
 
-        private bool CanUseSpan(IAnalysisIssueVisualization issueViz) =>
+        private static bool CanUseSpan(IAnalysisIssueVisualization issueViz) =>
             issueViz.Span.HasValue && !issueViz.Span.Value.IsEmpty;
     }
 }
