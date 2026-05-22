@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             return sb.ToString();
         }
 
-        private void WriteSubPieces(XmlWriter writer, StyleResourceNames style, DiffPiece line)
+        private static void WriteSubPieces(XmlWriter writer, StyleResourceNames style, DiffPiece line)
         {
             if (line.SubPieces.Count == 0)
             {

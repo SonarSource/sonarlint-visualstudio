@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.SLCore.Configuration
             return new SLCoreFolders(CombinePath(storageRoot), CombinePath(workDir), null);
         }
 
-        private string CombinePath(string path)
+        private static string CombinePath(string path)
         {
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SLVS_SLOOP", path);
         }

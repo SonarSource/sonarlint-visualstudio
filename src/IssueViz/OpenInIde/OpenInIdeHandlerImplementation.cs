@@ -123,7 +123,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         }
     }
 
-    private bool ValidateIssueNotNull<T>(T issueDetails, out string failureReason) where T : IOpenInIdeIssue
+    private static bool ValidateIssueNotNull<T>(T issueDetails, out string failureReason) where T : IOpenInIdeIssue
     {
         if (issueDetails is { Key: not null })
         {
