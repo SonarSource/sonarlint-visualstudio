@@ -1292,15 +1292,15 @@
       },
       "System.IO.Abstractions": {
         "type": "Transitive",
-        "resolved": "9.0.4",
-        "contentHash": "1h4krG51ZiW/CGzM8gtqrRW2oeG6WZDfPaj27suexL8PxBVahsUlUKMJrqI4kkh6ggHLSDd7MFeU8orpk6COZg=="
+        "resolved": "9.0.6",
+        "contentHash": "FytuUXz0BsK81ChtExUanYIzk9Zh6R9Pdu9b3jPg3R14uvyGmQNiX0mKgqVBBYhHHx7sIyTdLwYOnXbfpEGySA=="
       },
       "System.IO.Abstractions.TestingHelpers": {
         "type": "Transitive",
-        "resolved": "9.0.4",
-        "contentHash": "jygAL7t8okBFhnxzAP7gxDHKCrT2UZWcJCvXfFSf2M9QfOoryfvMyvRYIdu7B/+wYPrCbhSOJDQy5pwdy0bhQg==",
+        "resolved": "9.0.6",
+        "contentHash": "Laj1/4LPOtiNqOEZk+1kNkBreVfizUYI01wThEbAY7ecZvlEMOnQr/jHr8sdLDaSQ2XjrWkWT7gyclWTI2uRjQ==",
         "dependencies": {
-          "System.IO.Abstractions": "9.0.4"
+          "System.IO.Abstractions": "9.0.6"
         }
       },
       "System.IO.Pipelines": {
@@ -1619,7 +1619,7 @@
           "BouncyCastle.Cryptography": "[2.4.0, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "System.Collections.Immutable": "[5.0.0, )",
-          "System.IO.Abstractions": "[9.0.4, )",
+          "System.IO.Abstractions": "[9.0.6, )",
           "System.Threading.Channels": "[7.0.0, )"
         }
       },
@@ -1645,7 +1645,7 @@
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "StreamJsonRpc": "[2.8.28, )",
           "StrongNamer": "[0.0.8, )",
-          "System.IO.Abstractions": "[9.0.4, )"
+          "System.IO.Abstractions": "[9.0.6, )"
         }
       },
       "SonarLint.VisualStudio.Integration.TestInfrastructure": {
@@ -1665,7 +1665,7 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarLint.VisualStudio.Integration": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )",
-          "System.IO.Abstractions.TestingHelpers": "[9.0.4, )"
+          "System.IO.Abstractions.TestingHelpers": "[9.0.6, )"
         }
       },
       "SonarLint.VisualStudio.IssueVisualization": {
