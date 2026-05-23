@@ -20,6 +20,7 @@
 
 using System.Collections;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.Core.WPF;
 
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
             {
                 return new[] { error };
             }
-            return null;
+            return Enumerable.Empty<string>();
         }
 
         #endregion
