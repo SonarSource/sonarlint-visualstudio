@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 
         public IEnumerable<ITagSpan<IIssueLocationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            if (spans.Count == 0 || TagSpans.Count == 0) { yield break; }
+            if (spans.Count == 0 || TagSpans.Count == 0) { return Enumerable.Empty<ITagSpan<IIssueLocationTag>>(); }
 
             // If the requested snapshot isn't the same as our tags are on, translate our spans to the expected snapshot 
             if (spans[0].Snapshot != TagSpans[0].Span.Snapshot)
@@ -135,13 +135,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 
             Debug.Assert(TagSpans.All(span => span.Tag.Location.IsNavigable()), "Expecting all tags would be navigable");
             // Find any tags in that overlap with that range
-            foreach (var tagSpan in TagSpans)
-            {
-                if (IntersectionExists(tagSpan.Span, spans))
-                {
-                    yield return tagSpan;
-                }
-            }
+            return TagSpans.Where(tagSpan => IntersectionExists(tagSpan.Span, spans));
         }
 
         private void TranslateTagSpans(ITextSnapshot newSnapshot)

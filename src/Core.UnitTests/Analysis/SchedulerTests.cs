@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
         }
 
         [TestMethod]
-        public void Schedule_JobReachedTimeout_JobCancelledDueToTimeOut()
+        public async Task Schedule_JobReachedTimeout_JobCancelledDueToTimeOut()
         {
             var job = SetupJobAction(out var getToken);
 
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
             token.IsCancellationRequested.Should().BeFalse();
 
             // wait for job to time out
-            Thread.Sleep(3000);
+            await Task.Delay(3000);
 
             token.IsCancellationRequested.Should().BeTrue();
             onExplicitCancel.Verify(x=> x(token), Times.Never);

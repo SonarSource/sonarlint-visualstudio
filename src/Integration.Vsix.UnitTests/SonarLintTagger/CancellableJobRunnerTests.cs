@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
-        public void CancelAfterFirstOperation()
+        public async Task CancelAfterFirstOperation()
         {
             // Arrange
             var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             WaitForRunnerToFinish(testSubject, testLogger);
             // Pause for any final progress steps to be reported before checking the progressRecorder below
-            Thread.Sleep(200);
+            await Task.Delay(200);
 
             VerifyFirstOperationExecutedAndJobCancelled(testSubject, op1Executed, op2Executed, progressRecorder);
         }

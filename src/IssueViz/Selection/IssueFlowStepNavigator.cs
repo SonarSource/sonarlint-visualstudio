@@ -82,13 +82,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
                     x.IsNavigable() &&
                     match(x, currentLocation));
 
-            foreach (var locationViz in navigableLocations)
+            var locationViz = navigableLocations.FirstOrDefault(x => locationNavigator.TryNavigate(x));
+
+            if (locationViz != null)
             {
-                if (locationNavigator.TryNavigate(locationViz))
-                {
-                    selectionService.SelectedLocation = locationViz;
-                    break;
-                }
+                selectionService.SelectedLocation = locationViz;
             }
         }
     }
