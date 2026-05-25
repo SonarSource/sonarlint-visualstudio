@@ -92,21 +92,21 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
         }
 
         [TestMethod]
-        public void Schedule_MultipleCalls_Sequential_TimeOut_EachJobIsCancelled()
+        public async Task Schedule_MultipleCalls_Sequential_TimeOut_EachJobIsCancelled()
         {
             var firstJob = SetupJobAction(out var getFirstToken);
             var secondJob = SetupJobAction(out var getSecondToken);
             var thirdJob = SetupJobAction(out var getThirdToken);
 
             testSubject.Schedule("test path", firstJob.Object, 1);
-            Thread.Sleep(100);
+            await Task.Delay(100);
 
             var firstToken = getFirstToken();
             firstToken.IsCancellationRequested.Should().BeTrue();
             firstJob.Verify(x => x(firstToken), Times.Once);
 
             testSubject.Schedule("test path", secondJob.Object, 1);
-            Thread.Sleep(100);
+            await Task.Delay(100);
 
             var secondToken = getSecondToken();
             secondToken.IsCancellationRequested.Should().BeTrue();

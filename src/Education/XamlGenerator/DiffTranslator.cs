@@ -69,7 +69,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             {
                 var line = lines[i];
 
-                if (string.IsNullOrEmpty(line.Text)) continue;
+                if (string.IsNullOrEmpty(line.Text))
+                {
+                    continue;
+                }
 
                 if (line.Type != ChangeType.Unchanged)
                 {
@@ -110,7 +113,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             foreach (var subPiece in line.SubPieces)
             {
-                if (string.IsNullOrEmpty(subPiece.Text)) continue;
+                if (string.IsNullOrEmpty(subPiece.Text))
+                {
+                    continue;
+                }
 
                 if (subPiece.Type != ChangeType.Unchanged)
                 {

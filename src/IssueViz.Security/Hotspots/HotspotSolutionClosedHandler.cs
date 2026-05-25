@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
     [Export(typeof(IHotspotSolutionClosedHandler))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class HotspotSolutionClosedHandler : IHotspotSolutionClosedHandler, IDisposable
+    public sealed class HotspotSolutionClosedHandler : IHotspotSolutionClosedHandler, IDisposable
     {
         private readonly ILocalHotspotsStoreUpdater localHotspotsStore;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
