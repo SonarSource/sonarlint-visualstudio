@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             CultureInfo culture)
         {
             Debug.Fail("We should not hit here");
-            return null;
+            return Array.Empty<object>();
         }
     }
 }
