@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: warp-custom-sonarlint-visualstudio
+    runs-on: warp-custom-pr-367-sonarlint-visualstudio-v20260615143319
     name: Build
     environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release-ready-build' || '' }}
     steps:
