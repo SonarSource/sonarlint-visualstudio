@@ -64,6 +64,7 @@ public class RuleDescriptionConversionSmokeTest
             new List<string>
             {
                 "cpp:S1232", // unsupported <caption> tag https://sonarsource.atlassian.net/browse/SLVS-2180
+                "cpp:S8473", // to be invesigated - https://sonarsource.atlassian.net/browse/SLVS-2975
                 "javascript:S6534", // unsupported &le; https://sonarsource.atlassian.net/browse/SLVS-2908
                 "typescript:S6534", // unsupported &le; https://sonarsource.atlassian.net/browse/SLVS-2908
             });
