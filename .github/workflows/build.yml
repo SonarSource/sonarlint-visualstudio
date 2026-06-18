@@ -173,10 +173,19 @@ jobs:
         shell: bash
         env:
           MSVC: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe # Required for CFamily integration tests
-          VSTEST_TESTHOST_SHUTDOWN_TIMEOUT: 30000
+          VSTEST_TESTHOST_SHUTDOWN_TIMEOUT: 60000
+          VSTEST_CONNECTION_TIMEOUT: 60000
         run: |
-          vstest.console.exe --EnableCodeCoverage --Settings:test.runsettings --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll
+          dotnet test "SonarQube.VisualStudio.sln" --no-build --configuration Release --settings test.runsettings --collect:"Code Coverage" --blame-crash --logger:trx --results-directory TestResults
           dotnet-coverage merge -o "coverage.xml" -f xml "**/*.coverage"
+
+      - name: Upload test results artifact
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: test-results
+          path: TestResults/**
+          if-no-files-found: warn
 
       - name: Report Test Results
         uses: dorny/test-reporter@v2
