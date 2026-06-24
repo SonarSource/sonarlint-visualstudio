@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// Returns true/false if the ErrorList should hide the requested issue.
         /// </summary>
         /// <returns>Returns true if the issue doesn't have a valid span.</returns>
-        private bool ShouldHideIssue(IAnalysisIssueVisualization issue)
+        private static bool ShouldHideIssue(IAnalysisIssueVisualization issue)
         {
             if (issue.IsFileLevel())
             {
