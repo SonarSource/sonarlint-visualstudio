@@ -93,15 +93,15 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
         ///
         /// To support all the cases, we use SEID_DocumentFrame for uses cases 1-3 and SEID_WindowFrame for use case 4.
         /// </summary>
-        int IVsSelectionEvents.OnElementValueChanged(uint elementId, object oldValue, object newValue)
+        int IVsSelectionEvents.OnElementValueChanged(uint elementid, object varValueOld, object varValueNew)
         {
             threadHandling.ThrowIfNotOnUIThread();
 
-            if (elementId == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame)
+            if (elementid == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame)
             {
                 ITextDocument activeTextDoc = null;
 
-                if (newValue is IVsWindowFrame newWindowFrame)
+                if (varValueNew is IVsWindowFrame newWindowFrame)
                 {
                     activeTextDoc = textDocumentProvider.GetFromFrame(newWindowFrame);
                 }
@@ -109,10 +109,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
                 // The "active document" will be null if the last document has just been closed
                 NotifyActiveDocumentChanged(activeTextDoc);
             }
-            // if we reached here, we know that oldValue and/or newValue are a tool window,
+            // if we reached here, we know that varValueOld and/or varValueNew are a tool window,
             // and we are only interested in the use case of [tool window] -> [doc]
-            else if (elementId == (uint) VSConstants.VSSELELEMID.SEID_WindowFrame &&
-                     newValue is IVsWindowFrame newWindowFrame && IsDocumentFrame(newWindowFrame))
+            else if (elementid == (uint) VSConstants.VSSELELEMID.SEID_WindowFrame &&
+                     varValueNew is IVsWindowFrame newWindowFrame && IsDocumentFrame(newWindowFrame))
             {
                 var activeTextDoc = textDocumentProvider.GetFromFrame(newWindowFrame);
                 NotifyActiveDocumentChanged(activeTextDoc);

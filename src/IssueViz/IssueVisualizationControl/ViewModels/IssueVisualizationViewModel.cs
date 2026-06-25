@@ -304,7 +304,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
             if (flowLocations != null && flowLocations.Any())
             {
-                for (var i = 0; i < flowLocations.Count; i++)
+                var i = 0;
+                while (i < flowLocations.Count)
                 {
                     var location = flowLocations[i];
 
@@ -317,7 +318,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
                     listItems.AddRange(sequentialLocations.Select(x => (ILocationListItem)new LocationListItem(x)));
 
-                    i += sequentialLocations.Count - 1;
+                    i += sequentialLocations.Count;
                 }
             }
 
