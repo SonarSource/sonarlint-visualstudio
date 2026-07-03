@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.Core
         private static readonly PluginInfo CFamilyPlugin = new("cpp", $"sonar-cfamily-plugin-{VersionNumberPattern}.jar");
         private static readonly PluginInfo JavascriptPlugin = new("javascript", $"sonar-javascript-plugin-{VersionNumberPattern}.jar");
         private static readonly PluginInfo HtmlPlugin = new("web", $"sonar-html-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo IacPlugin = new("iac", null);
         private static readonly PluginInfo TsqlPlugin = new("tsql", null);
 
         public static readonly Language Unknown = new();
@@ -63,6 +64,8 @@ namespace SonarLint.VisualStudio.Core
         public static readonly Language Secrets = new("Secrets", "Secrets", "secrets", SecretsPlugin, "secrets");
         public static readonly Language Text = new("Text", "Text", "text", SecretsPlugin, "text");
         public static readonly Language TSql = new("TSql", "T-SQL", "tsql", TsqlPlugin, "tsql");
+        public static readonly Language Shell = new("Shell", "Shell", "shell", IacPlugin, "shell");
+        public static readonly Language AzurePipelines = new("AzurePipelines", "Azure Pipelines", "azurepipelines", IacPlugin, "azurepipelines");
 
         /// <summary>
         /// A stable identifier for this language.

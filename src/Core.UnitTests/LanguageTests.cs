@@ -92,6 +92,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.Secrets.RepoKey.Should().Be("secrets");
             Language.Text.RepoKey.Should().Be("text");
             Language.TSql.RepoKey.Should().Be("tsql");
+            Language.Shell.RepoKey.Should().Be("shell");
+            Language.AzurePipelines.RepoKey.Should().Be("azurepipelines");
 
             Language.Unknown.RepoKey.Should().BeNull();
         }
@@ -111,6 +113,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.Secrets.SecurityRepoKey.Should().BeNull();
             Language.Text.SecurityRepoKey.Should().BeNull();
             Language.TSql.SecurityRepoKey.Should().BeNull();
+            Language.Shell.SecurityRepoKey.Should().BeNull();
+            Language.AzurePipelines.SecurityRepoKey.Should().BeNull();
             Language.Unknown.SecurityRepoKey.Should().BeNull();
         }
 
@@ -153,6 +157,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             LanguageHasExpectedPlugin(Language.Html, "web", "sonar-html-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
 
             LanguageHasExpectedPlugin(Language.TSql, "tsql", null);
+            LanguageHasExpectedPlugin(Language.Shell, "iac", null);
+            LanguageHasExpectedPlugin(Language.AzurePipelines, "iac", null);
         }
 
         [TestMethod]
@@ -169,6 +175,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             LanguageHasExpectedServerLanguageKey(Language.Secrets, "secrets");
             LanguageHasExpectedServerLanguageKey(Language.Text, "text");
             LanguageHasExpectedServerLanguageKey(Language.TSql, "tsql");
+            LanguageHasExpectedServerLanguageKey(Language.Shell, "shell");
+            LanguageHasExpectedServerLanguageKey(Language.AzurePipelines, "azurepipelines");
         }
 
         private static void LanguageHasExpectedPlugin(Language language, string pluginKey, string filePattern)

@@ -39,7 +39,7 @@ public class LanguageProviderTests
     [TestMethod]
     public void AllKnownLanguages_ShouldBeExpected()
     {
-        var expected = new[] { Language.CSharp, Language.VBNET, Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql, Language.Text };
+        var expected = new[] { Language.CSharp, Language.VBNET, Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql, Language.Text, Language.Shell, Language.AzurePipelines };
 
         testSubject.AllKnownLanguages.Should().BeEquivalentTo(expected);
     }
@@ -55,7 +55,7 @@ public class LanguageProviderTests
     [TestMethod]
     public void NonRoslynLanguages_ShouldBeExpected()
     {
-        var expected = new[] { Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql, Language.Text };
+        var expected = new[] { Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql, Language.Text, Language.Shell, Language.AzurePipelines };
 
         testSubject.NonRoslynLanguages.Should().BeEquivalentTo(expected);
     }
@@ -71,7 +71,7 @@ public class LanguageProviderTests
     [TestMethod]
     public void ExtraLanguagesInConnectedMode_ShouldBeExpected()
     {
-        var expected = new[] { Language.TSql, Language.Text };
+        var expected = new[] { Language.TSql, Language.Text, Language.Shell, Language.AzurePipelines };
 
         testSubject.ExtraLanguagesInConnectedMode.Should().BeEquivalentTo(expected);
     }
@@ -89,6 +89,8 @@ public class LanguageProviderTests
         var html = testSubject.GetLanguageFromLanguageKey("Web");
         var tsql = testSubject.GetLanguageFromLanguageKey("tsql");
         var text = testSubject.GetLanguageFromLanguageKey("text");
+        var shell = testSubject.GetLanguageFromLanguageKey("shell");
+        var azurePipelines = testSubject.GetLanguageFromLanguageKey("azurepipelines");
         var unknown = testSubject.GetLanguageFromLanguageKey("unknown");
 
         cs.Should().Be(Language.CSharp);
@@ -101,6 +103,8 @@ public class LanguageProviderTests
         html.Should().Be(Language.Html);
         tsql.Should().Be(Language.TSql);
         text.Should().Be(Language.Text);
+        shell.Should().Be(Language.Shell);
+        azurePipelines.Should().Be(Language.AzurePipelines);
         unknown.Should().Be(null);
     }
 
