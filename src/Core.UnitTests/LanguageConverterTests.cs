@@ -66,10 +66,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
         public void LanguageConverter_ConvertFrom_AllKnownLanguages_AreRecognized()
         {
-            CheckConvertFromRecognizesLanguage(Language.VBNET.Id, Language.VBNET);
-            CheckConvertFromRecognizesLanguage(Language.C.Id, Language.C);
-            CheckConvertFromRecognizesLanguage(Language.Cpp.Id, Language.Cpp);
-            CheckConvertFromRecognizesLanguage(Language.CSharp.Id, Language.CSharp);
+            foreach (var language in LanguageProvider.Instance.AllKnownLanguages)
+            {
+                CheckConvertFromRecognizesLanguage(language.Id, language);
+            }
         }
 
         private void CheckConvertFromRecognizesLanguage(string id, Language expectedLanguage)

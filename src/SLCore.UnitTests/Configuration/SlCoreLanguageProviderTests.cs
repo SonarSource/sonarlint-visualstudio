@@ -61,10 +61,10 @@ public class SlCoreLanguageProviderTests
     {
         languageProvider = Substitute.For<ILanguageProvider>();
         // it doesn't have to be the real lists, just need to be different so the test can verify that the provider is using them
-        languageProvider.AllKnownLanguages.Returns([Language.C, Language.Js, Language.Ts, Language.TSql]);
+        languageProvider.AllKnownLanguages.Returns([Language.C, Language.Js, Language.Ts, Language.TSql, Language.Shell, Language.AzurePipelines]);
         languageProvider.RoslynLanguages.Returns([Language.CSharp]);
-        languageProvider.NonRoslynLanguages.Returns([Language.Js]);
+        languageProvider.NonRoslynLanguages.Returns([Language.Js, Language.AzurePipelines]);
         languageProvider.LanguagesInStandaloneMode.Returns([Language.Ts]);
-        languageProvider.ExtraLanguagesInConnectedMode.Returns([Language.TSql]);
+        languageProvider.ExtraLanguagesInConnectedMode.Returns([Language.TSql, Language.Shell, Language.AzurePipelines]);
     }
 }

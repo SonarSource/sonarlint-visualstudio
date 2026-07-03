@@ -35,9 +35,11 @@ internal static class LanguageExtensions
         { Html, Language.HTML },
         { Js, Language.JS },
         { Secrets, Language.SECRETS },
+        { Shell, Language.SHELL },
         { Ts, Language.TS },
         { TSql, Language.TSQL },
         { Text, Language.TEXT },
+        { AzurePipelines, Language.AZUREPIPELINES },
     };
 
     public static VisualStudio.Core.Language ConvertToCoreLanguage(this Language language)
