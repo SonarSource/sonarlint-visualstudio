@@ -40,3 +40,82 @@ jobs:
       slack-channel: "C02E6L5C01H"
       is-test-run: ${{ inputs.dry-run }}
       new-version: ${{ inputs.new-version }}
+
+  bump-version:
+    name: Create a PR to bump version
+    runs-on: warp-custom-sonarlint-visualstudio
+    needs:
+      - release
+    if: ${{ inputs.branch == 'master' && inputs.dry-run == false }}
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: master
+
+      - name: Fetch vault secrets
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username | ARTIFACTORY_USER;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_ACCESS_TOKEN;
+
+      - name: Compute next main version
+        id: next-version
+        shell: powershell
+        env:
+          NEW_VERSION: ${{ needs.release.outputs.new-version }}
+        run: |
+          $parts = $env:NEW_VERSION -split '\.'
+          if ($parts.Count -ne 2 -and $parts.Count -ne 3) {
+            throw "Unsupported new version format: '$($env:NEW_VERSION)'"
+          }
+
+          # For bugfix releases, Jira's next version stays on the maintenance line,
+          # but master should move to the next minor line.
+          $major = [int]$parts[0]
+          $minor = [int]$parts[1]
+          if ($parts.Count -eq 3 -and [int]$parts[2] -gt 0) {
+            $minor++
+          }
+
+          $fullVersion = "$major.$minor.0"
+          "full-version=$fullVersion" >> $env:GITHUB_OUTPUT
+
+      - name: Bump version
+        shell: powershell
+        run: .\set-version.ps1 '${{ steps.next-version.outputs.full-version }}'
+
+      - name: Rebuild solution
+        shell: bash
+        env:
+          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+        run: |
+          msbuild.exe build/DownloadDependencies -p:VsVersion=17.0 -p:VsTargetVersion=2022
+          dotnet restore "SonarQube.VisualStudio.sln" --locked-mode
+          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=false -p:DeployExtension=false -p:Configuration=Release
+
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          commit-message: Bump version to ${{ steps.next-version.outputs.full-version }}
+          title: Bump version to ${{ steps.next-version.outputs.full-version }}
+          branch: bot/bump-project-version
+          branch-suffix: timestamp
+          delete-branch: true
+          base: master
+          draft: true
+          reviewers: ${{ github.actor }}
+          add-paths: |
+            build/Version.props
+            src/AssemblyInfo.Shared.cs
+            src/Integration.Vsix/Manifests/VS2022/source.extension.vsixmanifest
+            src/Integration.Vsix/SonarLintIntegrationPackage.cs
+          body: |
+            Bump the version to `${{ steps.next-version.outputs.full-version }}` for the next development iteration.
+
+            Created by the release automation after publishing `${{ needs.release.outputs.released-version }}`.
