@@ -98,7 +98,7 @@ jobs:
         run: |
           msbuild.exe build/DownloadDependencies -p:VsVersion=17.0 -p:VsTargetVersion=2022
           dotnet restore "SonarQube.VisualStudio.sln" --locked-mode
-          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=false -p:DeployExtension=false -p:Configuration=Release
+          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=false -p:DeployExtension=false -p:AsmRefUpdateBaseline=true -p:Configuration=Release
 
       - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
@@ -110,12 +110,7 @@ jobs:
           base: master
           draft: true
           reviewers: ${{ github.actor }}
-          add-paths: |
-            build/Version.props
-            src/AssemblyInfo.Shared.cs
-            src/Integration.Vsix/Manifests/VS2022/source.extension.vsixmanifest
-            src/Integration.Vsix/SonarLintIntegrationPackage.cs
           body: |
-            Bump the version to `${{ steps.next-version.outputs.full-version }}` for the next development iteration.
+            Bump the version to `${{ steps.next-version.outputs.full-version }}`.
 
             Created by the release automation after publishing `${{ needs.release.outputs.released-version }}`.
