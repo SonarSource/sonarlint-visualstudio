@@ -37,7 +37,7 @@
   <!-- They are defined here to make sure we reference the same version everywhere. -->
   <!-- ******************************************************************************* -->
   <ItemGroup Label="NuGet packages">
-    <PackageReference Include="Newtonsoft.Json" Condition=" $(RequiresNewtonsoft)=='true'" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Condition=" $(RequiresNewtonsoft)=='true'" Version="13.0.4" />
     <PackageReference Include="System.IO.Abstractions" Condition=" $(RequiresSystemIOAbstractions)=='true'" Version="9.0.6" />
     <PackageReference Include="System.Threading.Channels" Condition=" $(RequiresChannels)=='true'" Version="7.0.0" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" Condition="$(RequiresLibGit)=='true'" GeneratePathProperty="true" PrivateAssets="all" />
