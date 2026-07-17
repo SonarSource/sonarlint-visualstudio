@@ -31,6 +31,7 @@ public class PromoteListenerTests
 {
     private IPromoteNotification promoteNotification;
     private IShowMessageNotification showMessageNotification;
+    private IShowServerSoonUnsupportedNotification showServerSoonUnsupportedNotification;
     private PromoteListener testSubject;
 
     [TestInitialize]
@@ -38,14 +39,16 @@ public class PromoteListenerTests
     {
         promoteNotification = Substitute.For<IPromoteNotification>();
         showMessageNotification = Substitute.For<IShowMessageNotification>();
-        testSubject = new PromoteListener(promoteNotification, showMessageNotification);
+        showServerSoonUnsupportedNotification = Substitute.For<IShowServerSoonUnsupportedNotification>();
+        testSubject = new PromoteListener(promoteNotification, showMessageNotification, showServerSoonUnsupportedNotification);
     }
 
     [TestMethod]
     public void MefCtor_CheckExports() =>
         MefTestHelpers.CheckTypeCanBeImported<PromoteListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<IPromoteNotification>(),
-            MefTestHelpers.CreateExport<IShowMessageNotification>());
+            MefTestHelpers.CreateExport<IShowMessageNotification>(),
+            MefTestHelpers.CreateExport<IShowServerSoonUnsupportedNotification>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<PromoteListener>();
@@ -77,6 +80,16 @@ public class PromoteListenerTests
         await showMessageNotification.Received().ShowAsync(message, actions);
         result.selectedKey.Should().Be(returnedKey);
         result.closedByUser.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void ShowSoonUnsupportedMessage_PassesTextAndDoNotShowAgainIdToNotification()
+    {
+        var parameters = new ShowSoonUnsupportedMessageParams("DO_NOT_SHOW_AGAIN_ID", "CONFIGURATION_SCOPE_ID", "Server will soon be unsupported");
+
+        testSubject.ShowSoonUnsupportedMessage(parameters);
+
+        showServerSoonUnsupportedNotification.Received().ShowSoonUnsupportedMessage("Server will soon be unsupported", "DO_NOT_SHOW_AGAIN_ID");
     }
 
     private static List<MessageActionItem> CreateActions(int count)

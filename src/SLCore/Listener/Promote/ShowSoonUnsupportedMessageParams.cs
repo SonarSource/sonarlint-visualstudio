@@ -18,15 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-
 namespace SonarLint.VisualStudio.SLCore.Listener.Promote;
 
-public interface IPromoteListener : ISLCoreListener
-{
-    void PromoteExtraEnabledLanguagesInConnectedMode(PromoteExtraEnabledLanguagesInConnectedModeParams parameters);
-
-    Task<ShowMessageRequestResponse> ShowMessageRequestAsync(ShowMessageRequestParams parameters);
-
-    void ShowSoonUnsupportedMessage(ShowSoonUnsupportedMessageParams parameters);
-}
+public record ShowSoonUnsupportedMessageParams(string doNotShowAgainId, string configurationScopeId, string text);
