@@ -16,7 +16,49 @@ env:
   PYTHONUNBUFFERED: 1
 
 jobs:
+  attach-artifacts-to-draft:
+    if: ${{ !(inputs.dryRun == true) }}
+    permissions:
+      id-token: write
+      contents: write
+    runs-on: github-ubuntu-latest-s
+    name: Attach VSIX and SBOM to draft release
+    env:
+      RELEASE_TAG: ${{ inputs.version }}
+      ARTIFACTORY_URL: https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get vault secrets
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_ACCESS_TOKEN;
+
+      - name: Download VSIX and SBOM from Artifactory
+        env:
+          ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+        run: |
+          for file in \
+            "SonarLint.VSIX-${RELEASE_TAG}-2022.vsix" \
+            "SonarLint.visualstudio.sbom-${RELEASE_TAG}-2022.json" \
+            "SonarLint.visualstudio.sbom-${RELEASE_TAG}-2022.json.asc"; do
+            curl -sSf -o "$file" -H "Authorization: Bearer ${ARTIFACTORY_ACCESS_TOKEN}" "${ARTIFACTORY_URL}/${RELEASE_TAG}/${file}"
+          done
+
+      - name: Upload artifacts to draft release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${RELEASE_TAG}" \
+            "SonarLint.VSIX-${RELEASE_TAG}-2022.vsix" \
+            "SonarLint.visualstudio.sbom-${RELEASE_TAG}-2022.json" \
+            "SonarLint.visualstudio.sbom-${RELEASE_TAG}-2022.json.asc" \
+            --clobber
+
   release:
+    needs: attach-artifacts-to-draft
+    if: ${{ always() && (needs.attach-artifacts-to-draft.result == 'success' || needs.attach-artifacts-to-draft.result == 'skipped') }}
     permissions:
       id-token: write
       contents: write
