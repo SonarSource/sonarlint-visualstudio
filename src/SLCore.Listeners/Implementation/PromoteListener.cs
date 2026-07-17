@@ -30,7 +30,9 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-public class PromoteListener(IPromoteNotification promoteNotification, IShowMessageNotification reviewCampaignNotification) : IPromoteListener
+public class PromoteListener(IPromoteNotification promoteNotification,
+    IShowMessageNotification showMessageNotification,
+    IShowServerSoonUnsupportedNotification showServerSoonUnsupportedNotification) : IPromoteListener
 {
     public void PromoteExtraEnabledLanguagesInConnectedMode(PromoteExtraEnabledLanguagesInConnectedModeParams parameters)
     {
@@ -42,7 +44,10 @@ public class PromoteListener(IPromoteNotification promoteNotification, IShowMess
 
     public async Task<ShowMessageRequestResponse> ShowMessageRequestAsync(ShowMessageRequestParams parameters)
     {
-        var key = await reviewCampaignNotification.ShowAsync(parameters.message, parameters.actions);
+        var key = await showMessageNotification.ShowAsync(parameters.message, parameters.actions);
         return new ShowMessageRequestResponse(key, false);
     }
+
+    public void ShowSoonUnsupportedMessage(ShowSoonUnsupportedMessageParams parameters) =>
+        showServerSoonUnsupportedNotification.ShowSoonUnsupportedMessage(parameters.text, parameters.doNotShowAgainId);
 }
