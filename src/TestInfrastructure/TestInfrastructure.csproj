@@ -29,7 +29,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="NuGet.Core" Version="2.12.0" />
+    <PackageReference Include="NuGet.Core" Version="2.14.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="9.0.6" />
   </ItemGroup>
