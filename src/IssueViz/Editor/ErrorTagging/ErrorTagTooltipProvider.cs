@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -94,10 +95,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
                 Foreground = GetVsThemedColor(EnvironmentColors.SystemCaptionTextBrushKey)
             };
 
-            instanceCount++;
-            logger.LogVerbose($"[ErrorTagTooltipProvider] tooltip instance count: {instanceCount}");
+            var currentCount = IncrementInstanceCount();
+            logger.LogVerbose($"[ErrorTagTooltipProvider] tooltip instance count: {currentCount}");
 
             return content;
+        }
+
+        private static long IncrementInstanceCount()
+        {
+            return Interlocked.Increment(ref instanceCount);
         }
 
         private static void ApplyHyperlinkStyle(Hyperlink hyperlink)
