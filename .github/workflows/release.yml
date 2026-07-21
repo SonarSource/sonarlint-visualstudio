@@ -27,7 +27,7 @@ jobs:
       RELEASE_TAG: ${{ inputs.version }}
       ARTIFACTORY_URL: https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - name: Get vault secrets
         id: secrets
         uses: SonarSource/vault-action-wrapper@v3
@@ -82,7 +82,7 @@ jobs:
     env:
       RELEASE_TAG: ${{ inputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - name: Get vault secrets
         id: secrets
         uses: SonarSource/vault-action-wrapper@v3
