@@ -47,7 +47,7 @@ internal class SolutionBindingRepository(
         return bindingJsonModel switch
         {
             null => null,
-            not null => bindingJsonModelConverter.ConvertFromModelToLegacy(bindingJsonModel, credentialsLoader.Load(bindingJsonModel.ServerUri))
+            _ => bindingJsonModelConverter.ConvertFromModelToLegacy(bindingJsonModel, credentialsLoader.Load(bindingJsonModel.ServerUri))
         };
     }
 
