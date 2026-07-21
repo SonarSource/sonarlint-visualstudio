@@ -37,7 +37,7 @@ jobs:
       project-name: "SonarLint for Visual Studio"
       short-description: ${{ inputs.short-description }}
       branch: ${{ inputs.branch }}
-      slack-channel: "C02E6L5C01H"
+      slack-channel: "C093TDJ6JF5" #squad-ide-visualstudio-bots
       is-test-run: ${{ inputs.dry-run }}
       new-version: ${{ inputs.new-version }}
 
