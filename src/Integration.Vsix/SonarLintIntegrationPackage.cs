@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress);
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await InitOnUIThreadAsync();
         }
 

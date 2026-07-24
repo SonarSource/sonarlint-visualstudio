@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Debug.Assert(!ThreadHelper.CheckAccess(), "Not expecting the package to be initialized on the UI thread");
 
             await base.InitializeAsync(cancellationToken, progress);
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await InitOnUIThreadAsync();
         }
 
