@@ -72,6 +72,7 @@ public class RuleDescriptionConversionSmokeTest
             {
                 "cpp:S5954", // unsupported <widget> tag https://sonarsource.atlassian.net/browse/SLVS-2863
                 "cpp:S4998", // unsupported <widget> tag https://sonarsource.atlassian.net/browse/SLVS-2863
+                "javascript:S6767", "typescript:S6767", // to be investigated - https://sonarsource.atlassian.net/browse/SLVS-3020
                 "csharpsquid:S6932", // unsupported <dl> and <dt> tag https://sonarsource.atlassian.net/browse/SLVS-2274
                 "csharpsquid:S6966" // unsupported <dl> and <dt> tag https://sonarsource.atlassian.net/browse/SLVS-2274
             });
