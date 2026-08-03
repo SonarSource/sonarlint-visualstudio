@@ -37,7 +37,7 @@ public partial class ServerSelectionDialog : Window
     {
         this.connectedModeUiServices = connectedModeUiServices;
         this.telemetryManager = telemetryManager;
-        ViewModel = new ServerSelectionViewModel(connectedModeUiServices);
+        ViewModel = new ServerSelectionViewModel();
         InitializeComponent();
     }
 

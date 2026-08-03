@@ -30,7 +30,6 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
 
@@ -148,14 +147,7 @@
                 </Grid>
             </GroupBox>
 
-            <StackPanel Grid.Row="5" Margin="5" Orientation="Vertical">
-                <TextBlock Text="{x:Static res:Strings.CloudSettings}" Margin="0,0,0,5" />
-                <CheckBox Content="{x:Static res:Strings.ShowRegionCheckbox}"
-                          IsChecked="{Binding Path=ShowCloudRegion}"
-                          VerticalContentAlignment="Center" />
-            </StackPanel>
-
-            <GroupBox Grid.Row="6" Margin="5,0,0,5" Header="{x:Static res:Strings.ExperimentalGroupHeader}">
+            <GroupBox Grid.Row="5" Margin="5,0,0,5" Header="{x:Static res:Strings.ExperimentalGroupHeader}">
                 <StackPanel Margin="5">
                     <StackPanel Orientation="Horizontal">
                         <CheckBox Content="{x:Static res:Strings.UseAbsoluteFilePathsCheckbox}"

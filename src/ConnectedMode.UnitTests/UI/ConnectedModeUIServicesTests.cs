@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
@@ -33,9 +32,7 @@ public class ConnectedModeUIServicesTests
         MefTestHelpers.CheckTypeCanBeImported<ConnectedModeUIServices, IConnectedModeUIServices>(
             MefTestHelpers.CreateExport<IBrowserService>(),
             MefTestHelpers.CreateExport<IMessageBox>(),
-            MefTestHelpers.CreateExport<IIDEWindowService>(),
-            MefTestHelpers.CreateExport<ISonarLintSettings>()
-        );
+            MefTestHelpers.CreateExport<IIDEWindowService>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ConnectedModeUIServices>();

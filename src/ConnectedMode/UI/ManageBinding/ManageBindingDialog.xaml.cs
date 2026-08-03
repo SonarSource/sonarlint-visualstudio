@@ -33,6 +33,7 @@ internal partial class ManageBindingDialog : Window
     private readonly IConnectedModeServices connectedModeServices;
     private readonly IConnectedModeBindingServices connectedModeBindingServices;
     private readonly IConnectedModeUIManager connectedModeUiManager;
+    private readonly IConnectedModeUIServices connectedModeUiServices;
     private readonly BindingRequest.AutomaticBindingRequest automaticBindingRequest;
 
     public ManageBindingDialog(
@@ -45,8 +46,8 @@ internal partial class ManageBindingDialog : Window
         this.connectedModeServices = connectedModeServices;
         this.connectedModeBindingServices = connectedModeBindingServices;
         this.connectedModeUiManager = connectedModeUiManager;
+        this.connectedModeUiServices = connectedModeUiServices;
         this.automaticBindingRequest = automaticBindingRequest;
-        ConnectedModeUiServices = connectedModeUiServices;
         ViewModel = new ManageBindingViewModel(connectedModeServices,
             connectedModeBindingServices,
             connectedModeUiManager,
@@ -55,11 +56,10 @@ internal partial class ManageBindingDialog : Window
     }
 
     public ManageBindingViewModel ViewModel { get; }
-    public IConnectedModeUIServices ConnectedModeUiServices { get; }
 
     private async void ManageConnections_OnClick(object sender, RoutedEventArgs e)
     {
-        new ManageConnectionsDialog(connectedModeUiManager, connectedModeServices, connectedModeBindingServices, ConnectedModeUiServices).ShowDialog(this);
+        new ManageConnectionsDialog(connectedModeUiManager, connectedModeServices, connectedModeBindingServices, connectedModeUiServices).ShowDialog(this);
         await ViewModel.InitializeDataAsync();
     }
 
@@ -67,7 +67,7 @@ internal partial class ManageBindingDialog : Window
 
     private void SelectProject_OnClick(object sender, RoutedEventArgs e)
     {
-        var projectSelection = new ProjectSelectionDialog(ViewModel.SelectedConnectionInfo, connectedModeServices, ConnectedModeUiServices);
+        var projectSelection = new ProjectSelectionDialog(ViewModel.SelectedConnectionInfo, connectedModeServices);
         if (projectSelection.ShowDialog(this) == true)
         {
             ViewModel.SelectedProject = projectSelection.ViewModel.SelectedProject;
@@ -89,7 +89,7 @@ internal partial class ManageBindingDialog : Window
 
     private async void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e) => await ViewModel.ExportBindingConfigurationWithProgressAsync();
 
-    private void ViewWebsite(object sender, RequestNavigateEventArgs e) => ConnectedModeUiServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
+    private void ViewWebsite(object sender, RequestNavigateEventArgs e) => connectedModeUiServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
 
     /// <summary>
     /// It is important to use the <see cref="ItemsControl.SourceUpdated"/> event and not the <see cref="ItemsControl.SelectionChanged"/> event, because we only want to detect the changes

@@ -29,7 +29,6 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private string jreLocation;
     private DaemonLogLevel selectedDaemonLogLevel;
     private bool isActivateMoreEnabled;
-    private bool showCloudRegion;
     private bool isFocusOnNewCodeEnabled;
     private bool isShowBuildErrorNotificationEnabled;
     private CredentialStoreType credentialStoreType;
@@ -70,16 +69,6 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         set
         {
             isActivateMoreEnabled = value;
-            RaisePropertyChanged();
-        }
-    }
-
-    public bool ShowCloudRegion
-    {
-        get => showCloudRegion;
-        set
-        {
-            showCloudRegion = value;
             RaisePropertyChanged();
         }
     }
@@ -149,7 +138,6 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         SelectedDaemonLogLevel = slSettings.DaemonLogLevel;
         IsActivateMoreEnabled = slSettings.IsActivateMoreEnabled;
         JreLocation = slSettings.JreLocation;
-        ShowCloudRegion = slSettings.ShowCloudRegion;
         IsFocusOnNewCodeEnabled = focusOnNewCodeServiceUpdater.Current.IsEnabled;
         IsShowBuildErrorNotificationEnabled = slSettings.IsShowBuildErrorNotificationEnabled;
         CredentialStoreType = slSettings.CredentialStoreType;
@@ -164,7 +152,6 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.DaemonLogLevel = SelectedDaemonLogLevel;
         slSettings.IsActivateMoreEnabled = IsActivateMoreEnabled;
         slSettings.JreLocation = JreLocation?.Trim();
-        slSettings.ShowCloudRegion = ShowCloudRegion;
         slSettings.IsShowBuildErrorNotificationEnabled = IsShowBuildErrorNotificationEnabled;
         slSettings.CredentialStoreType = CredentialStoreType;
         slSettings.PragmaRuleSeverity = PragmaRuleSeverity;

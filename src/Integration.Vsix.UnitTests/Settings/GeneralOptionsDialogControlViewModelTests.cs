@@ -97,17 +97,6 @@ public class GeneralOptionsDialogControlViewModelTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void Ctor_SetsShowCloudRegionToValueFromSettings(bool expectedShowRegion)
-    {
-        settings.ShowCloudRegion.Returns(expectedShowRegion);
-
-        _ = settings.Received().ShowCloudRegion;
-        testSubject.ShowCloudRegion = expectedShowRegion;
-    }
-
-    [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
     public void Ctor_SetsIsFocusOnNewCodeEnabled_FromService(bool expected)
     {
         var focusStatus = new FocusOnNewCodeStatus(expected);
@@ -162,18 +151,6 @@ public class GeneralOptionsDialogControlViewModelTests
         testSubject.SaveSettings();
 
         settings.Received().JreLocation = JreLocation;
-    }
-
-    [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void SaveSettings_SavesShowCloudRegionToSettings(bool expectedShowCloudRegion)
-    {
-        testSubject.ShowCloudRegion = expectedShowCloudRegion;
-
-        testSubject.SaveSettings();
-
-        settings.Received().ShowCloudRegion = expectedShowCloudRegion;
     }
 
     [TestMethod]

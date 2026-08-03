@@ -294,24 +294,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube Cloud settings.
-        /// </summary>
-        public static string CloudSettings {
-            get {
-                return ResourceManager.GetString("CloudSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube Cloud settings.
-        /// </summary>
-        public static string CloudSettings2 {
-            get {
-                return ResourceManager.GetString("CloudSettings2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No embedded plugins for connected mode found.
         /// </summary>
         public static string ConnectedModeEmbeddedPluginJarLocator_JarsNotFound {
@@ -924,15 +906,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string ShowBuildErrorNotificationTooltip {
             get {
                 return ResourceManager.GetString("ShowBuildErrorNotificationTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Show region selection for SonarQube Cloud.
-        /// </summary>
-        public static string ShowRegionCheckbox {
-            get {
-                return ResourceManager.GetString("ShowRegionCheckbox", resourceCulture);
             }
         }
         

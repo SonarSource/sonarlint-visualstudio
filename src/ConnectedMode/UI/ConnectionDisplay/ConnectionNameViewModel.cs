@@ -25,20 +25,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 public class ConnectionNameViewModel : ViewModelBase
 {
     private ConnectionInfo connectionInfo;
-    private IConnectedModeUIServices connectedModeUiServices;
-
-    public IConnectedModeUIServices ConnectedModeUiServices
-    {
-        get => connectedModeUiServices;
-        set
-        {
-            connectedModeUiServices = value;
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(DisplayName));
-            RaisePropertyChanged(nameof(ShouldDisplayRegion));
-            RaisePropertyChanged(nameof(DisplayRegion));
-        }
-    }
 
     public ConnectionInfo ConnectionInfo
     {
@@ -58,8 +44,6 @@ public class ConnectionNameViewModel : ViewModelBase
             ? connectionInfo.CloudServerRegion.Url.ToString()
             : connectionInfo?.Id ?? string.Empty;
 
-    public bool ShouldDisplayRegion =>
-        ConnectedModeUiServices?.SonarLintSettings.ShowCloudRegion == true &&
-        connectionInfo?.ServerType is ConnectionServerType.SonarCloud;
+    public bool ShouldDisplayRegion => connectionInfo?.ServerType is ConnectionServerType.SonarCloud;
     public string DisplayRegion => ShouldDisplayRegion ? connectionInfo.CloudServerRegion.Name : string.Empty;
 }
