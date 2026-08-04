@@ -34,7 +34,6 @@ namespace SonarLint.VisualStudio.Integration
         bool IsActivateMoreEnabled { get; set; }
         DaemonLogLevel DaemonLogLevel { get; set; }
         string JreLocation { get; set; }
-        bool ShowCloudRegion { get; set; }
         bool IsFocusOnNewCodeEnabled { get; set; }
         bool IsShowBuildErrorNotificationEnabled { get; set; }
         CredentialStoreType CredentialStoreType { get; set; }

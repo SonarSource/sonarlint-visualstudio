@@ -22,7 +22,6 @@ using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ConnectionDisplay;
 
@@ -33,17 +32,11 @@ public class ConnectionNameViewModelTests
     public static object[][] Regions => [[CloudServerRegion.Eu], [CloudServerRegion.Us]];
 
     private ConnectionNameViewModel testSubject;
-    private IConnectedModeUIServices connectedModeUIServices;
-    private ISonarLintSettings sonarLintSettings;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        sonarLintSettings = Substitute.For<ISonarLintSettings>();
-        connectedModeUIServices = Substitute.For<IConnectedModeUIServices>();
         testSubject = new ConnectionNameViewModel();
-
-        MockConnectedModeUiServices();
     }
 
     [TestMethod]
@@ -139,62 +132,9 @@ public class ConnectionNameViewModelTests
         testSubject.DisplayRegion.Should().Be(region.Name);
     }
 
-    [TestMethod]
-    public void ConnectedModeUiServices_Set_RaisesPropertyChanged()
-    {
-        var connectedModeUiServices = Substitute.For<IConnectedModeUIServices>();
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
-
-        testSubject.ConnectedModeUiServices = connectedModeUiServices;
-
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.ConnectedModeUiServices)));
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.DisplayName)));
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.ShouldDisplayRegion)));
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.DisplayRegion)));
-        testSubject.ConnectedModeUiServices.Should().BeSameAs(connectedModeUiServices);
-    }
-
-    [DynamicData(nameof(Regions))]
-    [TestMethod]
-    public void ShouldDisplayRegion_ShowCloudRegionSettingUnchecked_ReturnsFalse(CloudServerRegion region)
-    {
-        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, region);
-        sonarLintSettings.ShowCloudRegion.Returns(false);
-
-        testSubject.ShouldDisplayRegion.Should().BeFalse();
-    }
-
-    [DynamicData(nameof(Regions))]
-    [TestMethod]
-    public void ShouldDisplayRegion_ShowCloudRegionSettingChecked_ReturnsTrue(CloudServerRegion region)
-    {
-        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, region);
-        sonarLintSettings.ShowCloudRegion.Returns(true);
-
-        testSubject.ShouldDisplayRegion.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void ShouldDisplayRegion_SonarQube_ShowCloudRegionSettingChecked_ReturnsFalse()
-    {
-        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarQube);
-        sonarLintSettings.ShowCloudRegion.Returns(true);
-
-        testSubject.ShouldDisplayRegion.Should().BeFalse();
-    }
-
     private void VerifyDoesNotDisplayRegion()
     {
         testSubject.ShouldDisplayRegion.Should().BeFalse();
         testSubject.DisplayRegion.Should().BeEmpty();
-    }
-
-    private void MockConnectedModeUiServices()
-    {
-        connectedModeUIServices.SonarLintSettings.Returns(sonarLintSettings);
-        sonarLintSettings.ShowCloudRegion.Returns(true);
-
-        testSubject.ConnectedModeUiServices = connectedModeUIServices;
     }
 }

@@ -48,7 +48,7 @@
                         </RadioButton>
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="{x:Static res:UiResources.SonarCloudDescription}" Margin="10, 0"/>
-                    <Grid Grid.Row="2" Margin="10,10,10,0" Visibility="{Binding Path=ShowCloudRegion, Converter={StaticResource TrueToVisibleConverter}}">
+                    <Grid Grid.Row="2" Margin="10,10,10,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -106,7 +106,9 @@
                                         </Style>
                                     </TextBlock.Style>
                                     <Run Text="{x:Static res:UiResources.UsRegionName}" FontWeight="DemiBold"/>
-                                    <Run Text="-"></Run>
+                                    <Run Text=" "/>
+                                    <Run Text="{x:Static res:UiResources.UsRegionInviteOnlyLabel}"/>
+                                    <Run Text=" - "/>
                                     <Run Text="{Binding SonarCloudForUsRegion, Mode=OneWay}"/>
                                 </TextBlock>
                             </RadioButton>

@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
-    public class ServerSelectionViewModel(IConnectedModeUIServices connectedModeUiServices) : ViewModelBase
+    public class ServerSelectionViewModel : ViewModelBase
     {
         private bool isSonarCloudSelected = true;
         private bool isSonarQubeSelected;
@@ -91,7 +91,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             }
         }
 
-        public bool ShowCloudRegion => connectedModeUiServices.SonarLintSettings.ShowCloudRegion;
         public bool IsNextButtonEnabled => (IsSonarCloudSelected && IsSonarCloudRegionSelected) || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
         public bool ShouldSonarQubeUrlBeFilled => IsSonarQubeSelected && !IsSonarQubeUrlProvided;
         public static string SonarCloudForEuRegion => CloudServerRegion.Eu.Url.Host;

@@ -30,10 +30,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 public partial class CredentialsDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
+    private readonly IConnectedModeUIServices connectedModeUiServices;
 
     public CredentialsViewModel ViewModel { get; }
     public ResponseStatus Result { get; private set; }
-    public IConnectedModeUIServices ConnectedModeUiServices { get; }
 
     public CredentialsDialog(
         IConnectedModeServices connectedModeServices,
@@ -54,7 +54,7 @@ public partial class CredentialsDialog : Window
         bool withNextButton)
     {
         this.connectedModeServices = connectedModeServices;
-        ConnectedModeUiServices = connectedModeUiServices;
+        this.connectedModeUiServices = connectedModeUiServices;
         ViewModel = viewModel;
         InitializeComponent();
 
@@ -105,12 +105,12 @@ public partial class CredentialsDialog : Window
         if (responseWithData.Success)
         {
             TokenBox.Password = responseWithData.ResponseData;
-            ConnectedModeUiServices.IdeWindowService.BringToFront();
+            connectedModeUiServices.IdeWindowService.BringToFront();
             await CloseWindowOnAcceptAsync();
         }
         else
         {
-            ConnectedModeUiServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
+            connectedModeUiServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
         }
     }
 

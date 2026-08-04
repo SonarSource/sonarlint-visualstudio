@@ -32,8 +32,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 internal partial class ManageConnectionsDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
+    private readonly IConnectedModeUIServices connectedModeUiServices;
 
-    public IConnectedModeUIServices ConnectedModeUiServices { get; }
     public ManageConnectionsViewModel ViewModel { get; }
 
     internal ManageConnectionsDialog(
@@ -43,7 +43,7 @@ internal partial class ManageConnectionsDialog : Window
         IConnectedModeUIServices connectedModeUiServices)
     {
         this.connectedModeServices = connectedModeServices;
-        ConnectedModeUiServices = connectedModeUiServices;
+        this.connectedModeUiServices = connectedModeUiServices;
         ViewModel = new ManageConnectionsViewModel(connectedModeUiManager,
             connectedModeServices,
             connectedModeBindingServices,
@@ -77,14 +77,14 @@ internal partial class ManageConnectionsDialog : Window
 
     private ConnectionInfo GetTransientConnection()
     {
-        var serverSelectionDialog = new ServerSelectionDialog(ConnectedModeUiServices, connectedModeServices.TelemetryManager);
+        var serverSelectionDialog = new ServerSelectionDialog(connectedModeUiServices, connectedModeServices.TelemetryManager);
         return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateTransientConnectionInfo();
     }
 
     private CredentialsDialog GetCredentialsDialog(ConnectionInfo newConnectionInfo)
     {
         var isAnyDialogFollowing = newConnectionInfo.ServerType == ConnectionServerType.SonarCloud;
-        return new CredentialsDialog(connectedModeServices, ConnectedModeUiServices, newConnectionInfo, isAnyDialogFollowing);
+        return new CredentialsDialog(connectedModeServices, connectedModeUiServices, newConnectionInfo, isAnyDialogFollowing);
     }
 
     private bool CredentialsDialogSucceeded(CredentialsDialog credentialsDialog) => credentialsDialog.ShowDialog(this) == true;
@@ -111,7 +111,7 @@ internal partial class ManageConnectionsDialog : Window
         }
 
         var connectionReferences = await ViewModel.GetConnectionReferencesWithProgressAsync(connectionViewModel);
-        var deleteConnectionDialog = new DeleteConnectionDialog(ConnectedModeUiServices, connectionReferences, connectionViewModel.Connection.Info);
+        var deleteConnectionDialog = new DeleteConnectionDialog(connectionReferences, connectionViewModel.Connection.Info);
         if (deleteConnectionDialog.ShowDialog(this) == true)
         {
             await ViewModel.RemoveConnectionWithProgressAsync(connectionReferences, connectionViewModel);

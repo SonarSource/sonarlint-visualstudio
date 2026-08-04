@@ -27,11 +27,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 public partial class ProjectSelectionDialog
 {
     public ProjectSelectionViewModel ViewModel { get; }
-    public IConnectedModeUIServices ConnectedModeUiServices { get; }
 
-    public ProjectSelectionDialog(ConnectionInfo connectionInfo, IConnectedModeServices connectedModeServices, IConnectedModeUIServices connectedModeUiServices)
+    public ProjectSelectionDialog(ConnectionInfo connectionInfo, IConnectedModeServices connectedModeServices)
     {
-        ConnectedModeUiServices = connectedModeUiServices;
         ViewModel = new ProjectSelectionViewModel(connectionInfo,
             connectedModeServices,
             new ProgressReporterViewModel(connectedModeServices.Logger));

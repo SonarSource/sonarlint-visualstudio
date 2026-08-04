@@ -295,21 +295,6 @@ public class SonarLintSettingsTests
     }
 
     [TestMethod]
-    public void ShowCloudRegion_DefaultValue_ShouldBeFalse()
-    {
-        testSubject.ShowCloudRegion.Should().BeFalse();
-        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.ShowCloudRegion), false);
-    }
-
-    [TestMethod]
-    public void ShowCloudRegion_WhenDisposed_ReturnsDefault()
-    {
-        MockComDetachedTestSubject();
-        var showCloudRegion = testSubject.ShowCloudRegion;
-        showCloudRegion.Should().BeFalse();
-    }
-
-    [TestMethod]
     public void IsFocusOnNewCodeEnabled_DefaultValue_ShouldBeFalse()
     {
         MockComDetachedTestSubject();

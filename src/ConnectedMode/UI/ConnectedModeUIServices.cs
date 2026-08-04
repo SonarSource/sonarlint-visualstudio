@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
@@ -29,7 +28,6 @@ public interface IConnectedModeUIServices
     public IBrowserService BrowserService { get; }
     public IMessageBox MessageBox { get; }
     public IIDEWindowService IdeWindowService { get; }
-    public ISonarLintSettings SonarLintSettings { get; }
 }
 
 [Export(typeof(IConnectedModeUIServices))]
@@ -38,12 +36,10 @@ public interface IConnectedModeUIServices
 public class ConnectedModeUIServices(
     IBrowserService browserService,
     IMessageBox messageBox,
-    IIDEWindowService ideWindowService,
-    ISonarLintSettings sonarLintSettings)
+    IIDEWindowService ideWindowService)
     : IConnectedModeUIServices
 {
     public IBrowserService BrowserService { get; } = browserService;
     public IMessageBox MessageBox { get; } = messageBox;
     public IIDEWindowService IdeWindowService { get; } = ideWindowService;
-    public ISonarLintSettings SonarLintSettings { get; } = sonarLintSettings;
 }

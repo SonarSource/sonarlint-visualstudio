@@ -1231,6 +1231,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (invite-only).
+        /// </summary>
+        public static string UsRegionInviteOnlyLabel {
+            get {
+                return ResourceManager.GetString("UsRegionInviteOnlyLabel", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to US.
         /// </summary>
         public static string UsRegionName {

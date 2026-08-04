@@ -59,12 +59,6 @@ internal sealed class SonarLintSettings : ISonarLintSettings, IDisposable
         set => SetValue(nameof(JreLocation), value);
     }
 
-    public bool ShowCloudRegion
-    {
-        get => GetValueOrDefault(nameof(ShowCloudRegion), false);
-        set => SetValue(nameof(ShowCloudRegion), value);
-    }
-
     public bool IsFocusOnNewCodeEnabled
     {
         get => GetValueOrDefault(nameof(IsFocusOnNewCodeEnabled), false);
