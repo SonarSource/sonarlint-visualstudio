@@ -227,24 +227,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 
         /// <summary>
         /// Calculates the span covering only the tags that were added or removed between the old and new tag sets.
-        /// Returns null if the set of tag positions is unchanged, so that callers can avoid raising an unnecessary
+        /// Returns null if the set of tags is unchanged, so that callers can avoid raising an unnecessary
         /// TagsChanged notification.
         /// </summary>
+        /// <remarks>
+        /// Tags are compared by position and message rather than by tag/location identity, since a fresh set of
+        /// location visualization objects is created on every analysis even when the reported issues haven't
+        /// changed. Comparing by message still detects the case where a different issue happens to occupy the
+        /// same span as a previous one.
+        /// </remarks>
         private static SnapshotSpan? CalculateSpanOfChangedTags(IList<ITagSpan<IIssueLocationTag>> oldTags, IList<ITagSpan<IIssueLocationTag>> newTags, ITextSnapshot textSnapshot)
         {
-            var oldPositions = new HashSet<(int Start, int Length)>((oldTags ?? Array.Empty<ITagSpan<IIssueLocationTag>>()).Select(x => (x.Span.Span.Start, x.Span.Span.Length)));
-            var newPositions = new HashSet<(int Start, int Length)>(newTags.Select(x => (x.Span.Span.Start, x.Span.Span.Length)));
+            var oldKeys = new HashSet<(int Start, int Length, string Message)>((oldTags ?? Array.Empty<ITagSpan<IIssueLocationTag>>()).Select(GetComparisonKey));
+            var newKeys = new HashSet<(int Start, int Length, string Message)>(newTags.Select(GetComparisonKey));
 
-            var changedPositions = oldPositions.Except(newPositions).Concat(newPositions.Except(oldPositions)).ToArray();
+            var changedKeys = oldKeys.Except(newKeys).Concat(newKeys.Except(oldKeys)).ToArray();
 
-            if (changedPositions.Length == 0)
+            if (changedKeys.Length == 0)
             {
                 return null;
             }
 
-            var changedSpans = changedPositions.Select(x => new Span(x.Start, x.Length)).ToArray();
+            var changedSpans = changedKeys.Select(x => new Span(x.Start, x.Length)).ToArray();
             return CalculateAffectedSpan(textSnapshot, changedSpans, changedSpans);
         }
+
+        private static (int Start, int Length, string Message) GetComparisonKey(ITagSpan<IIssueLocationTag> tagSpan) =>
+            (tagSpan.Span.Span.Start, tagSpan.Span.Span.Length, tagSpan.Tag.Location.Location.Message);
 
         /// <summary>
         /// Method calculates the span from the start of the editor changes and until the end of TagSpans
