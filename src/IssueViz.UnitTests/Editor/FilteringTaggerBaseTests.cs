@@ -72,15 +72,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        public void OnAggregatorTagsChanged_NotifiesEditorOfChange()
+        public void OnAggregatorTagsChanged_HasChangedSpans_NotifiesEditorOfChangeWithMappedSpan()
         {
             var aggregatorMock = new Mock<ITagAggregator<TrackedTag>>();
 
             var testSubject = new TestableFilteringTagger(aggregatorMock.Object, ValidBuffer);
 
+            var snapshot = ValidBuffer.CurrentSnapshot;
+            var mappingSpanMock = new Mock<IMappingSpan>();
+            mappingSpanMock.Setup(x => x.GetSpans(snapshot)).Returns(new NormalizedSnapshotSpanCollection(snapshot, new Span(10, 5)));
+
             SnapshotSpanEventArgs suppliedArgs = null;
             int eventCount = 0;
-            SnapshotSpan expectedSnapshotSpan = new SnapshotSpan(ValidBuffer.CurrentSnapshot, new Span(0, ValidBuffer.CurrentSnapshot.Length));
             testSubject.TagsChanged += (sender, args) =>
             {
                 eventCount++;
@@ -88,11 +91,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             };
 
             // Act
-            aggregatorMock.Raise(x => x.BatchedTagsChanged += null, new BatchedTagsChangedEventArgs(Array.Empty<IMappingSpan>()));
+            aggregatorMock.Raise(x => x.BatchedTagsChanged += null, new BatchedTagsChangedEventArgs(new[] { mappingSpanMock.Object }));
 
             eventCount.Should().Be(1);
             suppliedArgs.Should().NotBeNull();
-            suppliedArgs.Span.Should().Be(expectedSnapshotSpan);
+            suppliedArgs.Span.Should().Be(new SnapshotSpan(snapshot, new Span(10, 5)));
+        }
+
+        [TestMethod]
+        public void OnAggregatorTagsChanged_NoChangedSpans_TagsChangedNotRaised()
+        {
+            var aggregatorMock = new Mock<ITagAggregator<TrackedTag>>();
+
+            var testSubject = new TestableFilteringTagger(aggregatorMock.Object, ValidBuffer);
+
+            var eventCount = 0;
+            testSubject.TagsChanged += (sender, args) => eventCount++;
+
+            // Act
+            aggregatorMock.Raise(x => x.BatchedTagsChanged += null, new BatchedTagsChangedEventArgs(Array.Empty<IMappingSpan>()));
+
+            eventCount.Should().Be(0);
         }
 
         [TestMethod]

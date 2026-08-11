@@ -78,8 +78,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             var oldTags = TagSpans;
             TagSpans = CreateTagSpans(textSnapshot);
 
-            var affectedSpan = CalculateSpanOfAllTags(oldTags, textSnapshot);
-            NotifyTagsChanged(affectedSpan);
+            var affectedSpan = CalculateSpanOfChangedTags(oldTags, TagSpans, textSnapshot);
+            if (affectedSpan.HasValue)
+            {
+                NotifyTagsChanged(affectedSpan.Value);
+            }
         }
 
         private List<ITagSpan<IIssueLocationTag>> CreateTagSpans(ITextSnapshot textSnapshot)
@@ -223,16 +226,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         }
 
         /// <summary>
-        /// Method calculates the span from the start of (old+new) TagSpans and until the end of (old+new) TagSpans
+        /// Calculates the span covering only the tags that were added or removed between the old and new tag sets.
+        /// Returns null if the set of tag positions is unchanged, so that callers can avoid raising an unnecessary
+        /// TagsChanged notification.
         /// </summary>
-        private SnapshotSpan CalculateSpanOfAllTags(IList<ITagSpan<IIssueLocationTag>> oldTags, ITextSnapshot textSnapshot)
+        private static SnapshotSpan? CalculateSpanOfChangedTags(IList<ITagSpan<IIssueLocationTag>> oldTags, IList<ITagSpan<IIssueLocationTag>> newTags, ITextSnapshot textSnapshot)
         {
-            var allTagSpans = TagSpans
-                .Union(oldTags ?? Array.Empty<ITagSpan<IIssueLocationTag>>())
-                .Select(x => x.Span.Span)
-                .ToArray();
+            var oldPositions = new HashSet<(int Start, int Length)>((oldTags ?? Array.Empty<ITagSpan<IIssueLocationTag>>()).Select(x => (x.Span.Span.Start, x.Span.Span.Length)));
+            var newPositions = new HashSet<(int Start, int Length)>(newTags.Select(x => (x.Span.Span.Start, x.Span.Span.Length)));
 
-            return CalculateAffectedSpan(textSnapshot, allTagSpans, allTagSpans);
+            var changedPositions = oldPositions.Except(newPositions).Concat(newPositions.Except(oldPositions)).ToArray();
+
+            if (changedPositions.Length == 0)
+            {
+                return null;
+            }
+
+            var changedSpans = changedPositions.Select(x => new Span(x.Start, x.Length)).ToArray();
+            return CalculateAffectedSpan(textSnapshot, changedSpans, changedSpans);
         }
 
         /// <summary>
