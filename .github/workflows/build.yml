@@ -74,6 +74,13 @@ jobs:
           AZURE_TENANT_ID: "75622d57-788f-4dd3-b33c-739f625e6311"
         run: .\.github\scripts\azure-login.ps1
 
+      - name: Configure test Artifact Signing access token
+        if: ${{ steps.signing-config.outputs.is-test-env == 'true' }}
+        uses: SonarSource/gh-action_azure-artifact-signing@v1
+        with:
+          mode: setup
+          signing-profile: test
+
       - name: Import test Artifact Signing certificate chain
         if: ${{ steps.signing-config.outputs.is-test-env == 'true' }}
         shell: powershell

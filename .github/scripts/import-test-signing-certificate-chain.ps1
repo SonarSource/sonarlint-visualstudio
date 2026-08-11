@@ -4,18 +4,17 @@ Imports the Azure Artifact Signing certificate chain required by test signing pr
 
 .DESCRIPTION
 This script:
-1. Installs the Az.ArtifactSigning module.
-2. Uses the current authenticated Az context (prepared by azure-login.ps1).
-3. Downloads the active certificate chain from Azure Artifact Signing.
-4. Imports certificates into Root/CA/My and TrustedPublisher stores (LocalMachine and CurrentUser).
+1. Downloads the active certificate chain from Azure Artifact Signing with a code-signing-scoped token.
+2. Imports certificates into Root/CA/My and TrustedPublisher stores (LocalMachine and CurrentUser).
 
 The script reads inputs from environment variables.
-Precondition: an authenticated Az context must already exist.
+Precondition: ACCESS_TOKEN must contain a code-signing-scoped bearer token.
 
 .INPUTS (from environment)
 SIGNING_ACCOUNT: Artifact Signing account name (for example: codesigning-test).
 SIGNING_CERTIFICATE_PROFILE: Artifact Signing certificate profile name (for example: sonarsource-test).
 SIGNING_ENDPOINT: Artifact Signing endpoint URL (for example: https://weu.codesigning.azure.net/).
+ACCESS_TOKEN: Code-signing-scoped bearer token used to retrieve the certificate chain.
 RUNNER_TEMP: Temporary working directory used to store downloaded chain files.
 
 .EXAMPLE
@@ -27,6 +26,7 @@ $ErrorActionPreference = "Stop"
 $signingAccountName = $env:SIGNING_ACCOUNT
 $certificateProfileName = $env:SIGNING_CERTIFICATE_PROFILE
 $signingEndpoint = $env:SIGNING_ENDPOINT
+$accessToken = $env:ACCESS_TOKEN
 $tempDirectory = $env:RUNNER_TEMP
 
 if ([string]::IsNullOrWhiteSpace($signingAccountName)) {
@@ -38,13 +38,17 @@ if ([string]::IsNullOrWhiteSpace($certificateProfileName)) {
 if ([string]::IsNullOrWhiteSpace($signingEndpoint)) {
   throw "Missing required environment variable: SIGNING_ENDPOINT"
 }
+if ([string]::IsNullOrWhiteSpace($accessToken)) {
+  throw "Missing required environment variable: ACCESS_TOKEN"
+}
 if ([string]::IsNullOrWhiteSpace($tempDirectory)) {
   throw "Missing required environment variable: RUNNER_TEMP"
 }
 
 $signingAccountName = $signingAccountName.Trim()
 $certificateProfileName = $certificateProfileName.Trim()
-$signingEndpoint = $signingEndpoint.Trim()
+$signingEndpoint = $signingEndpoint.Trim().TrimEnd("/")
+$accessToken = $accessToken.Trim()
 $tempDirectory = $tempDirectory.Trim()
 
 if (-not $signingEndpoint.StartsWith("https://")) {
@@ -81,19 +85,24 @@ function Add-CertificateToStore {
 }
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Install-Module -Name Az.ArtifactSigning -RequiredVersion 0.1.5 -Scope CurrentUser -Force -AllowClobber
-
-$azContext = Get-AzContext -ErrorAction SilentlyContinue
-if ($null -eq $azContext) {
-  throw "No active Azure context found. Run azure-login.ps1 before importing the Artifact Signing chain."
-}
-
 $chainPath = Join-Path $tempDirectory "artifact-signing-chain.der"
-$chainInfo = Get-AzArtifactSigningCertificateChain `
-  -AccountName $signingAccountName `
-  -ProfileName $certificateProfileName `
-  -EndpointUrl $signingEndpoint `
-  -Destination $chainPath
+$chainUri = "{0}/codesigningaccounts/{1}/certificateprofiles/{2}/sign/certchain?api-version=2024-06-15" -f `
+  $signingEndpoint, `
+  [Uri]::EscapeDataString($signingAccountName), `
+  [Uri]::EscapeDataString($certificateProfileName)
+
+try {
+  Invoke-WebRequest `
+    -Uri $chainUri `
+    -Headers @{
+      Authorization = "Bearer $accessToken"
+      Accept = "application/pkcs7-mime"
+    } `
+    -OutFile $chainPath `
+    -UseBasicParsing
+} catch {
+  throw "Could not retrieve the Artifact Signing certificate chain: $($_.Exception.Message)"
+}
 
 if (-not (Test-Path -LiteralPath $chainPath)) {
   throw "Artifact Signing certificate chain file was not downloaded: $chainPath"
@@ -104,6 +113,13 @@ $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509C
 $certCollection.Import($certBytes)
 if ($certCollection.Count -eq 0) {
   throw "Downloaded certificate chain is empty."
+}
+
+$chainInfo = foreach ($cert in $certCollection) {
+  [pscustomobject]@{
+    Thumbprint = $cert.Thumbprint
+    Subject = $cert.Subject
+  }
 }
 
 Write-Host "Retrieved $($certCollection.Count) certificates from Artifact Signing chain."
