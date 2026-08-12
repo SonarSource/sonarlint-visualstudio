@@ -84,8 +84,11 @@ public class QuickFixActionsSourceTests
     }
 
     [TestMethod]
-    public void OnTagsChanged_DismissLightBulbSession()
+    public void OnTagsChanged_ChangeIsAtCaret_DismissLightBulbSession()
     {
+        const int caretPosition = 10;
+        textView = CreateWpfTextView(caretPosition: caretPosition);
+
         var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
         var lightBulbBroker = new Mock<ILightBulbBroker>();
 
@@ -93,13 +96,36 @@ public class QuickFixActionsSourceTests
 
         lightBulbBroker.VerifyNoOtherCalls();
 
-        issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+        var changedSpanAtCaret = CreateMappingSpan(textView.TextSnapshot, new Span(caretPosition, 1));
+
+        issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanAtCaret));
         lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
+    }
+
+    [TestMethod]
+    public void OnTagsChanged_ChangeIsFarFromCaret_LightBulbSessionNotDismissed()
+    {
+        const int caretPosition = 10;
+        textView = CreateWpfTextView(caretPosition: caretPosition);
+
+        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+        var lightBulbBroker = new Mock<ILightBulbBroker>();
+
+        CreateTestSubject(issueLocationsTagAggregator.Object, lightBulbBroker.Object);
+
+        var changedSpanFarFromCaret = CreateMappingSpan(textView.TextSnapshot, new Span(caretPosition + 100, 1));
+
+        issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanFarFromCaret));
+
+        lightBulbBroker.Verify(x => x.DismissSession(It.IsAny<ITextView>()), Times.Never);
     }
 
     [TestMethod]
     public void OnTagsChanged_NonCriticalException_ExceptionIsCaught()
     {
+        const int caretPosition = 10;
+        textView = CreateWpfTextView(caretPosition: caretPosition);
+
         var lightBulbBroker = new Mock<ILightBulbBroker>();
         lightBulbBroker
             .Setup(x => x.DismissSession(textView))
@@ -109,7 +135,9 @@ public class QuickFixActionsSourceTests
 
         lightBulbBroker.VerifyNoOtherCalls();
 
-        var act = async () => await testSubject.HandleTagsChangedAsync();
+        var changedSpanAtCaret = CreateMappingSpan(textView.TextSnapshot, new Span(caretPosition, 1));
+
+        var act = async () => await testSubject.HandleTagsChangedAsync(changedSpanAtCaret);
         act.Should().NotThrow();
 
         lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
@@ -118,6 +146,9 @@ public class QuickFixActionsSourceTests
     [TestMethod]
     public async Task OnTagsChanged_CriticalException_ExceptionIsNotCaught()
     {
+        const int caretPosition = 10;
+        textView = CreateWpfTextView(caretPosition: caretPosition);
+
         var lightBulbBroker = new Mock<ILightBulbBroker>();
         lightBulbBroker
             .Setup(x => x.DismissSession(textView))
@@ -127,7 +158,9 @@ public class QuickFixActionsSourceTests
 
         lightBulbBroker.VerifyNoOtherCalls();
 
-        var act = async () => await testSubject.HandleTagsChangedAsync();
+        var changedSpanAtCaret = CreateMappingSpan(textView.TextSnapshot, new Span(caretPosition, 1));
+
+        var act = async () => await testSubject.HandleTagsChangedAsync(changedSpanAtCaret);
         act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
 
         lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
@@ -140,7 +173,9 @@ public class QuickFixActionsSourceTests
 
         CreateTestSubject(issueLocationsTagAggregator.Object);
 
-        var act = () => issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+        var changedSpan = CreateMappingSpan(textView.TextSnapshot, new Span(0, 1));
+
+        var act = () => issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpan));
         act.Should().NotThrow();
     }
 
@@ -154,7 +189,11 @@ public class QuickFixActionsSourceTests
         var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
         testSubject.SuggestedActionsChanged += eventHandler.Object;
 
-        issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+        // Suggested actions are re-queried regardless of where the change happened - only the disruptive
+        // DismissSession call is gated on proximity to the caret.
+        var changedSpanFarFromCaret = CreateMappingSpan(textView.TextSnapshot, new Span(500, 1));
+
+        issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanFarFromCaret));
 
         eventHandler.Verify(x => x(It.IsAny<object>(), It.IsAny<EventArgs>()), Times.Once);
     }

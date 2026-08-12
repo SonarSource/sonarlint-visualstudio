@@ -21,10 +21,12 @@
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
@@ -129,13 +131,16 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
     }
 
     private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
-        => HandleTagsChangedAsync().Forget();
+        => HandleTagsChangedAsync(e.Span).Forget();
 
-    internal /* for testing */ async Task HandleTagsChangedAsync()
+    internal /* for testing */ async Task HandleTagsChangedAsync(IMappingSpan changedSpan)
     {
         try
         {
-            await threadHandling.RunOnUIThreadAsync(() => lightBulbBroker.DismissSession(textView));
+            if (textView.IsChangeNearCaret(changedSpan))
+            {
+                await threadHandling.RunOnUIThreadAsync(() => lightBulbBroker.DismissSession(textView));
+            }
 
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }

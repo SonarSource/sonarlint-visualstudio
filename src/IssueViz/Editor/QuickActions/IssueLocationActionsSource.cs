@@ -140,7 +140,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
         {
-            RunOnUIThread.Run(() => lightBulbBroker.DismissSession(textView));
+            if (textView.IsChangeNearCaret(e.Span))
+            {
+                RunOnUIThread.Run(() => lightBulbBroker.DismissSession(textView));
+            }
 
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }
