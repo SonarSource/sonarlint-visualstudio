@@ -45,7 +45,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
         private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
         private readonly ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator;
 
-        public IssueLocationActionsSource(ILightBulbBroker lightBulbBroker,
+        public IssueLocationActionsSource(
+            ILightBulbBroker lightBulbBroker,
             IVsUIShell vsUiShell,
             IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
             ITextView textView,
@@ -86,7 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
             if (allActions.Any())
             {
-                return new[] {new SuggestedActionSet(allActions)};
+                return new[] { new SuggestedActionSet(allActions) };
             }
 
             return Enumerable.Empty<SuggestedActionSet>();
@@ -140,10 +141,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
         {
-            if (textView.IsChangeNearCaret(e.Span))
+            RunOnUIThread.Run(() =>
             {
-                RunOnUIThread.Run(() => lightBulbBroker.DismissSession(textView));
-            }
+                if (textView.IsChangeNearCaret(e.Span))
+                {
+                    lightBulbBroker.DismissSession(textView);
+                }
+            });
 
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }

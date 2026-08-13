@@ -41,7 +41,8 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
     private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
     private readonly IQuickFixApplicationLogic quickFixApplicationLogic;
 
-    public QuickFixActionsSource(ILightBulbBroker lightBulbBroker,
+    public QuickFixActionsSource(
+        ILightBulbBroker lightBulbBroker,
         IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
         ITextView textView,
         ITextBuffer textBuffer,
@@ -98,7 +99,7 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
         {
             await threadHandling.RunOnUIThreadAsync(() => hasActions = IsOnIssueWithApplicableQuickFixes(range, out _));
         }
-        catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
             logger.WriteLine(string.Format(Resources.ERR_QuickFixes_Exception, ex));
         }
@@ -130,17 +131,19 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
         issueLocationsTagAggregator.Dispose();
     }
 
-    private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
-        => HandleTagsChangedAsync(e.Span).Forget();
+    private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e) => HandleTagsChangedAsync(e.Span).Forget();
 
     internal /* for testing */ async Task HandleTagsChangedAsync(IMappingSpan changedSpan)
     {
         try
         {
-            if (textView.IsChangeNearCaret(changedSpan))
+            await threadHandling.RunOnUIThreadAsync(() =>
             {
-                await threadHandling.RunOnUIThreadAsync(() => lightBulbBroker.DismissSession(textView));
-            }
+                if (textView.IsChangeNearCaret(changedSpan))
+                {
+                    lightBulbBroker.DismissSession(textView);
+                }
+            });
 
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }
