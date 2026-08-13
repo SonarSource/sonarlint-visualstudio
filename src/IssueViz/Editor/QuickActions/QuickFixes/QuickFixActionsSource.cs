@@ -21,10 +21,12 @@
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
@@ -39,7 +41,8 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
     private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
     private readonly IQuickFixApplicationLogic quickFixApplicationLogic;
 
-    public QuickFixActionsSource(ILightBulbBroker lightBulbBroker,
+    public QuickFixActionsSource(
+        ILightBulbBroker lightBulbBroker,
         IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
         ITextView textView,
         ITextBuffer textBuffer,
@@ -96,7 +99,7 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
         {
             await threadHandling.RunOnUIThreadAsync(() => hasActions = IsOnIssueWithApplicableQuickFixes(range, out _));
         }
-        catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
             logger.WriteLine(string.Format(Resources.ERR_QuickFixes_Exception, ex));
         }
@@ -128,14 +131,19 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
         issueLocationsTagAggregator.Dispose();
     }
 
-    private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
-        => HandleTagsChangedAsync().Forget();
+    private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e) => HandleTagsChangedAsync(e.Span).Forget();
 
-    internal /* for testing */ async Task HandleTagsChangedAsync()
+    internal /* for testing */ async Task HandleTagsChangedAsync(IMappingSpan changedSpan)
     {
         try
         {
-            await threadHandling.RunOnUIThreadAsync(() => lightBulbBroker.DismissSession(textView));
+            await threadHandling.RunOnUIThreadAsync(() =>
+            {
+                if (textView.IsChangeNearCaret(changedSpan))
+                {
+                    lightBulbBroker.DismissSession(textView);
+                }
+            });
 
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }

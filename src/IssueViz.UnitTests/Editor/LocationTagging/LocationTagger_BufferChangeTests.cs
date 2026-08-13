@@ -197,6 +197,43 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             testSubject.TagSpans[0].Tag.Location.Span.Value.Snapshot.Should().Be(afterSnapshot);
         }
 
+        [TestMethod]
+        public void BufferChangedThenIssuesChanged_SameIssueAtTranslatedPosition_TagsChangedNotRaisedAgain()
+        {
+            // Regression test: the tagger tracks tag comparison keys in a field that is kept in sync with
+            // TagSpans across buffer edits (via TranslateTagSpans), rather than being rebuilt from TagSpans on
+            // every OnIssuesChanged. If that cache went stale after a buffer edit, re-analysis reporting the
+            // very same issue at its now-shifted position would look "changed" and trigger an unnecessary
+            // TagsChanged notification.
+            const string filePath = "test.cpp";
+            const int bufferLength = 100;
+            const string message = "same issue";
+
+            var buffer = CreateBufferMock(bufferLength, filePath);
+            var deletedSpan = new Span(5, 3);
+            var (beforeSnapshot, afterSnapshot) = CreateSnapshotChange(buffer.Object, bufferLength, deletedSpan);
+
+            var originalSpan = new Span(20, 10);
+            var location = CreateLocationViz(beforeSnapshot, originalSpan, message);
+            var storeMock = new Mock<IIssueLocationStore>();
+            storeMock.Setup(x => x.GetLocations(filePath)).Returns(new[] { location });
+
+            var testSubject = CreateTestSubject(buffer.Object, storeMock.Object);
+
+            RaiseBufferChangedEvent(buffer, beforeSnapshot, afterSnapshot);
+
+            var translatedSpan = new Span(originalSpan.Start - deletedSpan.Length, originalSpan.Length);
+            var reanalyzedLocation = CreateLocationViz(afterSnapshot, translatedSpan, message);
+            storeMock.Setup(x => x.GetLocations(filePath)).Returns(new[] { reanalyzedLocation });
+
+            var eventCount = 0;
+            testSubject.TagsChanged += (sender, args) => eventCount++;
+
+            storeMock.Raise(x => x.IssuesChanged += null, new IssuesChangedEventArgs(new[] { filePath }));
+
+            eventCount.Should().Be(0);
+        }
+
         private static void CheckStoreRefreshOnBufferChangedWasCalled(IIssueLocationStore store, string expectedFilePath)
         {
             var storeMock = ((IMocked<IIssueLocationStore>)store).Mock;

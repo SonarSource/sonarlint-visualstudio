@@ -99,6 +99,15 @@ internal static class TaggerTestHelper
         return tagSpanMock.Object;
     }
 
+    public static IMappingSpan CreateMappingSpan(ITextSnapshot snapshot, params Span[] spans)
+    {
+        var mappingSpanMock = new Mock<IMappingSpan>();
+        var normalizedSpanCollection = new NormalizedSnapshotSpanCollection(snapshot, spans);
+        mappingSpanMock.Setup(x => x.GetSpans(snapshot)).Returns(normalizedSpanCollection);
+
+        return mappingSpanMock.Object;
+    }
+
     public static IAnalysisIssueVisualization CreateIssueViz(ITextSnapshot snapshot, Span span,
         string locationMessage, string ruleKey = null, bool isResolved = false, bool isOnNewCode = false,
         __VSERRORCATEGORY vsSeverity = __VSERRORCATEGORY.EC_WARNING)
@@ -202,7 +211,7 @@ internal static class TaggerTestHelper
         return taggableBufferIndicator.Object;
     }
 
-    public static IWpfTextView CreateWpfTextView(ITextSnapshot snapshot = null, IFormattedLineSource formattedLineSource = null)
+    public static IWpfTextView CreateWpfTextView(ITextSnapshot snapshot = null, IFormattedLineSource formattedLineSource = null, int caretPosition = 0)
     {
         snapshot = snapshot ?? CreateSnapshot();
         var lineSource = formattedLineSource ?? CreateFormattedLineSource();
@@ -211,7 +220,16 @@ internal static class TaggerTestHelper
         viewMock.Setup(x => x.TextSnapshot).Returns(snapshot);
         viewMock.Setup(x => x.FormattedLineSource).Returns(lineSource);
         viewMock.Setup(x => x.TextBuffer).Returns(CreateBuffer());
+        viewMock.Setup(x => x.Caret).Returns(CreateCaret(snapshot, caretPosition));
         return viewMock.Object;
+    }
+
+    public static ITextCaret CreateCaret(ITextSnapshot snapshot, int caretPosition)
+    {
+        var caretMock = new Mock<ITextCaret>();
+        var position = new CaretPosition(new VirtualSnapshotPoint(new SnapshotPoint(snapshot, caretPosition)), Mock.Of<IMappingPoint>(), PositionAffinity.Successor);
+        caretMock.Setup(x => x.Position).Returns(position);
+        return caretMock.Object;
     }
 
     public static IFormattedLineSource CreateFormattedLineSource(double fontSize = 12d, string fontFamily = "Arial", Color? textColor = null)

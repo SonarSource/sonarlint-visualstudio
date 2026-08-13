@@ -91,12 +91,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void OnTagsChanged_DismissLightBulbSession()
+        public void OnTagsChanged_ChangeIsAtCaret_DismissLightBulbSession()
         {
+            const int caretPosition = 10;
+
             var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
             var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
             var lightBulbBroker = new Mock<ILightBulbBroker>();
-            var textView = CreateWpfTextView();
+            var textView = CreateWpfTextView(caretPosition: caretPosition);
 
             TestInfrastructure.ThreadHelper.SetCurrentThreadAsUIThread();
 
@@ -107,11 +109,38 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             lightBulbBroker.VerifyNoOtherCalls();
 
-            selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+            var changedSpanAtCaret = CreateMappingSpan(textView.TextSnapshot, new Span(caretPosition, 1));
+
+            selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanAtCaret));
             lightBulbBroker.Verify(x=> x.DismissSession(textView), Times.Once);
 
-            issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+            issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanAtCaret));
             lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Exactly(2));
+        }
+
+        [TestMethod]
+        public void OnTagsChanged_ChangeIsFarFromCaret_LightBulbSessionNotDismissed()
+        {
+            const int caretPosition = 10;
+
+            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var lightBulbBroker = new Mock<ILightBulbBroker>();
+            var textView = CreateWpfTextView(caretPosition: caretPosition);
+
+            TestInfrastructure.ThreadHelper.SetCurrentThreadAsUIThread();
+
+            CreateTestSubject(selectedIssueLocationsTagAggregator.Object,
+                issueLocationsTagAggregator.Object,
+                lightBulbBroker: lightBulbBroker.Object,
+                textView: textView);
+
+            var changedSpanFarFromCaret = CreateMappingSpan(textView.TextSnapshot, new Span(caretPosition + 100, 1));
+
+            selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanFarFromCaret));
+            issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanFarFromCaret));
+
+            lightBulbBroker.Verify(x => x.DismissSession(It.IsAny<ITextView>()), Times.Never);
         }
 
         [TestMethod]
@@ -119,13 +148,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
             var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var textView = CreateWpfTextView();
 
-            CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
+            CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, textView: textView);
 
-            Action act = () => selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+            var changedSpan = CreateMappingSpan(textView.TextSnapshot, new Span(0, 1));
+
+            Action act = () => selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpan));
             act.Should().NotThrow();
 
-            act = () => issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+            act = () => issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpan));
             act.Should().NotThrow();
         }
 
@@ -134,18 +166,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
             var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var textView = CreateWpfTextView();
 
             var eventHandler = new Mock<EventHandler<EventArgs>>();
 
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, textView: textView);
             testSubject.SuggestedActionsChanged += eventHandler.Object;
 
-            selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+            // Suggested actions are re-queried regardless of where the change happened - only the disruptive
+            // DismissSession call is gated on proximity to the caret.
+            var changedSpanFarFromCaret = CreateMappingSpan(textView.TextSnapshot, new Span(500, 1));
+
+            selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanFarFromCaret));
             eventHandler.Verify(x=> x(It.IsAny<object>(), It.IsAny<EventArgs>()), Times.Once);
 
             eventHandler.Reset();
 
-            issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+            issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanFarFromCaret));
             eventHandler.Verify(x => x(It.IsAny<object>(), It.IsAny<EventArgs>()), Times.Once);
         }
 

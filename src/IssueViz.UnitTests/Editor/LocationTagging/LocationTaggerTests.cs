@@ -215,6 +215,80 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
+        public void OnIssuesChanged_TagPositionsUnchanged_TagsChangedNotRaised()
+        {
+            var buffer = CreateBufferMock(filePath: ValidBufferDocName);
+            var issue1 = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 3, 1));
+            var issue2 = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 20, 2));
+
+            var storeMock = new Mock<IIssueLocationStore>();
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { issue1, issue2 });
+
+            var testSubject = new LocationTagger(buffer.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
+
+            var sameIssue1 = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 3, 1));
+            var sameIssue2 = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 20, 2));
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { sameIssue1, sameIssue2 });
+
+            var eventCount = 0;
+            testSubject.TagsChanged += (sender, args) => eventCount++;
+
+            RaiseIssuesChangedEvent(storeMock, ValidBufferDocName);
+
+            eventCount.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void OnIssuesChanged_OnlySomeTagsChanged_AffectedSpanCoversOnlyChangedTags()
+        {
+            var buffer = CreateBufferMock(filePath: ValidBufferDocName);
+            var unchangedIssue = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 3, 1));
+            var removedIssue = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 100, 2));
+
+            var storeMock = new Mock<IIssueLocationStore>();
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { unchangedIssue, removedIssue });
+
+            var testSubject = new LocationTagger(buffer.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
+
+            var stillUnchangedIssue = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 3, 1));
+            var addedIssue = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 40, 5));
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { stillUnchangedIssue, addedIssue });
+
+            SnapshotSpanEventArgs actualTagsChangedArgs = null;
+            testSubject.TagsChanged += (sender, args) => actualTagsChangedArgs = args;
+
+            RaiseIssuesChangedEvent(storeMock, ValidBufferDocName);
+
+            actualTagsChangedArgs.Should().NotBeNull();
+            actualTagsChangedArgs.Span.Start.Position.Should().Be(40); // addedIssue.Start
+            actualTagsChangedArgs.Span.End.Position.Should().Be(102); // removedIssue.Start + removedIssue.Length
+        }
+
+        [TestMethod]
+        public void OnIssuesChanged_DifferentIssueAtSameSpan_TagsChangedIsRaised()
+        {
+            var buffer = CreateBufferMock(filePath: ValidBufferDocName);
+            var oldIssue = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 10, 5), "old issue message");
+
+            var storeMock = new Mock<IIssueLocationStore>();
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { oldIssue });
+
+            var testSubject = new LocationTagger(buffer.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
+
+            var newIssue = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 10, 5), "new issue message");
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { newIssue });
+
+            SnapshotSpanEventArgs actualTagsChangedArgs = null;
+            testSubject.TagsChanged += (sender, args) => actualTagsChangedArgs = args;
+
+            RaiseIssuesChangedEvent(storeMock, ValidBufferDocName);
+
+            actualTagsChangedArgs.Should().NotBeNull();
+            actualTagsChangedArgs.Span.Start.Position.Should().Be(10);
+            actualTagsChangedArgs.Span.End.Position.Should().Be(15);
+        }
+
+        [TestMethod]
         public void OnIssuesChanged_FileIsRenamed_CurrentFileNameIsUsed()
         {
             const string originalName = "original file name.txt";
@@ -422,14 +496,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             logger.AssertPartialOutputStringExists(ValidBufferDocName, "The specified ITextSnapshot doesn't belong to the correct TextBuffer.");
         }
 
-        private static IAnalysisIssueLocationVisualization CreateLocViz(SnapshotSpan? span)
+        private static IAnalysisIssueLocationVisualization CreateLocViz(SnapshotSpan? span, string message = null)
         {
             var locVizMock = new Mock<IAnalysisIssueLocationVisualization>();
             locVizMock.SetupProperty(x => x.Span);
             locVizMock.Object.Span = span;
 
-            locVizMock.Setup(x => x.Location).Returns(Mock.Of<IAnalysisIssueLocation>());
-            locVizMock.Setup(x => x.Location.TextRange).Returns(Mock.Of<ITextRange>());
+            var locationMock = new Mock<IAnalysisIssueLocation>();
+            locationMock.Setup(x => x.Message).Returns(message);
+            locationMock.Setup(x => x.TextRange).Returns(Mock.Of<ITextRange>());
+            locVizMock.Setup(x => x.Location).Returns(locationMock.Object);
 
             return locVizMock.Object;
         }
