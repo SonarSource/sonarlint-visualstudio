@@ -17,6 +17,15 @@
           "LibGit2Sharp.NativeBinaries": "[2.0.306]"
         }
       },
+      "Microsoft.NETFramework.ReferenceAssemblies": {
+        "type": "Direct",
+        "requested": "[1.0.3, )",
+        "resolved": "1.0.3",
+        "contentHash": "vUc9Npcs14QsyOD01tnv/m8sQUnGTGOw1BCmKcv77LBJY7OxhJ+zJF7UD/sCL3lYNFuqmQEVlkfS4Quif6FyYg==",
+        "dependencies": {
+          "Microsoft.NETFramework.ReferenceAssemblies.net472": "1.0.3"
+        }
+      },
       "Microsoft.VisualStudio.LanguageServices": {
         "type": "Direct",
         "requested": "[3.11.0, )",
@@ -105,12 +114,12 @@
       },
       "Microsoft.VSSDK.BuildTools": {
         "type": "Direct",
-        "requested": "[17.5.4074, )",
-        "resolved": "17.5.4074",
-        "contentHash": "2WxZzibhmV8T5HKLolzQt9SO8psKx2cLIRUbw0X8D295HtcXvzbmlXITuS9EdAQyFt0FKhOy4j96karBrvbtpQ==",
+        "requested": "[17.14.2142, )",
+        "resolved": "17.14.2142",
+        "contentHash": "iF5b5Nu0/h72U5WLujhuJ8SFxNyM5ua7gPeeNdYuhZwv2G4Mr1YyOgXF8ymhLfyq/iJtUvkZPA/pTYilvxN6RA==",
         "dependencies": {
-          "Microsoft.VisualStudio.SDK.Analyzers": "16.10.10",
-          "Microsoft.VsSDK.CompatibilityAnalyzer": "17.5.4074"
+          "Microsoft.VisualStudio.SDK.Analyzers": "17.7.79",
+          "Microsoft.VsSDK.CompatibilityAnalyzer": "17.14.2142"
         }
       },
       "Microsoft.VSSDK.VsixSignTool": {
@@ -256,11 +265,6 @@
         "resolved": "3.3.0",
         "contentHash": "gyQ70pJ4T7hu/s0+QnEaXtYfeG/JrttGnxHJlrhpxsQjRIUGuRhVwNBtkHHYOrUAZ/l47L98/NiJX6QmTwAyrg=="
       },
-      "Microsoft.CodeAnalysis.BannedApiAnalyzers": {
-        "type": "Transitive",
-        "resolved": "3.3.2",
-        "contentHash": "LlcsDRSYfkJFWOdDpysY/4Ph4llHc8DLOc3roFTz9+216vl+vwVGfbys2rcSmhZCTDv/0kxSs2oOdd9SX2NiVg=="
-      },
       "Microsoft.CodeAnalysis.Common": {
         "type": "Transitive",
         "resolved": "3.11.0",
@@ -362,6 +366,11 @@
         "type": "Transitive",
         "resolved": "1.1.3",
         "contentHash": "3Wrmi0kJDzClwAC+iBdUBpEKmEle8FQNsCs77fkiOIw/9oYA07bL1EZNX0kQ2OMN3xpwvl0vAtOCYY3ndDNlhQ=="
+      },
+      "Microsoft.NETFramework.ReferenceAssemblies.net472": {
+        "type": "Transitive",
+        "resolved": "1.0.3",
+        "contentHash": "0E7evZXHXaDYYiLRfpyXvCh+yzM2rNTyuZDI+ZO7UUqSc6GfjePiXTdqJGtgIKUwdI81tzQKmaWprnUiPj9hAw=="
       },
       "Microsoft.Owin": {
         "type": "Transitive",
@@ -708,12 +717,8 @@
       },
       "Microsoft.VisualStudio.SDK.Analyzers": {
         "type": "Transitive",
-        "resolved": "16.10.10",
-        "contentHash": "LuhBHy7MJJ5SjpS7J2GuHqPyL1VeqXUwYc+mTagaUCzXbNwJmLcSUAioCyQyAzPIn6qtnzuM5Lz6ULOQS3ifUA==",
-        "dependencies": {
-          "Microsoft.CodeAnalysis.BannedApiAnalyzers": "3.3.2",
-          "Microsoft.VisualStudio.Threading.Analyzers": "16.10.56"
-        }
+        "resolved": "17.7.79",
+        "contentHash": "oJ3C9D1KQCksM0D0MTYrjYkz1vGK7WMBJkdplqse8rpIoxOV4cFj2rntPq+TNEkwY95BkjNm53gIdYV9jm1U0w=="
       },
       "Microsoft.VisualStudio.Setup.Configuration.Interop": {
         "type": "Transitive",
@@ -1037,8 +1042,8 @@
       },
       "Microsoft.VsSDK.CompatibilityAnalyzer": {
         "type": "Transitive",
-        "resolved": "17.5.4074",
-        "contentHash": "2qc8/469BzeGN8WUGcOXNAfVGNlCzOAT9us5CVPpMvjB6oBFFgW2h+A8G4QzuGsMK5f+CbCImK3hwyzmL0N4EA=="
+        "resolved": "17.14.2142",
+        "contentHash": "t7lqlLlMLXG0SpM+b4t6Ou7E3KD7SEZQnKOBytaixSBLr+p6BRrdWNXXIQP49UjMJwpMMA0rdkSpZjkF8RfY5Q=="
       },
       "Microsoft.Web.Xdt": {
         "type": "Transitive",
