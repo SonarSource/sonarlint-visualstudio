@@ -72,6 +72,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
+        public void Ctor_RegisterToSelectedIssueChangedEvent()
+        {
+            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var selectionService = new Mock<IIssueSelectionService>();
+            selectionService.SetupAdd(x => x.SelectedIssueChanged += null);
+
+            CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, selectionService.Object);
+
+            selectionService.VerifyAdd(x => x.SelectedIssueChanged += It.IsAny<EventHandler>(), Times.Once);
+        }
+
+        [TestMethod]
         public void Dispose_UnregisterFromTagAggregatorEvents()
         {
             var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
@@ -88,6 +101,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             selectedIssueLocationsTagAggregator.Verify(x=> x.Dispose(), Times.Once);
             issueLocationsTagAggregator.Verify(x=> x.Dispose(), Times.Once);
+        }
+
+        [TestMethod]
+        public void Dispose_UnregisterFromSelectedIssueChangedEvent()
+        {
+            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var selectionService = new Mock<IIssueSelectionService>();
+            selectionService.SetupRemove(x => x.SelectedIssueChanged -= null);
+
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, selectionService.Object);
+            testSubject.Dispose();
+
+            selectionService.VerifyRemove(x => x.SelectedIssueChanged -= It.IsAny<EventHandler>(), Times.Once);
         }
 
         [TestMethod]
@@ -109,6 +136,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpan));
 
             lightBulbBroker.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void OnSelectedIssueChanged_DismissesLightBulbSessionAndRaisesSuggestedActionsChanged()
+        {
+            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var selectionService = new Mock<IIssueSelectionService>();
+            var lightBulbBroker = new Mock<ILightBulbBroker>();
+            var textView = CreateWpfTextView();
+            var eventHandler = new Mock<EventHandler<EventArgs>>();
+
+            TestInfrastructure.ThreadHelper.SetCurrentThreadAsUIThread();
+
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object,
+                issueLocationsTagAggregator.Object,
+                selectionService.Object,
+                lightBulbBroker: lightBulbBroker.Object,
+                textView: textView);
+            testSubject.SuggestedActionsChanged += eventHandler.Object;
+
+            lightBulbBroker.VerifyNoOtherCalls();
+
+            selectionService.Raise(x => x.SelectedIssueChanged += null, EventArgs.Empty);
+
+            lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
+            eventHandler.Verify(x => x(It.IsAny<object>(), It.IsAny<EventArgs>()), Times.Once);
         }
 
         [TestMethod]
