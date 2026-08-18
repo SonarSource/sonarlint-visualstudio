@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -35,6 +37,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         private IQuickFixApplicationLogic quickFixApplicationLogic;
         private NoOpThreadHandler threadHandling;
         private ITextSnapshot snapshot;
+        private ILightBulbBroker lightBulbBroker;
+        private ITextView textView;
         private QuickFixSuggestedAction testSubject;
 
         [TestInitialize]
@@ -46,13 +50,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             issueViz = Substitute.For<IAnalysisIssueVisualization>();
             quickFixApplicationLogic = Substitute.For<IQuickFixApplicationLogic>();
             threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+            lightBulbBroker = Substitute.For<ILightBulbBroker>();
+            textView = Substitute.For<ITextView>();
 
             testSubject = new QuickFixSuggestedAction(
                 quickFixApplication,
                 textBuffer,
                 issueViz,
                 quickFixApplicationLogic,
-                threadHandling);
+                threadHandling,
+                lightBulbBroker,
+                textView);
         }
 
         [TestMethod]
@@ -76,6 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             {
                 threadHandling.Run(Arg.Any<Func<Task<int>>>());
                 threadHandling.SwitchToMainThreadAsync();
+                lightBulbBroker.DismissSession(textView);
                 quickFixApplicationLogic.ApplyAsync(quickFixApplication, snapshot, issueViz, Arg.Any<CancellationToken>());
             });
         }
@@ -87,6 +96,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             quickFixApplicationLogic.DidNotReceiveWithAnyArgs()
                 .ApplyAsync(default, default, default, default);
+            lightBulbBroker.DidNotReceiveWithAnyArgs().DismissSession(default);
         }
 
         private static ITextSnapshot CreateTextSnapshot()

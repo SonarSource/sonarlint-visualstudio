@@ -20,7 +20,9 @@
 
 using System.Threading;
 using FluentAssertions;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -41,13 +43,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns(selectedIssueMock.Object);
             selectionServiceMock.SetupSet(x => x.SelectedIssue = null);
 
-            var testSubject = new DeselectIssueVisualizationAction(selectionServiceMock.Object);
+            var testSubject = new DeselectIssueVisualizationAction(selectionServiceMock.Object, Mock.Of<ILightBulbBroker>(), Mock.Of<ITextView>());
 
             selectionServiceMock.VerifySet(x=> x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never());
 
             testSubject.Invoke(CancellationToken.None);
 
             selectionServiceMock.VerifySet(x => x.SelectedIssue = null, Times.Once());
+        }
+
+        [TestMethod]
+        public void Invoke_DismissesLightBulbSession()
+        {
+            var selectedIssueMock = new Mock<IAnalysisIssueVisualization>();
+            selectedIssueMock.Setup(x => x.RuleId).Returns("test rule id");
+
+            var selectionServiceMock = new Mock<IIssueSelectionService>();
+            selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns(selectedIssueMock.Object);
+
+            var lightBulbBroker = new Mock<ILightBulbBroker>();
+            var textView = Mock.Of<ITextView>();
+
+            var testSubject = new DeselectIssueVisualizationAction(selectionServiceMock.Object, lightBulbBroker.Object, textView);
+
+            lightBulbBroker.VerifyNoOtherCalls();
+
+            testSubject.Invoke(CancellationToken.None);
+
+            lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
         }
 
         [TestMethod]
@@ -59,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var selectionServiceMock = new Mock<IIssueSelectionService>();
             selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns(selectedIssueMock.Object);
 
-            var testSubject = new DeselectIssueVisualizationAction(selectionServiceMock.Object);
+            var testSubject = new DeselectIssueVisualizationAction(selectionServiceMock.Object, Mock.Of<ILightBulbBroker>(), Mock.Of<ITextView>());
             testSubject.DisplayText.Should().Contain("test rule id");
 
             selectionServiceMock.Reset();

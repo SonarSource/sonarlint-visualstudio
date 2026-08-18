@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -30,11 +32,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         private readonly IIssueSelectionService selectionService;
         private readonly IVsUIShell vsUiShell;
+        private readonly ILightBulbBroker lightBulbBroker;
+        private readonly ITextView textView;
 
-        public SelectIssueVisualizationAction(IVsUIShell vsUiShell, IIssueSelectionService selectionService, IAnalysisIssueVisualization issueVisualization)
+        public SelectIssueVisualizationAction(IVsUIShell vsUiShell, IIssueSelectionService selectionService, IAnalysisIssueVisualization issueVisualization, ILightBulbBroker lightBulbBroker, ITextView textView)
         {
             this.vsUiShell = vsUiShell;
             this.selectionService = selectionService;
+            this.lightBulbBroker = lightBulbBroker;
+            this.textView = textView;
             Issue = issueVisualization;
         }
 
@@ -42,6 +48,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         public override void Invoke(CancellationToken cancellationToken)
         {
+            lightBulbBroker.DismissSession(textView);
+
             vsUiShell.PostExecCommand(
                 Commands.Constants.CommandSetGuid,
                 Commands.Constants.ViewToolWindowCommandId,

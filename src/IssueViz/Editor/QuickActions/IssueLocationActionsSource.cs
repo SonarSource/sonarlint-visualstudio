@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -76,13 +75,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
             if (IsOnIssueWithSecondaryLocations(range, out var issueVisualizations))
             {
-                var actions = issueVisualizations.Select(x => new SelectIssueVisualizationAction(vsUiShell, selectionService, x));
+                var actions = issueVisualizations.Select(x => new SelectIssueVisualizationAction(vsUiShell, selectionService, x, lightBulbBroker, textView));
                 allActions.AddRange(actions);
             }
 
             if (IsOnSelectedVisualizationWithSecondaries(range))
             {
-                allActions.Add(new DeselectIssueVisualizationAction(selectionService));
+                allActions.Add(new DeselectIssueVisualizationAction(selectionService, lightBulbBroker, textView));
             }
 
             if (allActions.Any())
@@ -141,14 +140,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
         {
-            RunOnUIThread.Run(() =>
-            {
-                if (textView.IsChangeNearCaret(e.Span))
-                {
-                    lightBulbBroker.DismissSession(textView);
-                }
-            });
-
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }
     }

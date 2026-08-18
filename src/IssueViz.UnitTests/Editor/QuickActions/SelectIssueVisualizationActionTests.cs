@@ -20,8 +20,10 @@
 
 using System.Threading;
 using FluentAssertions;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
@@ -41,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             selectionServiceMock.SetupSet(x => x.SelectedIssue = null);
 
             var expectedIssue = Mock.Of<IAnalysisIssueVisualization>();
-            var testSubject = new SelectIssueVisualizationAction(Mock.Of<IVsUIShell>(), selectionServiceMock.Object, expectedIssue);
+            var testSubject = new SelectIssueVisualizationAction(Mock.Of<IVsUIShell>(), selectionServiceMock.Object, expectedIssue, Mock.Of<ILightBulbBroker>(), Mock.Of<ITextView>());
 
             selectionServiceMock.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never());
 
@@ -54,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         public void Invoke_IssueVisualizationToolWindowOpened()
         {
             var vsUiShell = new Mock<IVsUIShell>();
-            var testSubject = new SelectIssueVisualizationAction(vsUiShell.Object, Mock.Of<IIssueSelectionService>(), Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new SelectIssueVisualizationAction(vsUiShell.Object, Mock.Of<IIssueSelectionService>(), Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<ILightBulbBroker>(), Mock.Of<ITextView>());
 
             vsUiShell.VerifyNoOtherCalls();
 
@@ -72,12 +74,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
+        public void Invoke_DismissesLightBulbSession()
+        {
+            var lightBulbBroker = new Mock<ILightBulbBroker>();
+            var textView = Mock.Of<ITextView>();
+
+            var testSubject = new SelectIssueVisualizationAction(Mock.Of<IVsUIShell>(), Mock.Of<IIssueSelectionService>(), Mock.Of<IAnalysisIssueVisualization>(), lightBulbBroker.Object, textView);
+
+            lightBulbBroker.VerifyNoOtherCalls();
+
+            testSubject.Invoke(CancellationToken.None);
+
+            lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
+        }
+
+        [TestMethod]
         public void DisplayText_UsesIssueRuleKey()
         {
             var selectedIssueMock = new Mock<IAnalysisIssueVisualization>();
             selectedIssueMock.Setup(x => x.RuleId).Returns("test rule id");
 
-            var testSubject = new SelectIssueVisualizationAction(Mock.Of<IVsUIShell>(), Mock.Of<IIssueSelectionService>(), selectedIssueMock.Object);
+            var testSubject = new SelectIssueVisualizationAction(Mock.Of<IVsUIShell>(), Mock.Of<IIssueSelectionService>(), selectedIssueMock.Object, Mock.Of<ILightBulbBroker>(), Mock.Of<ITextView>());
             testSubject.DisplayText.Should().Contain("test rule id");
         }
     }
