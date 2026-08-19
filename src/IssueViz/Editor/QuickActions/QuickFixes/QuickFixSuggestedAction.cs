@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -29,7 +31,9 @@ internal class QuickFixSuggestedAction(
     ITextBuffer textBuffer,
     IAnalysisIssueVisualization issueViz,
     IQuickFixApplicationLogic quickFixApplicationLogic,
-    IThreadHandling threadHandling)
+    IThreadHandling threadHandling,
+    ILightBulbBroker lightBulbBroker,
+    ITextView textView)
     : BaseSuggestedAction
 {
     public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixApplication.Message;
@@ -44,6 +48,7 @@ internal class QuickFixSuggestedAction(
         threadHandling.Run(async () =>
         {
             await threadHandling.SwitchToMainThreadAsync();
+            lightBulbBroker.DismissSession(textView);
             await quickFixApplicationLogic.ApplyAsync(quickFixApplication, textBuffer.CurrentSnapshot, issueViz, cancellationToken);
             return 0;
         });

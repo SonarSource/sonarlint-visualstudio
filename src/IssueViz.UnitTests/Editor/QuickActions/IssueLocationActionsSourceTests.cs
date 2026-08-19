@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -22,16 +22,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using FluentAssertions;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
-using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
@@ -47,10 +44,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void TryGetTelemetryId_False()
         {
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var selectedIssueLocationsTagAggregator = Substitute.For<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator, issueLocationsTagAggregator);
 
             testSubject.TryGetTelemetryId(out var guid).Should().BeFalse();
             guid.Should().BeEmpty();
@@ -59,131 +56,143 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void Ctor_RegisterToTagAggregatorEvents()
         {
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            selectedIssueLocationsTagAggregator.SetupAdd(x => x.TagsChanged += null);
+            var selectedIssueLocationsTagAggregator = Substitute.For<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-            issueLocationsTagAggregator.SetupAdd(x => x.TagsChanged += null);
+            CreateTestSubject(selectedIssueLocationsTagAggregator, issueLocationsTagAggregator);
 
-            CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
+            selectedIssueLocationsTagAggregator.Received(1).TagsChanged += Arg.Any<EventHandler<TagsChangedEventArgs>>();
+            issueLocationsTagAggregator.Received(1).TagsChanged += Arg.Any<EventHandler<TagsChangedEventArgs>>();
+        }
 
-            selectedIssueLocationsTagAggregator.VerifyAdd(x => x.TagsChanged += It.IsAny<EventHandler<TagsChangedEventArgs>>(), Times.Once);
-            issueLocationsTagAggregator.VerifyAdd(x => x.TagsChanged += It.IsAny<EventHandler<TagsChangedEventArgs>>(), Times.Once);
+        [TestMethod]
+        public void Ctor_RegisterToSelectedIssueChangedEvent()
+        {
+            var selectedIssueLocationsTagAggregator = Substitute.For<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
+            var selectionService = Substitute.For<IIssueSelectionService>();
+
+            CreateTestSubject(selectedIssueLocationsTagAggregator, issueLocationsTagAggregator, selectionService);
+
+            selectionService.Received(1).SelectedIssueChanged += Arg.Any<EventHandler>();
         }
 
         [TestMethod]
         public void Dispose_UnregisterFromTagAggregatorEvents()
         {
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            selectedIssueLocationsTagAggregator.SetupRemove(x => x.TagsChanged -= null);
+            var selectedIssueLocationsTagAggregator = Substitute.For<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-            issueLocationsTagAggregator.SetupRemove(x => x.TagsChanged -= null);
-
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator, issueLocationsTagAggregator);
             testSubject.Dispose();
 
-            selectedIssueLocationsTagAggregator.VerifyRemove(x => x.TagsChanged -= It.IsAny<EventHandler<TagsChangedEventArgs>>(), Times.Once);
-            issueLocationsTagAggregator.VerifyRemove(x => x.TagsChanged -= It.IsAny<EventHandler<TagsChangedEventArgs>>(), Times.Once);
+            selectedIssueLocationsTagAggregator.Received(1).TagsChanged -= Arg.Any<EventHandler<TagsChangedEventArgs>>();
+            issueLocationsTagAggregator.Received(1).TagsChanged -= Arg.Any<EventHandler<TagsChangedEventArgs>>();
 
-            selectedIssueLocationsTagAggregator.Verify(x=> x.Dispose(), Times.Once);
-            issueLocationsTagAggregator.Verify(x=> x.Dispose(), Times.Once);
+            selectedIssueLocationsTagAggregator.Received(1).Dispose();
+            issueLocationsTagAggregator.Received(1).Dispose();
         }
 
         [TestMethod]
-        public void OnTagsChanged_ChangeIsAtCaret_DismissLightBulbSession()
+        public void Dispose_UnregisterFromSelectedIssueChangedEvent()
         {
-            const int caretPosition = 10;
+            var selectedIssueLocationsTagAggregator = Substitute.For<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
+            var selectionService = Substitute.For<IIssueSelectionService>();
 
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-            var lightBulbBroker = new Mock<ILightBulbBroker>();
-            var textView = CreateWpfTextView(caretPosition: caretPosition);
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator, issueLocationsTagAggregator, selectionService);
+            testSubject.Dispose();
 
-            TestInfrastructure.ThreadHelper.SetCurrentThreadAsUIThread();
-
-            CreateTestSubject(selectedIssueLocationsTagAggregator.Object,
-                issueLocationsTagAggregator.Object,
-                lightBulbBroker: lightBulbBroker.Object,
-                textView: textView);
-
-            lightBulbBroker.VerifyNoOtherCalls();
-
-            var changedSpanAtCaret = CreateMappingSpan(textView.TextSnapshot, new Span(caretPosition, 1));
-
-            selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanAtCaret));
-            lightBulbBroker.Verify(x=> x.DismissSession(textView), Times.Once);
-
-            issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanAtCaret));
-            lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Exactly(2));
+            selectionService.Received(1).SelectedIssueChanged -= Arg.Any<EventHandler>();
         }
 
         [TestMethod]
-        public void OnTagsChanged_ChangeIsFarFromCaret_LightBulbSessionNotDismissed()
+        public void OnTagsChanged_LightBulbSessionNeverDismissed()
         {
-            const int caretPosition = 10;
+            var selectedIssueLocationsTagAggregator = Substitute.For<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
+            var lightBulbBroker = Substitute.For<ILightBulbBroker>();
+            var textView = CreateWpfTextView();
 
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-            var lightBulbBroker = new Mock<ILightBulbBroker>();
-            var textView = CreateWpfTextView(caretPosition: caretPosition);
+            CreateTestSubject(selectedIssueLocationsTagAggregator,
+                issueLocationsTagAggregator,
+                lightBulbBroker: lightBulbBroker,
+                textView: textView);
+
+            var changedSpan = CreateMappingSpan(textView.TextSnapshot, new Span(0, 1));
+
+            selectedIssueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(changedSpan));
+            issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(changedSpan));
+
+            lightBulbBroker.DidNotReceiveWithAnyArgs().DismissSession(default);
+        }
+
+        [TestMethod]
+        public void OnSelectedIssueChanged_DismissesLightBulbSessionAndRaisesSuggestedActionsChanged()
+        {
+            var selectedIssueLocationsTagAggregator = Substitute.For<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
+            var selectionService = Substitute.For<IIssueSelectionService>();
+            var lightBulbBroker = Substitute.For<ILightBulbBroker>();
+            var textView = CreateWpfTextView();
+            var eventHandler = Substitute.For<EventHandler<EventArgs>>();
 
             TestInfrastructure.ThreadHelper.SetCurrentThreadAsUIThread();
 
-            CreateTestSubject(selectedIssueLocationsTagAggregator.Object,
-                issueLocationsTagAggregator.Object,
-                lightBulbBroker: lightBulbBroker.Object,
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator,
+                issueLocationsTagAggregator,
+                selectionService,
+                lightBulbBroker: lightBulbBroker,
                 textView: textView);
+            testSubject.SuggestedActionsChanged += eventHandler;
 
-            var changedSpanFarFromCaret = CreateMappingSpan(textView.TextSnapshot, new Span(caretPosition + 100, 1));
+            lightBulbBroker.DidNotReceiveWithAnyArgs().DismissSession(default);
 
-            selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanFarFromCaret));
-            issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanFarFromCaret));
+            selectionService.SelectedIssueChanged += Raise.EventWith(EventArgs.Empty);
 
-            lightBulbBroker.Verify(x => x.DismissSession(It.IsAny<ITextView>()), Times.Never);
+            lightBulbBroker.Received(1).DismissSession(textView);
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
         }
 
         [TestMethod]
         public void OnTagsChanged_NoSubscribersToSuggestedActionsChanged_NoException()
         {
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var selectedIssueLocationsTagAggregator = Substitute.For<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
             var textView = CreateWpfTextView();
 
-            CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, textView: textView);
+            CreateTestSubject(selectedIssueLocationsTagAggregator, issueLocationsTagAggregator, textView: textView);
 
             var changedSpan = CreateMappingSpan(textView.TextSnapshot, new Span(0, 1));
 
-            Action act = () => selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpan));
+            Action act = () => selectedIssueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(changedSpan));
             act.Should().NotThrow();
 
-            act = () => issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpan));
+            act = () => issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(changedSpan));
             act.Should().NotThrow();
         }
 
         [TestMethod]
         public void OnTagsChanged_HasSubscribersToSuggestedActionsChanged_RaisesSuggestedActionsChanged()
         {
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var selectedIssueLocationsTagAggregator = Substitute.For<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
             var textView = CreateWpfTextView();
 
-            var eventHandler = new Mock<EventHandler<EventArgs>>();
+            var eventHandler = Substitute.For<EventHandler<EventArgs>>();
 
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, textView: textView);
-            testSubject.SuggestedActionsChanged += eventHandler.Object;
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator, issueLocationsTagAggregator, textView: textView);
+            testSubject.SuggestedActionsChanged += eventHandler;
 
-            // Suggested actions are re-queried regardless of where the change happened - only the disruptive
-            // DismissSession call is gated on proximity to the caret.
-            var changedSpanFarFromCaret = CreateMappingSpan(textView.TextSnapshot, new Span(500, 1));
+            var changedSpan = CreateMappingSpan(textView.TextSnapshot, new Span(500, 1));
 
-            selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanFarFromCaret));
-            eventHandler.Verify(x=> x(It.IsAny<object>(), It.IsAny<EventArgs>()), Times.Once);
+            selectedIssueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(changedSpan));
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
 
-            eventHandler.Reset();
+            eventHandler.ClearReceivedCalls();
 
-            issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpanFarFromCaret));
-            eventHandler.Verify(x => x(It.IsAny<object>(), It.IsAny<EventArgs>()), Times.Once);
+            issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(changedSpan));
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
         }
 
         [TestMethod]
@@ -335,10 +344,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
         private static IAnalysisIssueVisualization CreateIssueViz(params IAnalysisIssueFlowVisualization[] flows)
         {
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.Flows).Returns(flows);
+            var issueViz = Substitute.For<IAnalysisIssueVisualization>();
+            issueViz.Flows.Returns(flows);
+            issueViz.SonarRuleId.Returns(new SonarCompositeRuleId("repo", "rule"));
 
-            return issueViz.Object;
+            return issueViz;
         }
 
         private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator,
@@ -347,25 +357,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             ILightBulbBroker lightBulbBroker = null,
             ITextView textView = null)
         {
-            textView = textView ?? CreateWpfTextView();
-            var vsUiShell = Mock.Of<IVsUIShell>();
-            var bufferTagAggregatorFactoryService = new Mock<IBufferTagAggregatorFactoryService>();
+            textView ??= CreateWpfTextView();
+            var vsUiShell = Substitute.For<IVsUIShell>();
+            var bufferTagAggregatorFactoryService = Substitute.For<IBufferTagAggregatorFactoryService>();
 
             bufferTagAggregatorFactoryService
-                .Setup(x => x.CreateTagAggregator<ISelectedIssueLocationTag>(textView.TextBuffer))
+                .CreateTagAggregator<ISelectedIssueLocationTag>(textView.TextBuffer)
                 .Returns(selectedIssueLocationsTagAggregator);
 
             bufferTagAggregatorFactoryService
-                .Setup(x => x.CreateTagAggregator<IIssueLocationTag>(textView.TextBuffer))
+                .CreateTagAggregator<IIssueLocationTag>(textView.TextBuffer)
                 .Returns(issueLocationsTagAggregator);
 
-            var analysisIssueSelectionServiceMock = new Mock<IIssueSelectionService>();
-            analysisIssueSelectionServiceMock.Setup(x => x.SelectedIssue).Returns(Mock.Of<IAnalysisIssueVisualization>());
+            var defaultSelectedIssue = Substitute.For<IAnalysisIssueVisualization>();
+            var analysisIssueSelectionService = Substitute.For<IIssueSelectionService>();
+            analysisIssueSelectionService.SelectedIssue.Returns(defaultSelectedIssue);
 
-            selectionService ??= analysisIssueSelectionServiceMock.Object;
-            lightBulbBroker ??= Mock.Of<ILightBulbBroker>();
+            selectionService ??= analysisIssueSelectionService;
+            lightBulbBroker ??= Substitute.For<ILightBulbBroker>();
 
-            return new IssueLocationActionsSource(lightBulbBroker, vsUiShell, bufferTagAggregatorFactoryService.Object, textView, selectionService);
+            return new IssueLocationActionsSource(lightBulbBroker, vsUiShell, bufferTagAggregatorFactoryService, textView, selectionService);
         }
 
         private (IList<SuggestedActionSet> actionList, bool hasAction) GetSuggestedActions(IEnumerable<IAnalysisIssueVisualization> primaryIssues,
@@ -378,16 +389,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var primaryTagSpans = primaryIssues.Select(x => CreateMappingTagSpan(snapshot, CreateIssueLocationTag(x), mockSpan));
             var secondaryTagSpans = secondaryLocations.Select(x => CreateMappingTagSpan(snapshot, CreateSelectedLocationTag(x), mockSpan));
 
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-            issueLocationsTagAggregator.Setup(x => x.GetTags(mockSpan)).Returns(primaryTagSpans);
+            var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
+            issueLocationsTagAggregator.GetTags(mockSpan).Returns(primaryTagSpans);
 
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            selectedIssueLocationsTagAggregator.Setup(x => x.GetTags(mockSpan)).Returns(secondaryTagSpans);
+            var selectedIssueLocationsTagAggregator = Substitute.For<ITagAggregator<ISelectedIssueLocationTag>>();
+            selectedIssueLocationsTagAggregator.GetTags(mockSpan).Returns(secondaryTagSpans);
 
-            var selectionService = new Mock<IIssueSelectionService>();
-            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
+            var selectionService = Substitute.For<IIssueSelectionService>();
+            selectionService.SelectedIssue.Returns(selectedIssue);
 
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, selectionService.Object);
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator, issueLocationsTagAggregator, selectionService);
 
             //We are testing these two methods together because their logic is coupled. These methods should not act indepedently of each other.
             var actualActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);

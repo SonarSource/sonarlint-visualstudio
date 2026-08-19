@@ -21,12 +21,9 @@
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
-using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
@@ -78,7 +75,7 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
                 {
                     var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textBuffer.CurrentSnapshot));
 
-                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixApplicationLogic, threadHandling)));
+                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixApplicationLogic, threadHandling, lightBulbBroker, textView)));
                 }
             }
         }
@@ -131,20 +128,12 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
         issueLocationsTagAggregator.Dispose();
     }
 
-    private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e) => HandleTagsChangedAsync(e.Span).Forget();
+    private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e) => HandleTagsChanged();
 
-    internal /* for testing */ async Task HandleTagsChangedAsync(IMappingSpan changedSpan)
+    internal /* for testing */ void HandleTagsChanged()
     {
         try
         {
-            await threadHandling.RunOnUIThreadAsync(() =>
-            {
-                if (textView.IsChangeNearCaret(changedSpan))
-                {
-                    lightBulbBroker.DismissSession(textView);
-                }
-            });
-
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
@@ -25,6 +27,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
     internal class DeselectIssueVisualizationAction : BaseSuggestedAction
     {
         private readonly IIssueSelectionService selectionService;
+        private readonly ILightBulbBroker lightBulbBroker;
+        private readonly ITextView textView;
 
         /// <summary>
         /// If the user quickly reopens the lightbulb after activating this action, there can be a race condition and this action can appear in the menu even though the issue has already been deselected.
@@ -32,16 +36,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
         /// </summary>
         private readonly string cachedSelectedIssueRuleId;
 
-        public DeselectIssueVisualizationAction(IIssueSelectionService selectionService)
+        public DeselectIssueVisualizationAction(IIssueSelectionService selectionService, ILightBulbBroker lightBulbBroker, ITextView textView)
         {
             this.selectionService = selectionService;
-            cachedSelectedIssueRuleId = selectionService.SelectedIssue.RuleId;
+            this.lightBulbBroker = lightBulbBroker;
+            this.textView = textView;
+            cachedSelectedIssueRuleId = selectionService.SelectedIssue.SonarRuleId.Id;
         }
 
         public override string DisplayText => string.Format(Resources.HideIssueVisualizationCommandText, cachedSelectedIssueRuleId);
 
         public override void Invoke(CancellationToken cancellationToken)
         {
+            lightBulbBroker.DismissSession(textView);
+
             selectionService.SelectedIssue = null;
         }
     }
