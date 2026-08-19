@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -19,11 +19,9 @@
  */
 
 using System.Threading;
-using FluentAssertions;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text.Editor;
-using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -33,62 +31,58 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
     [TestClass]
     public class DeselectIssueVisualizationActionTests
     {
+        private IIssueSelectionService selectionService;
+        private ILightBulbBroker lightBulbBroker;
+        private ITextView textView;
+        private DeselectIssueVisualizationAction testSubject;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            var selectedIssue = CreateSelectedIssue();
+            selectionService = Substitute.For<IIssueSelectionService>();
+            selectionService.SelectedIssue.Returns(selectedIssue);
+            lightBulbBroker = Substitute.For<ILightBulbBroker>();
+            textView = Substitute.For<ITextView>();
+
+            testSubject = new DeselectIssueVisualizationAction(selectionService, lightBulbBroker, textView);
+        }
+
         [TestMethod]
         public void Invoke_IssueIsDeselected()
         {
-            var selectedIssueMock = new Mock<IAnalysisIssueVisualization>();
-            selectedIssueMock.Setup(x => x.RuleId).Returns("test rule id");
-
-            var selectionServiceMock = new Mock<IIssueSelectionService>();
-            selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns(selectedIssueMock.Object);
-            selectionServiceMock.SetupSet(x => x.SelectedIssue = null);
-
-            var testSubject = new DeselectIssueVisualizationAction(selectionServiceMock.Object, Mock.Of<ILightBulbBroker>(), Mock.Of<ITextView>());
-
-            selectionServiceMock.VerifySet(x=> x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never());
+            selectionService.DidNotReceive().SelectedIssue = Arg.Any<IAnalysisIssueVisualization>();
 
             testSubject.Invoke(CancellationToken.None);
 
-            selectionServiceMock.VerifySet(x => x.SelectedIssue = null, Times.Once());
+            selectionService.Received(1).SelectedIssue = null;
         }
 
         [TestMethod]
         public void Invoke_DismissesLightBulbSession()
         {
-            var selectedIssueMock = new Mock<IAnalysisIssueVisualization>();
-            selectedIssueMock.Setup(x => x.RuleId).Returns("test rule id");
-
-            var selectionServiceMock = new Mock<IIssueSelectionService>();
-            selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns(selectedIssueMock.Object);
-
-            var lightBulbBroker = new Mock<ILightBulbBroker>();
-            var textView = Mock.Of<ITextView>();
-
-            var testSubject = new DeselectIssueVisualizationAction(selectionServiceMock.Object, lightBulbBroker.Object, textView);
-
-            lightBulbBroker.VerifyNoOtherCalls();
+            lightBulbBroker.DidNotReceiveWithAnyArgs().DismissSession(default);
 
             testSubject.Invoke(CancellationToken.None);
 
-            lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
+            lightBulbBroker.Received(1).DismissSession(textView);
         }
 
         [TestMethod]
         public void DisplayText_UsesCachedIssueRuleKey()
         {
-            var selectedIssueMock = new Mock<IAnalysisIssueVisualization>();
-            selectedIssueMock.Setup(x => x.RuleId).Returns("test rule id");
-
-            var selectionServiceMock = new Mock<IIssueSelectionService>();
-            selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns(selectedIssueMock.Object);
-
-            var testSubject = new DeselectIssueVisualizationAction(selectionServiceMock.Object, Mock.Of<ILightBulbBroker>(), Mock.Of<ITextView>());
             testSubject.DisplayText.Should().Contain("test rule id");
 
-            selectionServiceMock.Reset();
-            selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns((IAnalysisIssueVisualization) null);
+            selectionService.SelectedIssue.Returns((IAnalysisIssueVisualization)null);
 
             testSubject.DisplayText.Should().Contain("test rule id");
+        }
+
+        private static IAnalysisIssueVisualization CreateSelectedIssue(string ruleKey = "test rule id")
+        {
+            var issue = Substitute.For<IAnalysisIssueVisualization>();
+            issue.SonarRuleId.Returns(new SonarCompositeRuleId("repo", ruleKey));
+            return issue;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Moq;
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
@@ -51,9 +51,9 @@ public class QuickFixActionsSourceTests
     [TestMethod]
     public void TryGetTelemetryId_False()
     {
-        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
 
         testSubject.TryGetTelemetryId(out var guid).Should().BeFalse();
         guid.Should().BeEmpty();
@@ -62,33 +62,31 @@ public class QuickFixActionsSourceTests
     [TestMethod]
     public void Ctor_RegisterToTagAggregatorEvents()
     {
-        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-        issueLocationsTagAggregator.SetupAdd(x => x.TagsChanged += null);
+        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-        CreateTestSubject(issueLocationsTagAggregator.Object);
+        CreateTestSubject(issueLocationsTagAggregator);
 
-        issueLocationsTagAggregator.VerifyAdd(x => x.TagsChanged += It.IsAny<EventHandler<TagsChangedEventArgs>>(), Times.Once);
+        issueLocationsTagAggregator.Received(1).TagsChanged += Arg.Any<EventHandler<TagsChangedEventArgs>>();
     }
 
     [TestMethod]
     public void Dispose_UnregisterFromTagAggregatorEvents()
     {
-        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-        issueLocationsTagAggregator.SetupRemove(x => x.TagsChanged -= null);
+        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
         testSubject.Dispose();
 
-        issueLocationsTagAggregator.VerifyRemove(x => x.TagsChanged -= It.IsAny<EventHandler<TagsChangedEventArgs>>(), Times.Once);
-        issueLocationsTagAggregator.Verify(x => x.Dispose(), Times.Once);
+        issueLocationsTagAggregator.Received(1).TagsChanged -= Arg.Any<EventHandler<TagsChangedEventArgs>>();
+        issueLocationsTagAggregator.Received(1).Dispose();
     }
 
     [TestMethod]
     public void OnTagsChanged_NonCriticalException_ExceptionIsCaught()
     {
-        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
         testSubject.SuggestedActionsChanged += (_, _) => throw new NotImplementedException("this is a test");
 
         var act = () => testSubject.HandleTagsChanged();
@@ -98,66 +96,66 @@ public class QuickFixActionsSourceTests
     [TestMethod]
     public void OnTagsChanged_CriticalException_ExceptionIsNotCaught()
     {
-        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
         testSubject.SuggestedActionsChanged += (_, _) => throw new StackOverflowException("this is a test");
 
         var act = () => testSubject.HandleTagsChanged();
-        act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
+        act.Should().ThrowExactly<StackOverflowException>().WithMessage("this is a test");
     }
 
     [TestMethod]
     public void OnTagsChanged_NoSubscribersToSuggestedActionsChanged_NoException()
     {
-        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-        CreateTestSubject(issueLocationsTagAggregator.Object);
+        CreateTestSubject(issueLocationsTagAggregator);
 
         var changedSpan = CreateMappingSpan(textView.TextSnapshot, new Span(0, 1));
 
-        var act = () => issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpan));
+        var act = () => issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(changedSpan));
         act.Should().NotThrow();
     }
 
     [TestMethod]
     public void OnTagsChanged_HasSubscribersToSuggestedActionsChanged_RaisesSuggestedActionsChanged()
     {
-        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-        var eventHandler = new Mock<EventHandler<EventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<EventArgs>>();
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
-        testSubject.SuggestedActionsChanged += eventHandler.Object;
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
+        testSubject.SuggestedActionsChanged += eventHandler;
 
         var changedSpan = CreateMappingSpan(textView.TextSnapshot, new Span(500, 1));
 
-        issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpan));
+        issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(changedSpan));
 
-        eventHandler.Verify(x => x(It.IsAny<object>(), It.IsAny<EventArgs>()), Times.Once);
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
     }
 
     [TestMethod]
     public void OnTagsChanged_LightBulbSessionNeverDismissed()
     {
-        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-        var lightBulbBroker = new Mock<ILightBulbBroker>();
+        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
+        var lightBulbBroker = Substitute.For<ILightBulbBroker>();
 
-        CreateTestSubject(issueLocationsTagAggregator.Object, lightBulbBroker.Object);
+        CreateTestSubject(issueLocationsTagAggregator, lightBulbBroker);
 
         var changedSpan = CreateMappingSpan(textView.TextSnapshot, new Span(0, 1));
 
-        issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(changedSpan));
+        issueLocationsTagAggregator.TagsChanged += Raise.EventWith(new TagsChangedEventArgs(changedSpan));
 
-        lightBulbBroker.VerifyNoOtherCalls();
+        lightBulbBroker.DidNotReceiveWithAnyArgs().DismissSession(default);
     }
 
     [TestMethod]
     public async Task HasSuggestedActionsAsync_NoIssueTags_False()
     {
-        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
 
         var hasSuggestedActions = await testSubject.HasSuggestedActionsAsync(null, new SnapshotSpan(), CancellationToken.None);
 
@@ -171,7 +169,7 @@ public class QuickFixActionsSourceTests
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
 
         var hasSuggestedActions = await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
 
@@ -185,7 +183,7 @@ public class QuickFixActionsSourceTests
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
 
         var hasSuggestedActions = await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
 
@@ -199,7 +197,7 @@ public class QuickFixActionsSourceTests
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
 
         var hasSuggestedActions = await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
 
@@ -215,12 +213,12 @@ public class QuickFixActionsSourceTests
         var logger = new TestLogger();
         var tagAggregator = CreateThrowingAggregator(new InvalidOperationException("this is a test"));
 
-        var testSubject = CreateTestSubject(tagAggregator.Object, logger: logger);
+        var testSubject = CreateTestSubject(tagAggregator, logger: logger);
 
         var hasSuggestedActions = await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
 
         hasSuggestedActions.Should().Be(false);
-        tagAggregator.VerifyAll();
+        tagAggregator.Received().GetTags(Arg.Any<SnapshotSpan>());
         logger.AssertPartialOutputStringExists("this is a test");
     }
 
@@ -230,7 +228,7 @@ public class QuickFixActionsSourceTests
         var logger = new TestLogger();
         var tagAggregator = CreateThrowingAggregator(new StackOverflowException("this is a test"));
 
-        var testSubject = CreateTestSubject(tagAggregator.Object, logger: logger);
+        var testSubject = CreateTestSubject(tagAggregator, logger: logger);
 
         var func = async () => await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
 
@@ -251,7 +249,7 @@ public class QuickFixActionsSourceTests
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
 
         var hasSuggestedActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
 
@@ -265,7 +263,7 @@ public class QuickFixActionsSourceTests
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
 
         var hasSuggestedActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
 
@@ -290,7 +288,7 @@ public class QuickFixActionsSourceTests
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
-        var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
+        var testSubject = CreateTestSubject(issueLocationsTagAggregator);
 
         var hasSuggestedActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
         hasSuggestedActionsSet.Count().Should().Be(1);
@@ -307,13 +305,13 @@ public class QuickFixActionsSourceTests
         var logger = new TestLogger();
         var tagAggregator = CreateThrowingAggregator(new InvalidOperationException("this is a test"));
 
-        var testSubject = CreateTestSubject(tagAggregator.Object, logger: logger);
+        var testSubject = CreateTestSubject(tagAggregator, logger: logger);
 
         var actual = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
 
         actual.Should().NotBeNull();
         actual.Should().BeEmpty();
-        tagAggregator.VerifyAll();
+        tagAggregator.Received().GetTags(Arg.Any<SnapshotSpan>());
         logger.AssertPartialOutputStringExists("this is a test");
     }
 
@@ -323,7 +321,7 @@ public class QuickFixActionsSourceTests
         var logger = new TestLogger();
         var tagAggregator = CreateThrowingAggregator(new StackOverflowException("this is a test"));
 
-        var testSubject = CreateTestSubject(tagAggregator.Object, logger: logger);
+        var testSubject = CreateTestSubject(tagAggregator, logger: logger);
 
         Action act = () => testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
 
@@ -338,20 +336,20 @@ public class QuickFixActionsSourceTests
         ILogger logger = null,
         IThreadHandling threadHandling = null)
     {
-        issueLocationsTagAggregator ??= Mock.Of<ITagAggregator<IIssueLocationTag>>();
-        lightBulbBroker ??= Mock.Of<ILightBulbBroker>();
-        logger ??= Mock.Of<ILogger>();
+        issueLocationsTagAggregator ??= Substitute.For<ITagAggregator<IIssueLocationTag>>();
+        lightBulbBroker ??= Substitute.For<ILightBulbBroker>();
+        logger ??= Substitute.For<ILogger>();
 
-        var bufferTagAggregatorFactoryService = new Mock<IBufferTagAggregatorFactoryService>();
+        var bufferTagAggregatorFactoryService = Substitute.For<IBufferTagAggregatorFactoryService>();
 
         bufferTagAggregatorFactoryService
-            .Setup(x => x.CreateTagAggregator<IIssueLocationTag>(textBuffer))
+            .CreateTagAggregator<IIssueLocationTag>(textBuffer)
             .Returns(issueLocationsTagAggregator);
 
         threadHandling ??= new NoOpThreadHandler();
 
         return new QuickFixActionsSource(lightBulbBroker,
-            bufferTagAggregatorFactoryService.Object,
+            bufferTagAggregatorFactoryService,
             textView,
             textBuffer,
             Substitute.For<IQuickFixApplicationLogic>(),
@@ -361,20 +359,20 @@ public class QuickFixActionsSourceTests
 
     private IAnalysisIssueVisualization CreateIssueViz(params IQuickFixApplication[] fixes)
     {
-        var issueViz = new Mock<IAnalysisIssueVisualization>();
-        issueViz.Setup(x => x.QuickFixes).Returns(fixes);
+        var issueViz = Substitute.For<IAnalysisIssueVisualization>();
+        issueViz.QuickFixes.Returns(fixes);
 
-        return issueViz.Object;
+        return issueViz;
     }
 
-    private Mock<ITagAggregator<IIssueLocationTag>> CreateTagAggregatorForIssues(IAnalysisIssueVisualization[] issues)
+    private ITagAggregator<IIssueLocationTag> CreateTagAggregatorForIssues(IAnalysisIssueVisualization[] issues)
     {
         var issueTags = issues.Select(x => CreateMappingTagSpan(textBuffer.CurrentSnapshot, CreateIssueLocationTag(x), mockSpan)).ToArray();
 
-        var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+        var issueLocationsTagAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
 
         issueLocationsTagAggregator
-            .Setup(x => x.GetTags(mockSpan))
+            .GetTags(mockSpan)
             .Returns(issueTags);
 
         return issueLocationsTagAggregator;
@@ -389,10 +387,10 @@ public class QuickFixActionsSourceTests
         return quickFixApplication;
     }
 
-    private static Mock<ITagAggregator<IIssueLocationTag>> CreateThrowingAggregator(Exception ex)
+    private static ITagAggregator<IIssueLocationTag> CreateThrowingAggregator(Exception ex)
     {
-        var throwingAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-        throwingAggregator.Setup(x => x.GetTags(It.IsAny<SnapshotSpan>())).Throws(ex);
+        var throwingAggregator = Substitute.For<ITagAggregator<IIssueLocationTag>>();
+        throwingAggregator.GetTags(Arg.Any<SnapshotSpan>()).Throws(ex);
         return throwingAggregator;
     }
 }

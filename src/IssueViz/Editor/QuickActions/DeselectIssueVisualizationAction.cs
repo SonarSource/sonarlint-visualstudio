@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
             this.selectionService = selectionService;
             this.lightBulbBroker = lightBulbBroker;
             this.textView = textView;
-            cachedSelectedIssueRuleId = selectionService.SelectedIssue.RuleId;
+            cachedSelectedIssueRuleId = selectionService.SelectedIssue.SonarRuleId.Id;
         }
 
         public override string DisplayText => string.Format(Resources.HideIssueVisualizationCommandText, cachedSelectedIssueRuleId);
