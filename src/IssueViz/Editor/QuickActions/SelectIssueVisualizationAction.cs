@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
             Issue = issueVisualization;
         }
 
-        public override string DisplayText => string.Format(Resources.ShowIssueVisualizationCommandText, Issue.RuleId);
+        public override string DisplayText => string.Format(Resources.ShowIssueVisualizationCommandText, Issue.SonarRuleId.Id);
 
         public override void Invoke(CancellationToken cancellationToken)
         {

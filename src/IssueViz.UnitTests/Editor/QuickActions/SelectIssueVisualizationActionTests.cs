@@ -22,6 +22,7 @@ using System.Threading;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -84,7 +85,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void DisplayText_UsesIssueRuleKey()
         {
-            issue.RuleId.Returns("test rule id");
+            issue.SonarRuleId.Returns(new SonarCompositeRuleId("repo", "test rule id"));
 
             testSubject.DisplayText.Should().Contain("test rule id");
         }
