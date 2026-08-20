@@ -16,7 +16,7 @@
     <PackageReference Include="MSTest" Version="3.11.1" />
 
     <!-- WARNING! Check before updating to a new version of Moq - any privacy issues? See https://github.com/moq/moq/issues/1372 -->
-    <PackageReference Include="Moq" Version="4.18.2" />
+    <PackageReference Include="Moq" Version="4.20.72" />
 
     <PackageReference Include="NSubstitute" Version="5.1.0"/>
     <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17"/>
