@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             }
         }
 
-        private IReadOnlyList<IAnalysisIssueFlowVisualization> Convert(IEnumerable<IAnalysisIssueFlow> flows)
+        private static IReadOnlyList<IAnalysisIssueFlowVisualization> Convert(IEnumerable<IAnalysisIssueFlow> flows)
         {
             if (!flows.Any())
             {
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             return convertedFlows;
         }
 
-        private IReadOnlyList<IAnalysisIssueLocationVisualization> Convert(IEnumerable<IAnalysisIssueLocation> locations)
+        private static IReadOnlyList<IAnalysisIssueLocationVisualization> Convert(IEnumerable<IAnalysisIssueLocation> locations)
         {
             var locationNumber = 1;
 

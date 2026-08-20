@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // We're cancelling here purely for testing purposes: tests can wait on the token WaitHandle
                 // to know that the job runner has finished. Ugly, but it means we can write reliable tests.
                 cancellationSource.Cancel();
-                cancellationSource?.Dispose();
+                cancellationSource.Dispose();
                 cancellationSource = null;
             }
         }
@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     State = JobRunnerProgress.RunnerState.Cancelled;
                     logger.WriteLine(Strings.JobRunner_CancellingJob, jobDescription, startTime.ToLongTimeString());
-                    cancellationSource?.Cancel();
+                    cancellationSource.Cancel();
                     progress?.Report(new JobRunnerProgress(State, completedOperations, totalOperations));
                 }
             }
