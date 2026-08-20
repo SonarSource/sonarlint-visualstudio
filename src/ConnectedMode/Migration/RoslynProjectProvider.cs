@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 return new List<Project>();
             }
 
-            return wrappedWorkspace?.CurrentSolution?.Projects.ToList();
+            return wrappedWorkspace.CurrentSolution.Projects.ToList();
         }
     }
 }

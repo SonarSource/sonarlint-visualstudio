@@ -45,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.Helpers
         public void Show()
         {
             var sonarLintOutputPane = VsShellUtils.GetOrCreateSonarLintOutputPane(serviceProvider);
-            Debug.Assert(sonarLintOutputPane != null, "Failed to create SonarLint pane");
 
             if (sonarLintOutputPane == null)
             {

@@ -135,7 +135,6 @@ namespace SonarLint.VisualStudio.Core.FileMonitor
 
         private void OnFileChanged(object sender, FileSystemEventArgs args)
         {
-            Debug.Assert(fileChangedHandlers != null, "Not expecting file system events to be monitored if there are no listeners");
             if (fileChangedHandlers == null || disposedValue)
             {
                 return;
