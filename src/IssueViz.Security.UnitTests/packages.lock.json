@@ -14,6 +14,15 @@
         "resolved": "0.11.4",
         "contentHash": "zSCkwOgc5OyfMfEeMr9x0K7WCDf8i6VdF2RtCLN/4m6iebTtJQdeoJ9IS4/RyYHuLUYjrm0sd+siWbaSvSzRYQ=="
       },
+      "Microsoft.NETFramework.ReferenceAssemblies": {
+        "type": "Direct",
+        "requested": "[1.0.3, )",
+        "resolved": "1.0.3",
+        "contentHash": "vUc9Npcs14QsyOD01tnv/m8sQUnGTGOw1BCmKcv77LBJY7OxhJ+zJF7UD/sCL3lYNFuqmQEVlkfS4Quif6FyYg==",
+        "dependencies": {
+          "Microsoft.NETFramework.ReferenceAssemblies.net48": "1.0.3"
+        }
+      },
       "Moq": {
         "type": "Direct",
         "requested": "[4.18.2, )",
@@ -202,6 +211,11 @@
         "type": "Transitive",
         "resolved": "1.1.3",
         "contentHash": "3Wrmi0kJDzClwAC+iBdUBpEKmEle8FQNsCs77fkiOIw/9oYA07bL1EZNX0kQ2OMN3xpwvl0vAtOCYY3ndDNlhQ=="
+      },
+      "Microsoft.NETFramework.ReferenceAssemblies.net48": {
+        "type": "Transitive",
+        "resolved": "1.0.3",
+        "contentHash": "zMk4D+9zyiEWByyQ7oPImPN/Jhpj166Ky0Nlla4eXlNL8hI/BtSJsgR8Inldd4NNpIAH3oh8yym0W2DrhXdSLQ=="
       },
       "Microsoft.Owin": {
         "type": "Transitive",
@@ -1034,8 +1048,8 @@
       },
       "NuGet.Core": {
         "type": "Transitive",
-        "resolved": "2.12.0",
-        "contentHash": "kSDD1VFIq7BBrimjMRk9HeeQlZteyknbHgz3AT4AUVUCZ8BZaCSzO1A5UTVPLLbSHryjozPcEmNYSds/IDAIjw==",
+        "resolved": "2.14.0",
+        "contentHash": "UDXFLVRDepqVqyYxQuxujfaAc7XePdw+Lsey+q36iqTm0nuSU1n9laIGqjokvBl0unifYtjSai7fqBQKKd9BUg==",
         "dependencies": {
           "Microsoft.Web.Xdt": "2.1.0"
         }
@@ -1452,7 +1466,7 @@
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "Newtonsoft.Json": "[13.0.3, )",
-          "NuGet.Core": "[2.12.0, )",
+          "NuGet.Core": "[2.14.0, )",
           "NuGet.VisualStudio": "[3.3.0, )",
           "Sentry": "[6.0.0, )",
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
@@ -1475,7 +1489,7 @@
           "Moq": "[4.18.2, )",
           "NSubstitute": "[5.1.0, )",
           "NSubstitute.Analyzers.CSharp": "[1.0.17, )",
-          "NuGet.Core": "[2.12.0, )",
+          "NuGet.Core": "[2.14.0, )",
           "NuGet.VisualStudio": "[3.3.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
