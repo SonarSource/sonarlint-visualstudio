@@ -108,32 +108,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         private void OnAggregatorTagsChanged(object sender, BatchedTagsChangedEventArgs e)
         {
             // We need to propagate the change notification, otherwise our GetTags method won't be called.
-            var affectedSpan = CalculateAffectedSpan(e.Spans);
 
-            if (affectedSpan.HasValue)
-            {
-                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(affectedSpan.Value));
-            }
-        }
-
-        /// <summary>
-        /// Maps the aggregator's reported spans onto our snapshot, so we only notify the editor about the region
-        /// that actually changed instead of the whole file. See #3692 for background.
-        /// </summary>
-        private SnapshotSpan? CalculateAffectedSpan(IEnumerable<IMappingSpan> mappingSpans)
-        {
-            var snapshot = GetSnapshot();
-            var mappedSpans = mappingSpans.SelectMany(x => x.GetSpans(snapshot)).ToArray();
-
-            if (mappedSpans.Length == 0)
-            {
-                return null;
-            }
-
-            var start = mappedSpans.Min(x => x.Start.Position);
-            var end = mappedSpans.Max(x => x.End.Position);
-
-            return new SnapshotSpan(snapshot, Span.FromBounds(start, end));
+            // Note: we're currently reporting the whole snapshot as having changed. We could be more specific
+            // if our buffer raised a more specific notification.
+            // See #3692 for more information.
+            NotifyTagsChanged();
         }
 
         #region ITagger implementation
