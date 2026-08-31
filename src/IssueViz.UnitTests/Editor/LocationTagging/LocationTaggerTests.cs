@@ -289,6 +289,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
+        public void OnIssuesChanged_IssueBecomesResolved_TagsChangedIsRaised()
+        {
+            var buffer = CreateBufferMock(filePath: ValidBufferDocName);
+            var span = new SnapshotSpan(buffer.Object.CurrentSnapshot, 10, 5);
+            var oldIssue = CreateIssueViz(span, "issue message");
+
+            var storeMock = new Mock<IIssueLocationStore>();
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { (IAnalysisIssueLocationVisualization)oldIssue });
+
+            var testSubject = new LocationTagger(buffer.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
+
+            var resolvedIssue = CreateIssueViz(span, "issue message", isResolved: true);
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { (IAnalysisIssueLocationVisualization)resolvedIssue });
+
+            SnapshotSpanEventArgs actualTagsChangedArgs = null;
+            testSubject.TagsChanged += (sender, args) => actualTagsChangedArgs = args;
+
+            RaiseIssuesChangedEvent(storeMock, ValidBufferDocName);
+
+            actualTagsChangedArgs.Should().NotBeNull();
+            actualTagsChangedArgs.Span.Start.Position.Should().Be(10);
+            actualTagsChangedArgs.Span.End.Position.Should().Be(15);
+        }
+
+        [TestMethod]
         public void OnIssuesChanged_FileIsRenamed_CurrentFileNameIsUsed()
         {
             const string originalName = "original file name.txt";
@@ -508,6 +533,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             locVizMock.Setup(x => x.Location).Returns(locationMock.Object);
 
             return locVizMock.Object;
+        }
+
+        private static IAnalysisIssueVisualization CreateIssueViz(SnapshotSpan span, string message, bool isResolved = false)
+        {
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            issueVizMock.SetupProperty(x => x.Span);
+            issueVizMock.Object.Span = span;
+            issueVizMock.Setup(x => x.IsResolved).Returns(isResolved);
+
+            var locationMock = new Mock<IAnalysisIssueLocation>();
+            locationMock.Setup(x => x.Message).Returns(message);
+            locationMock.Setup(x => x.TextRange).Returns(Mock.Of<ITextRange>());
+            issueVizMock.Setup(x => x.Location).Returns(locationMock.Object);
+
+            return issueVizMock.Object;
         }
 
         private static IIssueLocationStore CreateStoreWithLocationsWithSpans(ITextSnapshot snapshot,

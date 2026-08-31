@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         /// <see cref="TranslateTagSpans"/>) so <see cref="CalculateSpanOfChangedTags"/> never has to rebuild it
         /// from <see cref="TagSpans"/> before diffing.
         /// </summary>
-        private HashSet<(int Start, int Length, string Message)> tagKeys = new HashSet<(int Start, int Length, string Message)>();
+        private HashSet<(int Start, int Length, string Message, bool IsResolved)> tagKeys = new HashSet<(int Start, int Length, string Message, bool IsResolved)>();
 
         public LocationTagger(ITextBuffer buffer, IIssueLocationStore locationService, IIssueSpanCalculator spanCalculator, ILogger logger)
         {
@@ -243,14 +243,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         /// of tags is unchanged, so that callers can avoid raising an unnecessary TagsChanged notification.
         /// </summary>
         /// <remarks>
-        /// Tags are compared by position and message rather than by tag/location identity, since a fresh set of
-        /// location visualization objects is created on every analysis even when the reported issues haven't
-        /// changed. Comparing by message still detects the case where a different issue happens to occupy the
-        /// same span as a previous one.
+        /// Tags are compared by position, message and resolved status rather than by tag/location identity, since
+        /// a fresh set of location visualization objects is created on every analysis even when the reported
+        /// issues haven't changed. Comparing by message still detects the case where a different issue happens to
+        /// occupy the same span as a previous one. Resolved status is included so that an issue being resolved
+        /// (which doesn't change its span or message) is still detected as a change.
         /// </remarks>
         private SnapshotSpan? CalculateSpanOfChangedTags(IList<ITagSpan<IIssueLocationTag>> newTags, ITextSnapshot textSnapshot)
         {
-            var newKeys = new HashSet<(int Start, int Length, string Message)>(newTags.Select(GetComparisonKey));
+            var newKeys = new HashSet<(int Start, int Length, string Message, bool IsResolved)>(newTags.Select(GetComparisonKey));
 
             // Turn the previous tag keys into the symmetric difference in place, then swap in newKeys as the
             // tracked state for next time - no extra copy of either set is needed for the diff.
@@ -267,8 +268,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             return CalculateAffectedSpan(textSnapshot, changedSpans, changedSpans);
         }
 
-        private static (int Start, int Length, string Message) GetComparisonKey(ITagSpan<IIssueLocationTag> tagSpan) =>
-            (tagSpan.Span.Span.Start, tagSpan.Span.Span.Length, tagSpan.Tag.Location.Location.Message);
+        private static (int Start, int Length, string Message, bool IsResolved) GetComparisonKey(ITagSpan<IIssueLocationTag> tagSpan) =>
+            (tagSpan.Span.Span.Start, tagSpan.Span.Span.Length, tagSpan.Tag.Location.Location.Message, IsResolved(tagSpan.Tag.Location));
+
+        private static bool IsResolved(IAnalysisIssueLocationVisualization locationVisualization) =>
+            locationVisualization is IAnalysisIssueVisualization issueViz && issueViz.IsResolved;
 
         /// <summary>
         /// Method calculates the span from the start of the editor changes and until the end of TagSpans
