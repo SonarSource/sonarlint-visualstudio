@@ -99,6 +99,15 @@ internal static class TaggerTestHelper
         return tagSpanMock.Object;
     }
 
+    public static IMappingSpan CreateMappingSpan(ITextSnapshot snapshot, params Span[] spans)
+    {
+        var mappingSpanMock = new Mock<IMappingSpan>();
+        var normalizedSpanCollection = new NormalizedSnapshotSpanCollection(snapshot, spans);
+        mappingSpanMock.Setup(x => x.GetSpans(snapshot)).Returns(normalizedSpanCollection);
+
+        return mappingSpanMock.Object;
+    }
+
     public static IAnalysisIssueVisualization CreateIssueViz(ITextSnapshot snapshot, Span span,
         string locationMessage, string ruleKey = null, bool isResolved = false, bool isOnNewCode = false,
         __VSERRORCATEGORY vsSeverity = __VSERRORCATEGORY.EC_WARNING)
