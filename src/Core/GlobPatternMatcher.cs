@@ -78,59 +78,65 @@ namespace SonarLint.VisualStudio.Core
                 int i = antPattern.StartsWith("/") || antPattern.StartsWith("\\") ? 1 : 0;
                 while (i < antPattern.Length)
                 {
-                    var ch = antPattern[i];
-
-                    if (SPECIAL_CHARS.IndexOf(ch) != -1)
-                    {
-                        // Escape regexp-specific characters
-                        sb.Append('\\').Append(ch);
-                    }
-                    else if (ch == '*')
-                    {
-                        if (i + 1 < antPattern.Length && antPattern[i + 1] == '*')
-                        {
-                            // Double asterisk
-                            // Zero or more directories
-                            if (i + 2 < antPattern.Length && IsSlash(antPattern[i + 2]))
-                            {
-                                sb.Append("(?:.*").Append(escapedDirectorySeparator).Append("|)");
-                                i += 2;
-                            }
-                            else
-                            {
-                                sb.Append(".*");
-                                i += 1;
-                            }
-                        }
-                        else
-                        {
-                            // Single asterisk
-                            // Zero or more characters excluding directory separator
-                            sb.Append("[^").Append(escapedDirectorySeparator).Append("]*?");
-                        }
-                    }
-                    else if (ch == '?')
-                    {
-                        // Any single character excluding directory separator
-                        sb.Append("[^").Append(escapedDirectorySeparator).Append("]");
-                    }
-                    else if (IsSlash(ch))
-                    {
-                        // Directory separator
-                        sb.Append(escapedDirectorySeparator);
-                    }
-                    else
-                    {
-                        // Single character
-                        sb.Append(ch);
-                    }
-
+                    i = ProcessCharacter(sb, antPattern, i, escapedDirectorySeparator);
                     i++;
                 }
 
                 sb.Append('$');
 
                 return sb.ToString();
+            }
+
+            private static int ProcessCharacter(StringBuilder sb, string antPattern, int i, string escapedDirectorySeparator)
+            {
+                var ch = antPattern[i];
+
+                if (SPECIAL_CHARS.IndexOf(ch) != -1)
+                {
+                    // Escape regexp-specific characters
+                    sb.Append('\\').Append(ch);
+                }
+                else if (ch == '*')
+                {
+                    if (i + 1 < antPattern.Length && antPattern[i + 1] == '*')
+                    {
+                        // Double asterisk
+                        // Zero or more directories
+                        if (i + 2 < antPattern.Length && IsSlash(antPattern[i + 2]))
+                        {
+                            sb.Append("(?:.*").Append(escapedDirectorySeparator).Append("|)");
+                            i += 2;
+                        }
+                        else
+                        {
+                            sb.Append(".*");
+                            i += 1;
+                        }
+                    }
+                    else
+                    {
+                        // Single asterisk
+                        // Zero or more characters excluding directory separator
+                        sb.Append("[^").Append(escapedDirectorySeparator).Append("]*?");
+                    }
+                }
+                else if (ch == '?')
+                {
+                    // Any single character excluding directory separator
+                    sb.Append("[^").Append(escapedDirectorySeparator).Append("]");
+                }
+                else if (IsSlash(ch))
+                {
+                    // Directory separator
+                    sb.Append(escapedDirectorySeparator);
+                }
+                else
+                {
+                    // Single character
+                    sb.Append(ch);
+                }
+
+                return i;
             }
 
             private static bool IsSlash(char ch)
