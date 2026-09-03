@@ -27,7 +27,7 @@ jobs:
             vault_path: development/kv/data/next
             project_key: SonarSource_sonarlint-visualstudio_b822e41c-dcc7-40ab-a423-2d1dfbb1e248
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -42,7 +42,7 @@ jobs:
             ${{ matrix.vault_path }} url | SONAR_URL;
             ${{ matrix.vault_path }} token | SONAR_TOKEN;
         
-      - uses: SonarSource/ci-github-actions/get-build-number@v1
+      - uses: SonarSource/ci-github-actions/get-build-number@d41706a4180f70b6c0d0479795309a6c99726022 # v2
 
       - name: Build
         env:
