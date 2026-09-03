@@ -1653,7 +1653,7 @@
         "dependencies": {
           "BouncyCastle.Cryptography": "[2.4.0, )",
           "Newtonsoft.Json": "[13.0.3, )",
-          "System.Collections.Immutable": "[5.0.0, )",
+          "System.Collections.Immutable": "[7.0.0, )",
           "System.IO.Abstractions": "[9.0.6, )",
           "System.Threading.Channels": "[7.0.0, )"
         }
