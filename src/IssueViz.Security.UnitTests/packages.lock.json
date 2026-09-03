@@ -1034,8 +1034,8 @@
       },
       "NuGet.Core": {
         "type": "Transitive",
-        "resolved": "2.12.0",
-        "contentHash": "kSDD1VFIq7BBrimjMRk9HeeQlZteyknbHgz3AT4AUVUCZ8BZaCSzO1A5UTVPLLbSHryjozPcEmNYSds/IDAIjw==",
+        "resolved": "2.14.0",
+        "contentHash": "UDXFLVRDepqVqyYxQuxujfaAc7XePdw+Lsey+q36iqTm0nuSU1n9laIGqjokvBl0unifYtjSai7fqBQKKd9BUg==",
         "dependencies": {
           "Microsoft.Web.Xdt": "2.1.0"
         }
@@ -1452,7 +1452,7 @@
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "Newtonsoft.Json": "[13.0.3, )",
-          "NuGet.Core": "[2.12.0, )",
+          "NuGet.Core": "[2.14.0, )",
           "NuGet.VisualStudio": "[3.3.0, )",
           "Sentry": "[6.0.0, )",
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
@@ -1475,7 +1475,7 @@
           "Moq": "[4.18.2, )",
           "NSubstitute": "[5.1.0, )",
           "NSubstitute.Analyzers.CSharp": "[1.0.17, )",
-          "NuGet.Core": "[2.12.0, )",
+          "NuGet.Core": "[2.14.0, )",
           "NuGet.VisualStudio": "[3.3.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
