@@ -93,7 +93,7 @@ internal sealed class SLCoreInstanceHandler(
         try
         {
             logger.WriteLine(SLCoreStrings.SLCoreHandler_StartingInstance);
-            var shutdownTask = await CurrentInstanceHandle!.InitializeAsync();
+            var shutdownTask = await CurrentInstanceHandle.InitializeAsync();
             InitializeMonitoring();
             await await Task.WhenAny(shutdownTask, Task.Delay(Timeout.Infinite, token));
         }
