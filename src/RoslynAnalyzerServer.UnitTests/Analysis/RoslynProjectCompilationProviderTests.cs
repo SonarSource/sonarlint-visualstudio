@@ -76,7 +76,7 @@ public class RoslynProjectCompilationProviderTests
                 codeFixProviders));
         SetUpCompilationWithAnalyzers();
         SetUpAdditionalConfiguration();
-        targetFilePaths = ImmutableHashSet.Create<string>("file1.cs", "file2.cs");
+        targetFilePaths = ImmutableHashSet.CreateRange(new[] { "file1.cs", "file2.cs" });
         testSubject = new RoslynProjectCompilationProvider(logger);
     }
 
