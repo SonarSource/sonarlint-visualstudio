@@ -97,7 +97,7 @@ internal class MuteIssuesService(
             return false;
         }
 
-        var (status, comment) = promptMuteIssueResolutionAsync!.Value;
+        var (status, comment) = promptMuteIssueResolutionAsync.Value;
         return await reviewIssuesService.ReviewIssueAsync(
             issueServerKey,
             status,

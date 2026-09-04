@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             private void WriteCleanCodeHeader_CleanCodeAttribute(IRuleInfo ruleInfo)
             {
-                var cleanCodeCategory = CleanCodeAttributeToCategoryMapping.Map[ruleInfo.CleanCodeAttribute!.Value];
+                var cleanCodeCategory = CleanCodeAttributeToCategoryMapping.Map[ruleInfo.CleanCodeAttribute.Value];
                 var cleanCodeAttribute = ruleInfo.CleanCodeAttribute;
 
                 WriteBubble(StyleResourceNames.CleanCodeAttributeBubble,
@@ -189,13 +189,13 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             private void WriteSubTitleElement_IssueType(IRuleInfo ruleInfo)
             {
-                var imageInfo = SubTitleImageInfo.IssueTypeImages[ruleInfo.IssueType!.Value];
+                var imageInfo = SubTitleImageInfo.IssueTypeImages[ruleInfo.IssueType.Value];
                 WriteSubTitleElementWithImage(imageInfo);
             }
 
             private void WriteSubTitleElement_Severity(IRuleInfo ruleInfo)
             {
-                var imageInfo = SubTitleImageInfo.SeverityImages[ruleInfo.Severity!.Value];
+                var imageInfo = SubTitleImageInfo.SeverityImages[ruleInfo.Severity.Value];
                 WriteSubTitleElementWithImage(imageInfo);
             }
 
