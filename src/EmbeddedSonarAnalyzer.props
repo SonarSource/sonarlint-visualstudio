@@ -5,16 +5,16 @@
   <PropertyGroup>
     <!-- Note: Guide on how to update the analyzers is on the xtranet! -->
     <!-- sonar-csharp-enterprise-plugin & sonar-vbnet-enterprise-plugin -->
-    <EmbeddedSonarAnalyzerVersion>10.33.0.1635</EmbeddedSonarAnalyzerVersion>
+    <EmbeddedSonarAnalyzerVersion>10.34.0.3385</EmbeddedSonarAnalyzerVersion>
     <!-- sonar-cfamily-plugin, only used for integration tests -->
-    <EmbeddedSonarCFamilyAnalyzerVersion>6.84.0.101652</EmbeddedSonarCFamilyAnalyzerVersion>
+    <EmbeddedSonarCFamilyAnalyzerVersion>6.85.0.102562</EmbeddedSonarCFamilyAnalyzerVersion>
     <!-- sonar-javascript-plugin -->
-    <EmbeddedSonarJSAnalyzerVersion>13.8.0.44569</EmbeddedSonarJSAnalyzerVersion>
+    <EmbeddedSonarJSAnalyzerVersion>13.9.0.44793</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedEsLintBridgeVersion>1.0.0</EmbeddedEsLintBridgeVersion>
     <!-- sonar-html-plugin -->
     <EmbeddedSonarHtmlAnalyzerVersion>3.28.0.8018</EmbeddedSonarHtmlAnalyzerVersion>
     <!-- sonar-text-plugin -->
-    <EmbeddedSonarSecretsJarVersion>2.49.0.12346</EmbeddedSonarSecretsJarVersion>
+    <EmbeddedSonarSecretsJarVersion>2.50.0.13411</EmbeddedSonarSecretsJarVersion>
     <!-- sonarqube-ide-visualstudio-roslyn --> 
     <EmbeddedSonarSqvsRoslynJarVersion>1.2.0.364</EmbeddedSonarSqvsRoslynJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
