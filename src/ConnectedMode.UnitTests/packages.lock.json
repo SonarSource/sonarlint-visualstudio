@@ -1463,8 +1463,8 @@
       },
       "System.Security.Cryptography.ProtectedData": {
         "type": "Transitive",
-        "resolved": "9.0.7",
-        "contentHash": "OAiDZTyzIzgbtrjzbMlprCxvlXpFW7q+JVOSEc/v4jgLBF4hVSey0MQ06MyctGjspKyJBdGj6k6MuqjiZV9c5Q=="
+        "resolved": "9.0.19",
+        "contentHash": "wE7uoXg9sKO/c//Q76lx6u/jLqWWYy1XF0kJIwXxcDSqx3yIYdr7EBnRVoyWB0dQK8VtgwzfquaMRLZmu7SAaw=="
       },
       "System.Security.Cryptography.X509Certificates": {
         "type": "Transitive",
@@ -1645,7 +1645,7 @@
           "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )",
-          "System.Security.Cryptography.ProtectedData": "[9.0.7, )"
+          "System.Security.Cryptography.ProtectedData": "[9.0.19, )"
         }
       },
       "SonarLint.VisualStudio.Core": {
