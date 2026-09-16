@@ -99,9 +99,12 @@
       },
       "NuGet.VisualStudio": {
         "type": "Direct",
-        "requested": "[3.3.0, )",
-        "resolved": "3.3.0",
-        "contentHash": "ZVBJ43/IxaAl5iX+OuuDLQ9tSNJaRlP85SUMAdiGoqEbyK/ZPfQmPfqSMZMFpucRlf8HgsEK/hR73DwpCmqcLA=="
+        "requested": "[5.11.6, )",
+        "resolved": "5.11.6",
+        "contentHash": "v5soFFACYPdwWmcful8sESkjmVrDgJJ4L4EJK9vqGC+6uSQplCs124ekxa5BIW3/RbsvvGKoHQfGqQmL8tW37A==",
+        "dependencies": {
+          "VSSDK.TemplateWizardInterface": "12.0.4"
+        }
       },
       "Sentry": {
         "type": "Direct",
@@ -1197,6 +1200,33 @@
         "contentHash": "KoyI+jvJ9fHwR2uGGlUxOqAmTgDO1naxwXbt504y/Jx1h/BXnhCWipGdyM/lS83GUGsmx8RhZbiiMlZw7LmYhw==",
         "dependencies": {
           "Microsoft.VisualStudio.Interop": "17.0.31902.203"
+        }
+      },
+      "VSSDK.DTE": {
+        "type": "Transitive",
+        "resolved": "7.0.4",
+        "contentHash": "uUEaT0sCVnJR54vxfsf5xHpJVWgTrCbl10oKkFuCvJb3I6M5WW4cu9zCTqtYP1i1mYYySGGqooNYiO45kLUkiQ==",
+        "dependencies": {
+          "VSSDK.IDE": "[7.0.4, 8.0.0)"
+        }
+      },
+      "VSSDK.IDE": {
+        "type": "Transitive",
+        "resolved": "7.0.4",
+        "contentHash": "KPXgpya93UDz/JZVegRr+AAewTGw46+8Aq7Dl22jWaqjH2KaH/5ycCLG0LET2OX4VBpp15IjhNw08Y5H0vJMKQ=="
+      },
+      "VSSDK.IDE.12": {
+        "type": "Transitive",
+        "resolved": "12.0.4",
+        "contentHash": "XYcSrKW9369JO1tOAuNxzZ6OOlx2QujDuboey4eYpp9GgA3Bd3mo0Fy2ZJd86sZqX27roBRzJfM1Ue/peyWOIg=="
+      },
+      "VSSDK.TemplateWizardInterface": {
+        "type": "Transitive",
+        "resolved": "12.0.4",
+        "contentHash": "stTXrh4h/mftHaQWKZn043WCgP7cmv3QVPB8M3bbBp99kktLdJBTXygPctpgeOYfsBi1TqKJIiNZjG3hCoHNMw==",
+        "dependencies": {
+          "VSSDK.DTE": "[7.0.4, 8.0.0)",
+          "VSSDK.IDE.12": "[12.0.4, 13.0.0)"
         }
       },
       "SonarLint.VisualStudio.ConnectedMode": {
