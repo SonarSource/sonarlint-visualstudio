@@ -24,7 +24,7 @@ using NSubstitute.ClearExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -83,7 +83,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         slCoreTestRunner.AddListener(new ProgressListener(Substitute.For<IStatusBarNotifier>()));
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);
-        slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener(activeConfigScopeTracker, MockHttpServerConfigurationProvider(), infrastructureLogger));
+        slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener(activeConfigScopeTracker, MockInferredAnalysisPropertiesProvider(), infrastructureLogger));
         slCoreTestRunner.AddListener(getFileExclusionsListener);
 
         clientFileDtoFactory = new ClientFileDtoFactory(infrastructureLogger);
@@ -282,12 +282,10 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         slCoreTestRunner?.Dispose();
     }
 
-    private static IHttpServerConfigurationProvider MockHttpServerConfigurationProvider()
+    private static IInferredAnalysisPropertiesProvider MockInferredAnalysisPropertiesProvider()
     {
-        var provider = Substitute.For<IHttpServerConfigurationProvider>();
-        var httpServerConfiguration = Substitute.For<IHttpServerConfiguration>();
-        httpServerConfiguration.MapToInferredProperties().Returns([]);
-        provider.CurrentConfiguration.Returns(httpServerConfiguration);
+        var provider = Substitute.For<IInferredAnalysisPropertiesProvider>();
+        provider.GetProperties().Returns([]);
         return provider;
     }
 }
