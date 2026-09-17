@@ -120,9 +120,9 @@
       },
       "System.Security.Cryptography.ProtectedData": {
         "type": "Direct",
-        "requested": "[9.0.19, )",
-        "resolved": "9.0.19",
-        "contentHash": "wE7uoXg9sKO/c//Q76lx6u/jLqWWYy1XF0kJIwXxcDSqx3yIYdr7EBnRVoyWB0dQK8VtgwzfquaMRLZmu7SAaw=="
+        "requested": "[9.0.20, )",
+        "resolved": "9.0.20",
+        "contentHash": "TpnNnkr0QrnNDTilC0a8oIss1myKS2L9iUG8q23rwlW3E4U7LnlunN81FRm+zCSqk48BAPIP8cuCEV0jqDjDzg=="
       },
       "BouncyCastle.Cryptography": {
         "type": "Transitive",
