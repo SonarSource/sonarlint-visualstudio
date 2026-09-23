@@ -54,7 +54,7 @@
     <!-- The package from MS isn't signed so we need to reference the StrongName package
          and conditionally set the DisableStrongName properties -->
     <PackageReference Include="Microsoft.Alm.Authentication" Version="4.0.0.1" />
-    <PackageReference Include="StrongNamer" Version="0.0.8" />
+    <PackageReference Include="StrongNamer" Version="0.2.5" />
   </ItemGroup>
   <PropertyGroup Condition="$(RequiresAlmAuthentication)=='true'">
     <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
