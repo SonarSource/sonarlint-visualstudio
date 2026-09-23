@@ -150,9 +150,9 @@
       },
       "StrongNamer": {
         "type": "Direct",
-        "requested": "[0.0.8, )",
-        "resolved": "0.0.8",
-        "contentHash": "7GAMIhQSKabPrXVtEpDQoLRWVZUn1IGzeHvfDSvs5lPhU4KPFMQVpI/lDFikhMXr8FmdFBOBGaHEhQ9azMK3TA=="
+        "requested": "[0.2.5, )",
+        "resolved": "0.2.5",
+        "contentHash": "1IWl8gYnsTC6NXHz63iDpXL8r0y5x0M/Cnq/Ju5uM17gTOQYSeclMkgQsvmGglJEqAwVxayY1sIUR3bb2MAy5Q=="
       },
       "System.IO.Abstractions.TestingHelpers": {
         "type": "Direct",
@@ -1412,7 +1412,7 @@
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
-          "StrongNamer": "[0.0.8, )",
+          "StrongNamer": "[0.2.5, )",
           "System.Security.Cryptography.ProtectedData": "[9.0.20, )"
         }
       },
@@ -1447,7 +1447,7 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "StreamJsonRpc": "[2.8.28, )",
-          "StrongNamer": "[0.0.8, )",
+          "StrongNamer": "[0.2.5, )",
           "System.IO.Abstractions": "[9.0.6, )"
         }
       },
