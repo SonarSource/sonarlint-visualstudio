@@ -114,20 +114,20 @@
       },
       "StrongNamer": {
         "type": "Direct",
-        "requested": "[0.0.8, )",
-        "resolved": "0.0.8",
-        "contentHash": "7GAMIhQSKabPrXVtEpDQoLRWVZUn1IGzeHvfDSvs5lPhU4KPFMQVpI/lDFikhMXr8FmdFBOBGaHEhQ9azMK3TA=="
+        "requested": "[0.2.5, )",
+        "resolved": "0.2.5",
+        "contentHash": "1IWl8gYnsTC6NXHz63iDpXL8r0y5x0M/Cnq/Ju5uM17gTOQYSeclMkgQsvmGglJEqAwVxayY1sIUR3bb2MAy5Q=="
       },
       "System.Security.Cryptography.ProtectedData": {
         "type": "Direct",
-        "requested": "[9.0.7, )",
-        "resolved": "9.0.7",
-        "contentHash": "OAiDZTyzIzgbtrjzbMlprCxvlXpFW7q+JVOSEc/v4jgLBF4hVSey0MQ06MyctGjspKyJBdGj6k6MuqjiZV9c5Q=="
+        "requested": "[9.0.20, )",
+        "resolved": "9.0.20",
+        "contentHash": "TpnNnkr0QrnNDTilC0a8oIss1myKS2L9iUG8q23rwlW3E4U7LnlunN81FRm+zCSqk48BAPIP8cuCEV0jqDjDzg=="
       },
       "BouncyCastle.Cryptography": {
         "type": "Transitive",
-        "resolved": "2.4.0",
-        "contentHash": "SwXsAV3sMvAU/Nn31pbjhWurYSjJ+/giI/0n6tCrYoupEK34iIHCuk3STAd9fx8yudM85KkLSVdn951vTng/vQ=="
+        "resolved": "2.7.0",
+        "contentHash": "U+12df8UEWHgBi04YVf/Lgi2dy3SItlIYvHjjEVa/BngCQIzDCDRBk50DDByCfDvSbe5pRNFr3b7UrVK2kMcLw=="
       },
       "envdte": {
         "type": "Transitive",
@@ -1360,7 +1360,7 @@
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
-          "BouncyCastle.Cryptography": "[2.4.0, )",
+          "BouncyCastle.Cryptography": "[2.7.0, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "System.Collections.Immutable": "[5.0.0, )",
           "System.IO.Abstractions": "[9.0.6, )",

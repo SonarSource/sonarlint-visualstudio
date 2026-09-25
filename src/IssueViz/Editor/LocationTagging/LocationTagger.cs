@@ -43,13 +43,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 
         internal /* for testing */ IList<ITagSpan<IIssueLocationTag>> TagSpans { get; private set; }
 
-        /// <summary>
-        /// Comparison keys for the tags currently in <see cref="TagSpans"/>, kept in sync with it (including by
-        /// <see cref="TranslateTagSpans"/>) so <see cref="CalculateSpanOfChangedTags"/> never has to rebuild it
-        /// from <see cref="TagSpans"/> before diffing.
-        /// </summary>
-        private HashSet<(int Start, int Length, string Message)> tagKeys = new HashSet<(int Start, int Length, string Message)>();
-
         public LocationTagger(ITextBuffer buffer, IIssueLocationStore locationService, IIssueSpanCalculator spanCalculator, ILogger logger)
         {
             this.buffer = buffer;
@@ -82,13 +75,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         private void UpdateTags()
         {
             var textSnapshot = buffer.CurrentSnapshot;
+            var oldTags = TagSpans;
             TagSpans = CreateTagSpans(textSnapshot);
 
-            var affectedSpan = CalculateSpanOfChangedTags(TagSpans, textSnapshot);
-            if (affectedSpan.HasValue)
-            {
-                NotifyTagsChanged(affectedSpan.Value);
-            }
+            var affectedSpan = CalculateSpanOfAllTags(oldTags, textSnapshot);
+            NotifyTagsChanged(affectedSpan);
         }
 
         private List<ITagSpan<IIssueLocationTag>> CreateTagSpans(ITextSnapshot textSnapshot)
@@ -159,10 +150,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 
             foreach (var old in TagSpans)
             {
-                // The tag is either dropped or replaced by a translated one below, so remove its key up front:
-                // this keeps tagKeys in sync with TagSpans even if IsNavigable/TranslateTo/InvalidateSpan throws.
-                tagKeys.Remove(GetComparisonKey(old));
-
                 try
                 {
                     if (!old.Tag.Location.Span.IsNavigable())
@@ -181,9 +168,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                     else
                     {
                         old.Tag.Location.Span = newSpan;
-                        var translatedTagSpan = new TagSpan<IIssueLocationTag>(newSpan, old.Tag);
-                        translatedTagSpans.Add(translatedTagSpan);
-                        tagKeys.Add(GetComparisonKey(translatedTagSpan));
+                        translatedTagSpans.Add(new TagSpan<IIssueLocationTag>(newSpan, old.Tag));
                     }
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -238,37 +223,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         }
 
         /// <summary>
-        /// Calculates the span covering only the tags that were added or removed since the last time this was
-        /// called, by diffing <paramref name="newTags"/> against <see cref="tagKeys"/>. Returns null if the set
-        /// of tags is unchanged, so that callers can avoid raising an unnecessary TagsChanged notification.
+        /// Method calculates the span from the start of (old+new) TagSpans and until the end of (old+new) TagSpans
         /// </summary>
-        /// <remarks>
-        /// Tags are compared by position and message rather than by tag/location identity, since a fresh set of
-        /// location visualization objects is created on every analysis even when the reported issues haven't
-        /// changed. Comparing by message still detects the case where a different issue happens to occupy the
-        /// same span as a previous one.
-        /// </remarks>
-        private SnapshotSpan? CalculateSpanOfChangedTags(IList<ITagSpan<IIssueLocationTag>> newTags, ITextSnapshot textSnapshot)
+        private SnapshotSpan CalculateSpanOfAllTags(IList<ITagSpan<IIssueLocationTag>> oldTags, ITextSnapshot textSnapshot)
         {
-            var newKeys = new HashSet<(int Start, int Length, string Message)>(newTags.Select(GetComparisonKey));
+            var allTagSpans = TagSpans
+                .Union(oldTags ?? Array.Empty<ITagSpan<IIssueLocationTag>>())
+                .Select(x => x.Span.Span)
+                .ToArray();
 
-            // Turn the previous tag keys into the symmetric difference in place, then swap in newKeys as the
-            // tracked state for next time - no extra copy of either set is needed for the diff.
-            var changedKeys = tagKeys;
-            changedKeys.SymmetricExceptWith(newKeys);
-            tagKeys = newKeys;
-
-            if (changedKeys.Count == 0)
-            {
-                return null;
-            }
-
-            var changedSpans = changedKeys.Select(x => new Span(x.Start, x.Length)).ToArray();
-            return CalculateAffectedSpan(textSnapshot, changedSpans, changedSpans);
+            return CalculateAffectedSpan(textSnapshot, allTagSpans, allTagSpans);
         }
-
-        private static (int Start, int Length, string Message) GetComparisonKey(ITagSpan<IIssueLocationTag> tagSpan) =>
-            (tagSpan.Span.Span.Start, tagSpan.Span.Span.Length, tagSpan.Tag.Location.Location.Message);
 
         /// <summary>
         /// Method calculates the span from the start of the editor changes and until the end of TagSpans
