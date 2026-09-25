@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
                         return;
                     }
                     monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-                    monitorSelection!.AdviseSelectionEvents(this, out cookie);
+                    monitorSelection.AdviseSelectionEvents(this, out cookie);
                 }));
         }
 
