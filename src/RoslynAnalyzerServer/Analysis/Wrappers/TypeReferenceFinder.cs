@@ -124,8 +124,8 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
                 continue;
             }
 
-            if (await IsReferringToTargetSymbolAsync(foundSymbol, targetSymbols!, solution, token)
-                || await IsReferringToTargetSymbolAsync(foundSymbol.ContainingType, targetSymbols!, solution, token))
+            if (await IsReferringToTargetSymbolAsync(foundSymbol, targetSymbols, solution, token)
+                || await IsReferringToTargetSymbolAsync(foundSymbol.ContainingType, targetSymbols, solution, token))
             {
                 return true;
             }
