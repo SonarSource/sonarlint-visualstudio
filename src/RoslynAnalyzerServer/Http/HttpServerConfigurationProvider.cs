@@ -23,6 +23,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security;
 using System.Security.Cryptography;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
@@ -39,8 +40,9 @@ internal interface IHttpServerConfigurationFactory
 
 [Export(typeof(IHttpServerConfigurationProvider))]
 [Export(typeof(IHttpServerConfigurationFactory))]
+[Export(typeof(IInferredAnalysisPropertiesProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class HttpServerConfigurationProvider : IHttpServerConfigurationProvider, IHttpServerConfigurationFactory
+internal class HttpServerConfigurationProvider : IHttpServerConfigurationProvider, IHttpServerConfigurationFactory, IInferredAnalysisPropertiesProvider
 {
     private readonly object lockObj = new();
     private IHttpServerConfiguration currentConfiguration = null!;
@@ -67,6 +69,8 @@ internal class HttpServerConfigurationProvider : IHttpServerConfigurationProvide
             }
         }
     }
+
+    public Dictionary<string, string> GetProperties() => CurrentConfiguration.MapToInferredProperties();
 
     private sealed class HttpServerConfiguration : IHttpServerConfiguration
     {
