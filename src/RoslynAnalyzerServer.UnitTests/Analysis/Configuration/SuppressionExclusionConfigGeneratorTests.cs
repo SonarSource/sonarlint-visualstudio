@@ -104,7 +104,7 @@ public class SuppressionExclusionConfigGeneratorTests
     [TestMethod]
     public void GenerateConfiguration_WritesCorrectConfigFile()
     {
-        var ruleKeys = ImmutableHashSet.Create("S1234", "S5678");
+        var ruleKeys = ImmutableHashSet.CreateRange(new[] { "S1234", "S5678" });
         roslynAnalyzerAssemblyContentsLoader.GetAllSupportedRuleKeys().Returns(ruleKeys);
 
         CompleteInitialization();

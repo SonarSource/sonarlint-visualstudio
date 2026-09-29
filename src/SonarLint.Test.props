@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Test framework">
-    <PackageReference Include="MSTest" Version="4.3.3" />
+    <PackageReference Include="MSTest" Version="4.4.1" />
 
     <PackageReference Include="Moq" Version="4.20.72" />
 
