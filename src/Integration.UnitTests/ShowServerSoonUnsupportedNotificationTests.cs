@@ -52,7 +52,7 @@ public class ShowServerSoonUnsupportedNotificationTests
     public void ShowSoonUnsupportedMessage_ShowsNotificationWithCorrectMessageAndId()
     {
         const string text = "Server will soon be unsupported";
-        const string notificationId = "server.soon.unsupported.9.9";
+        const string notificationId = "sonarlint.unsupported.my-connection.10.8.id";
 
         testSubject.ShowSoonUnsupportedMessage(text, notificationId);
 
@@ -83,7 +83,7 @@ public class ShowServerSoonUnsupportedNotificationTests
     [TestMethod]
     public void ShowSoonUnsupportedMessage_UsesNotificationIdForDoNotShowAgainStorage()
     {
-        const string notificationId = "server.soon.unsupported.9.9";
+        const string notificationId = "sonarlint.unsupported.my-connection.10.8.id";
 
         testSubject.ShowSoonUnsupportedMessage("text", notificationId);
 
