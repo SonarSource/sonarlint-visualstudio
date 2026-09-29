@@ -47,7 +47,7 @@ public class RoslynQuickFixFactoryTests
     [TestInitialize]
     public void TestInitialize()
     {
-        codeFixProviders = ImmutableList.Create(Substitute.For<CodeFixProvider>(), Substitute.For<CodeFixProvider>());
+        codeFixProviders = ImmutableList.CreateRange(new[] { Substitute.For<CodeFixProvider>(), Substitute.For<CodeFixProvider>() });
         document = Substitute.For<IRoslynDocumentWrapper>();
         diagnostic = CreateDiagnostic("rule1");
         workspaceWrapper = Substitute.For<IRoslynWorkspaceWrapper>();
