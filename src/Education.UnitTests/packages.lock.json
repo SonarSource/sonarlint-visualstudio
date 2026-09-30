@@ -22,12 +22,12 @@
       },
       "Moq": {
         "type": "Direct",
-        "requested": "[4.20.72, )",
-        "resolved": "4.20.72",
-        "contentHash": "EA55cjyNn8eTNWrgrdZJH5QLFp2L43oxl1tlkoYUKIE9pRwL784OWiTXeCV5ApS+AMYEAlt7Fo03A2XfouvHmQ==",
+        "requested": "[4.21.0, )",
+        "resolved": "4.21.0",
+        "contentHash": "HUjrhhzEJ/AfbSBCnR8lPkpveVGpV/dNuOlnpfqBNTME93izly1CRV4N5zBySqz4m2yCRlHLPy/PnPzYokbwIg==",
         "dependencies": {
-          "Castle.Core": "5.1.1",
-          "System.Threading.Tasks.Extensions": "4.5.4"
+          "Castle.Core": "5.2.1",
+          "System.Threading.Tasks.Extensions": "4.6.3"
         }
       },
       "MSTest": {
@@ -66,8 +66,8 @@
       },
       "Castle.Core": {
         "type": "Transitive",
-        "resolved": "5.1.1",
-        "contentHash": "rpYtIczkzGpf+EkZgDr9CClTdemhsrwA/W5hMoPjLkRFnXzH44zDLoovXeKtmxb1ykXK9aJVODSpiJml8CTw2g=="
+        "resolved": "5.2.1",
+        "contentHash": "wHARzQA695jwwKreOzNsq54KiGqKP38tv8hi8e2FXDEC/sA6BtrX90tVPDkOfVu13PbEzr00TCV8coikl+D1Iw=="
       },
       "DiffPlex": {
         "type": "Transitive",
@@ -1497,7 +1497,7 @@
           "MSTest": "[4.4.1, )",
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "Moq": "[4.20.72, )",
+          "Moq": "[4.21.0, )",
           "NSubstitute": "[5.3.0, )",
           "NSubstitute.Analyzers.CSharp": "[1.0.17, )",
           "NuGet.Core": "[2.14.0, )",
