@@ -18,6 +18,20 @@
         ],
         "executionMode": "branch"
       }
+    },
+    {
+      "description": "Keep Roslyn at the version shipped with the earliest supported Visual Studio version",
+      "matchManagers": [
+        "nuget"
+      ],
+      "matchPackageNames": [
+        "Microsoft.CodeAnalysis.Common",
+        "Microsoft.CodeAnalysis.CSharp",
+        "Microsoft.CodeAnalysis.CSharp.Workspaces",
+        "Microsoft.CodeAnalysis.VisualBasic",
+        "Microsoft.CodeAnalysis.Workspaces.Common"
+      ],
+      "enabled": false
     }
   ]
 }
