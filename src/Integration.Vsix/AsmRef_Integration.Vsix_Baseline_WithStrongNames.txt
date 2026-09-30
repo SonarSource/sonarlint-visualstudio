@@ -192,7 +192,7 @@ Referenced assemblies:
 - 'Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'
 - 'PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-- 'Sentry, Version=6.11.0.0, Culture=neutral, PublicKeyToken=fba2ec45388e2af0'
+- 'Sentry, Version=6.11.1.0, Culture=neutral, PublicKeyToken=fba2ec45388e2af0'
 - 'SonarLint.VisualStudio.ConnectedMode, Version=11.1.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.Core, Version=11.1.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.Infrastructure.VS, Version=11.1.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'

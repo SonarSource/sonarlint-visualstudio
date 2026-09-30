@@ -1047,8 +1047,8 @@
       },
       "Sentry": {
         "type": "Transitive",
-        "resolved": "6.11.0",
-        "contentHash": "TsT5Gj77PTh3lHQGS+8dLxucTmiZEfLxkqRygIHwYQXRXmMC4fFDbf1AoQe8LXOOFDYhPM2SNf8TTfexvkP0nQ==",
+        "resolved": "6.11.1",
+        "contentHash": "wBC0H/5xpGo+RFK3k4j5Xa1IhVMgQr1qhoAMMkZGpI1SkyG9UhRv97rU/+O29+SJVzwU2CimBKo48/qZKyKy5w==",
         "dependencies": {
           "System.Reflection.Metadata": "5.0.0",
           "System.Runtime.InteropServices.RuntimeInformation": "4.3.0",
@@ -1464,7 +1464,7 @@
           "Newtonsoft.Json": "[13.0.3, )",
           "NuGet.Core": "[2.14.0, )",
           "NuGet.VisualStudio": "[5.11.6, )",
-          "Sentry": "[6.11.0, )",
+          "Sentry": "[6.11.1, )",
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
