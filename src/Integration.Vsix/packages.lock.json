@@ -115,9 +115,9 @@
       },
       "Microsoft.VSSDK.VsixSignTool": {
         "type": "Direct",
-        "requested": "[16.2.29116.78, )",
-        "resolved": "16.2.29116.78",
-        "contentHash": "HMivXxSU2deRjrDLzYhW48BuYcWOaGcFPMur9VtK5SU/YDFa+55LrT8hikE1wsOSEGMWwC5nthYcsA3UqJISjA=="
+        "requested": "[17.10.34916.79, )",
+        "resolved": "17.10.34916.79",
+        "contentHash": "jX9ESN9ya2G1+m+i0SIXELyQbKIalK8VKBR9vPsfuHBKKMnr5Lo3czykgq2YOhbVBJ227U8QhTda6QRNgGipbA=="
       },
       "Newtonsoft.Json": {
         "type": "Direct",
