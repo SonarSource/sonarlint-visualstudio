@@ -1,10 +1,23 @@
-# SonarQube for Visual Studio
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://assets-eu-01.kc-usercontent.com/ef593040-b591-0198-9506-ed88b30bc023/a23fc7ba-23f0-489a-829d-ed88c0748521/Sonar_Logo_Dark%20Backgrounds.svg">
+    <img src="https://assets-eu-01.kc-usercontent.com/ef593040-b591-0198-9506-ed88b30bc023/82c13eba-d95c-4bb8-8007-7ce77c14e043/Sonar_Logo_Light%20Backgrounds.svg" alt="Sonar logo" width="400">
+  </picture>
+</p>
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=sonarlint-visualstudio&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=sonarlint-visualstudio)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sonarlint-visualstudio&metric=coverage)](https://sonarcloud.io/component_measures?id=sonarlint-visualstudio&metric=new_lines_to_cover&view=list)
 
+<!-- sonar-marketing:start -->
+<!-- Marketing maintains this section. For wording changes, consult the relevant Product Marketing Manager (PMM). Repository CODEOWNERS review accuracy and merge changes. -->
+
+# SonarQube for Visual Studio
 
 SonarQube for IDE is a Visual Studio 2017, 2019, 2022 and 2026 extension that provides on-the-fly feedback to developers on new bugs and quality issues in C#, VB.NET, C/C++, TypeScript and JavaScript to help produce [integrated code quality and security](https://www.sonarsource.com/solutions/for-developers/).
+
+Choose the supported extension below, or learn more about [SonarQube for IDE](https://www.sonarsource.com/products/sonarqube/ide/).
+
+<!-- sonar-marketing:end -->
 
 SonarQube for Visual Studio is free, open source, and available in the Visual Studio Marketplace:
 * [SonarQube for Visual Studio 2022 & 2026](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022)
