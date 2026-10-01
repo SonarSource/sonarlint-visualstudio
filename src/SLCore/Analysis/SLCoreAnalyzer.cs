@@ -53,7 +53,7 @@ public class SLCoreAnalyzer(
             return null;
         }
 
-        return await ExecuteAnalysisInternalAsync(() => analysisSlCoreService!.AnalyzeFileListAsync(new AnalyzeFileListParams(configurationScope.Id, paths.Select(x => new FileUri(x)).ToList())),
+        return await ExecuteAnalysisInternalAsync(() => analysisSlCoreService.AnalyzeFileListAsync(new AnalyzeFileListParams(configurationScope.Id, paths.Select(x => new FileUri(x)).ToList())),
             analysisStatusNotifier);
     }
 
@@ -69,7 +69,7 @@ public class SLCoreAnalyzer(
             return null;
         }
 
-        return await ExecuteAnalysisInternalAsync(() => analysisSlCoreService!.AnalyzeOpenFilesAsync(new AnalyzeOpenFilesParams(configurationScope.Id)), analysisStatusNotifier);
+        return await ExecuteAnalysisInternalAsync(() => analysisSlCoreService.AnalyzeOpenFilesAsync(new AnalyzeOpenFilesParams(configurationScope.Id)), analysisStatusNotifier);
     }
 
     public void CancelAnalysis(Guid analysisId)
