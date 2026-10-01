@@ -47,6 +47,7 @@ internal class CertificateChainValidator : ICertificateChainValidator
     {
         logger.LogVerbose("[CertificateChainValidator] Validating certificate: " + primaryCertificate);
         using var x509Chain = new X509Chain();
+        x509Chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
 
         foreach (var additionalCertificate in additionalCertificates)
         {
