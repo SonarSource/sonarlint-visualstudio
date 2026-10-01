@@ -20,7 +20,7 @@
       }
     },
     {
-      "description": "Keep Roslyn at the version shipped with the earliest supported Visual Studio version",
+      "description": "Keep Roslyn, and the VS packages that pin it, at the version shipped with the earliest supported Visual Studio version",
       "matchManagers": [
         "nuget"
       ],
@@ -29,9 +29,20 @@
         "Microsoft.CodeAnalysis.CSharp",
         "Microsoft.CodeAnalysis.CSharp.Workspaces",
         "Microsoft.CodeAnalysis.VisualBasic",
-        "Microsoft.CodeAnalysis.Workspaces.Common"
+        "Microsoft.CodeAnalysis.Workspaces.Common",
+        "Microsoft.VisualStudio.LanguageServices"
       ],
       "enabled": false
+    },
+    {
+      "description": "FluentAssertions 8+ is under a commercial license (Xceed); stay on the Apache-2.0 licensed 7.x line",
+      "matchManagers": [
+        "nuget"
+      ],
+      "matchPackageNames": [
+        "FluentAssertions"
+      ],
+      "allowedVersions": "<8"
     }
   ]
 }
