@@ -17,6 +17,12 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
+  <!-- On non-Windows hosts (e.g. Renovate on Linux) the .NET SDK adds Microsoft.NETFramework.ReferenceAssemblies to .NET Framework projects,
+       which Windows restores don't, so the generated packages.lock.json files would fail the locked-mode restore on CI. -->
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+    <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
+  </PropertyGroup>
+
 
   <!-- ******************************************************************************* -->
   <!-- Newtonsoft -->
