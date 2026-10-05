@@ -21,6 +21,7 @@
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration;
@@ -31,6 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
     public class DefaultBindingCredentialsLoaderTests
     {
         private ICredentialStoreService store;
+        private ILogger logger;
         private Uri mockUri;
         private DefaultBindingCredentialsLoader testSubject;
 
@@ -38,8 +40,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         public void Setup()
         {
             store = Substitute.For<ICredentialStoreService>();
+            logger = Substitute.For<ILogger>();
             mockUri = new Uri("http://sonarsource.com");
-            testSubject = new DefaultBindingCredentialsLoader(store);
+            testSubject = new DefaultBindingCredentialsLoader(store, logger);
         }
 
         [TestMethod]

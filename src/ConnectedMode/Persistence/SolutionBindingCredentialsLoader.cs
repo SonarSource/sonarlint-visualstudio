@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
     [Export(typeof(ISolutionBindingCredentialsLoaderImpl))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
-    internal class DefaultBindingCredentialsLoader(ICredentialStoreService store) : ISolutionBindingCredentialsLoaderImpl
+    internal class DefaultBindingCredentialsLoader(ICredentialStoreService store, ILogger logger) : ISolutionBindingCredentialsLoaderImpl
     {
         public CredentialStoreType StoreType => CredentialStoreType.Default;
 
@@ -46,19 +46,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
         {
             if (boundServerUri == null)
             {
+                logger.LogVerbose($"[CREDTRACE] DefaultBindingCredentialsLoader.Load called with null uri, returning null");
                 return null;
             }
             var credentials = store.ReadCredentials(boundServerUri);
+            var connectionCredentials = credentials.ToConnectionCredentials();
 
-            return credentials.ToConnectionCredentials();
+            logger.LogVerbose($"[CREDTRACE] DefaultBindingCredentialsLoader.Load for {boundServerUri}: rawCredentialsFound={credentials != null}, mappedType={connectionCredentials?.GetType().Name ?? "null"}");
+
+            return connectionCredentials;
         }
 
         public void Save(IConnectionCredentials credentials, Uri boundServerUri)
         {
             if (boundServerUri == null || credentials is null)
             {
+                logger.LogVerbose($"[CREDTRACE] DefaultBindingCredentialsLoader.Save skipped: uriIsNull={boundServerUri == null}, credentialsIsNull={credentials is null}");
                 return;
             }
+
+            logger.LogVerbose($"[CREDTRACE] DefaultBindingCredentialsLoader.Save for {boundServerUri} [type: {credentials.GetType().Name}]");
 
             var credentialToSave = credentials.ToCredential();
             store.WriteCredentials(boundServerUri, credentialToSave);

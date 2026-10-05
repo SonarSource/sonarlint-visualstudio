@@ -58,12 +58,20 @@ namespace SonarLint.VisualStudio.Integration
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public void DeleteCredentials(TargetUri targetUri) => LogWin32Exception("delete", () => store.DeleteCredentials(targetUri));
+        public void DeleteCredentials(TargetUri targetUri)
+        {
+            logger.LogVerbose($"[CREDTRACE] CredentialStore.DeleteCredentials for {targetUri?.ActualUri}");
+            LogWin32Exception("delete", () => store.DeleteCredentials(targetUri));
+        }
 
         public Credential ReadCredentials(TargetUri targetUri)
         {
+            logger.LogVerbose($"[CREDTRACE] CredentialStore.ReadCredentials for {targetUri?.ActualUri}");
+
             Credential storedCreds = null;
             LogWin32Exception("read", () => storedCreds = store.ReadCredentials(targetUri));
+
+            logger.LogVerbose($"[CREDTRACE] CredentialStore.ReadCredentials for {targetUri?.ActualUri}: rawResultFound={storedCreds != null}, usernameIsTokenPlaceholder={storedCreds != null && UserNameForTokenCredential.Equals(storedCreds.Username, StringComparison.OrdinalIgnoreCase)}");
 
             if (storedCreds != null && UserNameForTokenCredential.Equals(storedCreds.Username, StringComparison.OrdinalIgnoreCase))
             {
@@ -73,6 +81,8 @@ namespace SonarLint.VisualStudio.Integration
         }
         public void WriteCredentials(TargetUri targetUri, Credential credentials)
         {
+            logger.LogVerbose($"[CREDTRACE] CredentialStore.WriteCredentials for {targetUri?.ActualUri}: credentialsIsNull={credentials is null}, usernamePresent={!string.IsNullOrEmpty(credentials?.Username)}, passwordPresent={!string.IsNullOrEmpty(credentials?.Password)}");
+
             var credsToStore = credentials;
 
             if (credentials != null && string.IsNullOrEmpty(credentials.Password))

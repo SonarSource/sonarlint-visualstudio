@@ -240,35 +240,59 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
         return false;
     }
 
-    private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ConnectionInfo connectionInfo, IConnectionCredentials credentials)
+    private Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ConnectionInfo connectionInfo, IConnectionCredentials credentials)
     {
         var credentialsDto = MapCredentials(credentials);
 
-        return connectionInfo.ServerType switch
+        Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnectionDto = connectionInfo.ServerType switch
         {
             ConnectionServerType.SonarQube => new TransientSonarQubeConnectionDto(connectionInfo.Id, credentialsDto),
             ConnectionServerType.SonarCloud => new TransientSonarCloudConnectionDto(connectionInfo.Id, credentialsDto, connectionInfo.CloudServerRegion.ToSlCoreRegion()),
             _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
         };
+
+        LogTransientConnectionDtoShape(transientConnectionDto);
+
+        return transientConnectionDto;
     }
 
-    private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ServerConnection serverConnection)
+    private Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ServerConnection serverConnection)
     {
         var credentials = MapCredentials(serverConnection.Credentials);
 
-        return serverConnection switch
+        Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnectionDto = serverConnection switch
         {
             ServerConnection.SonarQube sonarQubeConnection => new TransientSonarQubeConnectionDto(sonarQubeConnection.Id, credentials),
             ServerConnection.SonarCloud sonarCloudConnection => new TransientSonarCloudConnectionDto(sonarCloudConnection.OrganizationKey, credentials, sonarCloudConnection.Region.ToSlCoreRegion()),
             _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
         };
+
+        LogTransientConnectionDtoShape(transientConnectionDto);
+
+        return transientConnectionDto;
     }
 
-    private static Either<TokenDto, UsernamePasswordDto> MapCredentials(IConnectionCredentials credentials) =>
+    private void LogTransientConnectionDtoShape(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnectionDto)
+    {
+        var isSonarQube = transientConnectionDto.Left != null;
+        var credentials = isSonarQube ? transientConnectionDto.Left.credentials : transientConnectionDto.Right.credentials;
+        var connectionType = isSonarQube ? nameof(TransientSonarQubeConnectionDto) : nameof(TransientSonarCloudConnectionDto);
+        var credentialsType = credentials.Left != null ? nameof(TokenDto) : nameof(UsernamePasswordDto);
+
+        logger.LogVerbose($"[CREDTRACE] GetTransientConnectionDto connection shape: [connectionType: {connectionType}, credentialsType: {credentialsType}]");
+    }
+
+    private Either<TokenDto, UsernamePasswordDto> MapCredentials(IConnectionCredentials credentials) =>
         credentials switch
         {
             UsernameAndPasswordCredentials basicAuthCredentials => new UsernamePasswordDto(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString()),
             TokenAuthCredentials tokenAuthCredentials => new TokenDto(tokenAuthCredentials.Token.ToUnsecureString()),
-            _ => throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument")
+            _ => ThrowUnexpectedCredentialsType(credentials)
         };
+
+    private Either<TokenDto, UsernamePasswordDto> ThrowUnexpectedCredentialsType(IConnectionCredentials credentials)
+    {
+        logger.LogVerbose($"[CREDTRACE] MapCredentials received unexpected credentials type: {credentials?.GetType().Name ?? "null"}");
+        throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument");
+    }
 }

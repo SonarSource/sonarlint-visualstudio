@@ -194,7 +194,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             Action action = () => testSubject.DeleteCredentials(wellKnownTargetUri);
             action.Should().ThrowExactly<InvalidOperationException>();
 
-            logger.AssertNoOutputMessages();
+            VerifyWin32ExceptionIsNotLogged();
         }
 
         [TestMethod]
@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             Action action = () => testSubject.ReadCredentials(wellKnownTargetUri);
             action.Should().ThrowExactly<InvalidOperationException>();
 
-            logger.AssertNoOutputMessages();
+            VerifyWin32ExceptionIsNotLogged();
         }
 
         [TestMethod]
@@ -242,7 +242,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             Action action = () => testSubject.WriteCredentials(wellKnownTargetUri, new Credential("old token", string.Empty));
             action.Should().ThrowExactly<InvalidOperationException>();
 
-            logger.AssertNoOutputMessages();
+            VerifyWin32ExceptionIsNotLogged();
         }
 
         private void SetupStoreThrowsWin32Exception(Expression<Action<ICredentialStore>> expression)
@@ -256,6 +256,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         {
             logger.AssertPartialOutputStringExists($"Failed to {expectedActionName} credentials");
             logger.AssertPartialOutputStringExists($"Win32ErrorCode: {MockWin32ErrorCode}");
+        }
+
+        private void VerifyWin32ExceptionIsNotLogged()
+        {
+            logger.AssertPartialOutputStringDoesNotExist("Failed to");
+            logger.AssertPartialOutputStringDoesNotExist("Win32ErrorCode");
         }
     }
 }

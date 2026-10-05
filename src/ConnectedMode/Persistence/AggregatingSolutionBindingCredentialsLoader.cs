@@ -59,14 +59,20 @@ public class AggregatingSolutionBindingCredentialsLoader : ISolutionBindingCrede
             credentials = solutionBindingCredentialsLoaderImpls[credentialStoreTypeProvider.CredentialStoreType].Load(boundServerUri);
         });
 
+        logger.LogVerbose($"[CREDTRACE] AggregatingSolutionBindingCredentialsLoader.Load for {boundServerUri} via {credentialStoreTypeProvider.CredentialStoreType}: resultType={credentials?.GetType().Name ?? "null"}");
+
         return credentials;
     }
 
-    public void Save(IConnectionCredentials credentials, Uri boundServerUri) =>
+    public void Save(IConnectionCredentials credentials, Uri boundServerUri)
+    {
+        logger.LogVerbose($"[CREDTRACE] AggregatingSolutionBindingCredentialsLoader.Save for {boundServerUri} via {credentialStoreTypeProvider.CredentialStoreType} [type: {credentials?.GetType().Name ?? "null"}]");
+
         SafeExecute(() =>
         {
             solutionBindingCredentialsLoaderImpls[credentialStoreTypeProvider.CredentialStoreType].Save(credentials, boundServerUri);
         });
+    }
 
     private void SafeExecute(Action act, [CallerMemberName] string caller = "")
     {
@@ -79,6 +85,7 @@ public class AggregatingSolutionBindingCredentialsLoader : ISolutionBindingCrede
         catch (Exception e)
         {
             logger.LogVerbose(GetContext(caller), e.ToString());
+            logger.LogVerbose($"[CREDTRACE] AggregatingSolutionBindingCredentialsLoader.{caller} swallowed exception: {e.GetType().Name}: {e.Message}");
         }
     }
 

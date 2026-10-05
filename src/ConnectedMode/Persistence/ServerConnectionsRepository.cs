@@ -58,6 +58,7 @@ internal class ServerConnectionsRepository(
         }
 
         serverConnection.Credentials = credentialsLoader.Load(serverConnection.CredentialsUri);
+        logger.LogVerbose($"[CREDTRACE] Loaded credentials for connection {connectionId} [type: {serverConnection.Credentials?.GetType().Name ?? "null"}]");
         return true;
     }
 
@@ -99,6 +100,7 @@ internal class ServerConnectionsRepository(
             var wasFound = TryGet(connectionId, out ServerConnection serverConnection);
             if (wasFound)
             {
+                logger.LogVerbose($"[CREDTRACE] Saving credentials for connection {connectionId} [type: {credentials?.GetType().Name ?? "null"}]");
                 credentialsLoader.Save(credentials, serverConnection.CredentialsUri);
                 RemoveConnectionIdWithInvalidToken(connectionId);
                 OnCredentialsChanged(serverConnection);
@@ -155,6 +157,7 @@ internal class ServerConnectionsRepository(
         try
         {
             connections.Add(connection);
+            logger.LogVerbose($"[CREDTRACE] Saving credentials for connection {connection.Id} [type: {connection.Credentials.GetType().Name}]");
             credentialsLoader.Save(connection.Credentials, connection.CredentialsUri);
             return true;
         }
