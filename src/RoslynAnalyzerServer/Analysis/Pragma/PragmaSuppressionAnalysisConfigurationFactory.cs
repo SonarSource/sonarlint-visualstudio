@@ -45,7 +45,7 @@ internal class PragmaSuppressionAnalysisConfigurationFactory(ISonarLintSettings 
 
         var diagnosticAwarePragmaAnalyzer = new DiagnosticAwarePragmaAnalyzer(
             currentAnalysisIssuesStore.GetAll,
-            sonarRoslynAnalysisConfigurations[Language.CSharp].DiagnosticOptions!.Keys.ToImmutableHashSet());
+            sonarRoslynAnalysisConfigurations[Language.CSharp].DiagnosticOptions.Keys.ToImmutableHashSet());
         var pragmaWarningDisableCodeFixProvider = new PragmaWarningDisableCodeFixProvider();
         ImmutableList<CodeFixProvider> codeFixes = ImmutableList.Create<CodeFixProvider>(pragmaWarningDisableCodeFixProvider);
 
