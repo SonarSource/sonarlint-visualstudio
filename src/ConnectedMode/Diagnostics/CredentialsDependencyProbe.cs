@@ -54,8 +54,10 @@ public class CredentialsDependencyProbe : ICredentialsDependencyProbe
         logger.WriteLine("[CREDTRACE] CredentialsDependencyProbe: diagnostics complete");
     }
 
-    // AssemblyName.GetAssemblyName and ReflectionOnlyLoadFrom only read metadata - they never execute code and
-    // never touch the normal (execution) load context, so this can't pollute or be polluted by real assembly loads.
+    // AssemblyName.GetAssemblyName reads the PE header directly and never enters any load context (execution or
+    // reflection-only), so it's genuinely footprint-free here. Unlike that, Assembly.ReflectionOnlyLoadFrom loads
+    // permanently into the current AppDomain's reflection-only context until that domain unloads - so the
+    // reflection-only cross-reference check runs from CredentialsProbeAppDomainRunner instead, not here.
     private void LogExtensionDirectoryAssemblyMetadata()
     {
         var extensionDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -81,12 +83,6 @@ public class CredentialsDependencyProbe : ICredentialsDependencyProbe
         {
             var assemblyName = AssemblyName.GetAssemblyName(filePath);
             logger.WriteLine($"[CREDTRACE] On-disk assembly {filePath}: {assemblyName.FullName}");
-
-            var reflectionOnly = Assembly.ReflectionOnlyLoadFrom(filePath);
-            foreach (var referenced in reflectionOnly.GetReferencedAssemblies().Where(x => IsAlmRelated(x.Name)))
-            {
-                logger.WriteLine($"[CREDTRACE] {assemblyName.Name} (on disk) expects to bind: {referenced.FullName}");
-            }
         }
         catch (Exception ex)
         {

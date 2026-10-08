@@ -45,6 +45,7 @@ public class CredentialsProbeAppDomainRunner : MarshalByRefObject
 
     public string[] RunIsolatedProbes()
     {
+        Probe(nameof(ProbeOnDiskAssemblyReferences), ProbeOnDiskAssemblyReferences);
         Probe(nameof(ProbeExactReferencedAssemblyBinds), ProbeExactReferencedAssemblyBinds);
         Probe(nameof(ProbeTargetUriConstruction), ProbeTargetUriConstruction);
         Probe(nameof(ProbeCredentialConstruction), ProbeCredentialConstruction);
@@ -120,6 +121,30 @@ public class CredentialsProbeAppDomainRunner : MarshalByRefObject
         }
     }
 
+    // ReflectionOnlyLoadFrom loads permanently into the current AppDomain's reflection-only context until that
+    // domain unloads - fine here since this whole runner is already disposable, but it must never run from the
+    // main AppDomain (CredentialsDependencyProbe uses AssemblyName.GetAssemblyName there instead, which is footprint-free).
+    private void ProbeOnDiskAssemblyReferences()
+    {
+        var extensionDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        if (string.IsNullOrEmpty(extensionDirectory))
+        {
+            return;
+        }
+
+        foreach (var pattern in new[] { "Microsoft.Alm*.dll", "Microsoft.IdentityModel*.dll", "Microsoft.Vsts*.dll" })
+        {
+            foreach (var filePath in Directory.EnumerateFiles(extensionDirectory, pattern))
+            {
+                var reflectionOnly = Assembly.ReflectionOnlyLoadFrom(filePath);
+                foreach (var referenced in reflectionOnly.GetReferencedAssemblies().Where(x => CredentialsDependencyProbe.IsAlmRelated(x.Name)))
+                {
+                    log.Add($"{reflectionOnly.GetName().Name} (on disk) expects to bind: {referenced.FullName}");
+                }
+            }
+        }
+    }
+
     // Binds by the exact AssemblyName (version + PublicKeyToken) this assembly's metadata expects, not
     // Assembly.Load(simpleName) - an unqualified load would mask a strong-name mismatch instead of reproducing it.
     private void ProbeExactReferencedAssemblyBinds()
@@ -168,6 +193,8 @@ public class CredentialsProbeAppDomainRunner : MarshalByRefObject
         log.Add($"SecretStore.ReadCredentials completed, found={result != null}");
     }
 
+    // CredentialStore/DefaultBindingCredentialsLoader are Shared MEF parts - constructing them with `new` is
+    // deliberate here, to isolate whether the TYPE can load at all, independent of MEF's own composition machinery.
     private void ProbeCredentialStoreWrapperConstruction()
     {
         var credentialStore = new CredentialStore(new CollectingLogger(log));
