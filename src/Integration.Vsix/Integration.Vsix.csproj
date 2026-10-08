@@ -301,6 +301,34 @@
   </Target>
 
   <!-- *************************************************************************** -->
+  <!-- The Microsoft.Alm.Authentication/Git/Vsts.Authentication assemblies are strong-named
+       by StrongNamer inside ConnectedMode's own build (see RequiresAlmAuthentication in
+       SonarLint.VSSpecificAssemblies.props). The default VSIX packaging above resolves
+       these from NuGet's asset graph instead, which points at the original, unsigned
+       package DLLs - not the strong-named copies ConnectedMode produced. That mismatch
+       makes SonarLint.VisualStudio.ConnectedMode.dll (which references the strong-named
+       token) fail to load at runtime in signed builds. Force packaging to use
+       ConnectedMode's own (correctly signed) output copies instead. -->
+  <!-- *************************************************************************** -->
+  <Target Name="IncludeStrongNamedAlmAuthenticationAssemblies" AfterTargets="GetVsixSourceItems">
+    <ItemGroup>
+      <_ConnectedModeOutputAssembly Include="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'SonarLint.VisualStudio.ConnectedMode'" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_ConnectedModeOutputDir>%(_ConnectedModeOutputAssembly.RootDir)%(_ConnectedModeOutputAssembly.Directory)</_ConnectedModeOutputDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <VSIXSourceItem Remove="@(VSIXSourceItem)" Condition="'%(Filename)%(Extension)' == 'Microsoft.Alm.Authentication.dll' OR '%(Filename)%(Extension)' == 'Microsoft.Alm.Git.dll' OR '%(Filename)%(Extension)' == 'Microsoft.Vsts.Authentication.dll'" />
+
+      <VSIXSourceItem Include="$(_ConnectedModeOutputDir)Microsoft.Alm.Authentication.dll" Condition="Exists('$(_ConnectedModeOutputDir)Microsoft.Alm.Authentication.dll')" />
+      <VSIXSourceItem Include="$(_ConnectedModeOutputDir)Microsoft.Alm.Git.dll" Condition="Exists('$(_ConnectedModeOutputDir)Microsoft.Alm.Git.dll')" />
+      <VSIXSourceItem Include="$(_ConnectedModeOutputDir)Microsoft.Vsts.Authentication.dll" Condition="Exists('$(_ConnectedModeOutputDir)Microsoft.Vsts.Authentication.dll')" />
+    </ItemGroup>
+  </Target>
+
+  <!-- *************************************************************************** -->
   <!-- Build-time safety net to catch changes to the set of referenced assemblies -->
   <!-- *************************************************************************** -->
   <!-- If the set/versions of referenced assemblies changes the build will fail.
