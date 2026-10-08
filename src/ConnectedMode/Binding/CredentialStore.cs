@@ -60,18 +60,18 @@ namespace SonarLint.VisualStudio.Integration
 
         public void DeleteCredentials(TargetUri targetUri)
         {
-            logger.LogVerbose($"[CREDTRACE] CredentialStore.DeleteCredentials for {targetUri?.ActualUri}");
+            logger.WriteLine($"[CREDTRACE] CredentialStore.DeleteCredentials for {targetUri?.ActualUri}");
             LogWin32Exception("delete", () => store.DeleteCredentials(targetUri));
         }
 
         public Credential ReadCredentials(TargetUri targetUri)
         {
-            logger.LogVerbose($"[CREDTRACE] CredentialStore.ReadCredentials for {targetUri?.ActualUri}");
+            logger.WriteLine($"[CREDTRACE] CredentialStore.ReadCredentials for {targetUri?.ActualUri}");
 
             Credential storedCreds = null;
             LogWin32Exception("read", () => storedCreds = store.ReadCredentials(targetUri));
 
-            logger.LogVerbose($"[CREDTRACE] CredentialStore.ReadCredentials for {targetUri?.ActualUri}: rawResultFound={storedCreds != null}, usernameIsTokenPlaceholder={storedCreds != null && UserNameForTokenCredential.Equals(storedCreds.Username, StringComparison.OrdinalIgnoreCase)}");
+            logger.WriteLine($"[CREDTRACE] CredentialStore.ReadCredentials for {targetUri?.ActualUri}: rawResultFound={storedCreds != null}, usernameIsTokenPlaceholder={storedCreds != null && UserNameForTokenCredential.Equals(storedCreds.Username, StringComparison.OrdinalIgnoreCase)}");
 
             if (storedCreds != null && UserNameForTokenCredential.Equals(storedCreds.Username, StringComparison.OrdinalIgnoreCase))
             {
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration
         }
         public void WriteCredentials(TargetUri targetUri, Credential credentials)
         {
-            logger.LogVerbose($"[CREDTRACE] CredentialStore.WriteCredentials for {targetUri?.ActualUri}: credentialsIsNull={credentials is null}, usernamePresent={!string.IsNullOrEmpty(credentials?.Username)}, passwordPresent={!string.IsNullOrEmpty(credentials?.Password)}");
+            logger.WriteLine($"[CREDTRACE] CredentialStore.WriteCredentials for {targetUri?.ActualUri}: credentialsIsNull={credentials is null}, usernamePresent={!string.IsNullOrEmpty(credentials?.Username)}, passwordPresent={!string.IsNullOrEmpty(credentials?.Password)}");
 
             var credsToStore = credentials;
 

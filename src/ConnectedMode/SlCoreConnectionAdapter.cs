@@ -279,7 +279,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
         var connectionType = isSonarQube ? nameof(TransientSonarQubeConnectionDto) : nameof(TransientSonarCloudConnectionDto);
         var credentialsType = credentials.Left != null ? nameof(TokenDto) : nameof(UsernamePasswordDto);
 
-        logger.LogVerbose($"[CREDTRACE] GetTransientConnectionDto connection shape: [connectionType: {connectionType}, credentialsType: {credentialsType}]");
+        logger.WriteLine($"[CREDTRACE] GetTransientConnectionDto connection shape: [connectionType: {connectionType}, credentialsType: {credentialsType}]");
     }
 
     private Either<TokenDto, UsernamePasswordDto> MapCredentials(IConnectionCredentials credentials) =>
@@ -292,7 +292,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
 
     private Either<TokenDto, UsernamePasswordDto> ThrowUnexpectedCredentialsType(IConnectionCredentials credentials)
     {
-        logger.LogVerbose($"[CREDTRACE] MapCredentials received unexpected credentials type: {credentials?.GetType().Name ?? "null"}");
+        logger.WriteLine($"[CREDTRACE] MapCredentials received unexpected credentials type: {credentials?.GetType().Name ?? "null"}");
         throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument");
     }
 }

@@ -23,6 +23,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Diagnostics;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
@@ -106,8 +107,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             try
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
+                logger.WriteLine("HELLO");
                 logger.WriteLine(Strings.Daemon_Initializing);
                 logger.WriteLine(Strings.SQVSVersionLog, VersionHelper.SonarLintVersion);
+
+                await RunCredentialsDependencyDiagnosticsAsync();
 
                 var importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
                 await importBeforeFileGenerator.InitializationProcessor.InitializeAsync();
@@ -168,6 +172,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             var bindingToConnectionMigration = await this.GetMefServiceAsync<IBindingToConnectionMigration>();
             await bindingToConnectionMigration.MigrateAllBindingsToServerConnectionsIfNeededAsync();
+        }
+
+        private async Task RunCredentialsDependencyDiagnosticsAsync()
+        {
+            var credentialsDependencyProbe = await this.GetMefServiceAsync<ICredentialsDependencyProbe>();
+            credentialsDependencyProbe?.RunDiagnostics();
         }
 
         protected override void Dispose(bool disposing)

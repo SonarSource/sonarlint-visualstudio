@@ -43,6 +43,8 @@ public class AggregatingSolutionBindingCredentialsLoader : ISolutionBindingCrede
         this.credentialStoreTypeProvider = credentialStoreTypeProvider;
         this.logger = logger.ForContext(PersistenceStrings.CredentialsLoader_LogContext).ForVerboseContext(nameof(AggregatingSolutionBindingCredentialsLoader));
         solutionBindingCredentialsLoaderImpls = impls.ToDictionary(x => x.StoreType, y => y);
+
+        this.logger.WriteLine($"[CREDTRACE] AggregatingSolutionBindingCredentialsLoader composed with {solutionBindingCredentialsLoaderImpls.Count} impl(s) via ImportMany: [{string.Join(", ", solutionBindingCredentialsLoaderImpls.Keys)}]");
     }
 
     public void DeleteCredentials(Uri boundServerUri) =>
@@ -59,14 +61,14 @@ public class AggregatingSolutionBindingCredentialsLoader : ISolutionBindingCrede
             credentials = solutionBindingCredentialsLoaderImpls[credentialStoreTypeProvider.CredentialStoreType].Load(boundServerUri);
         });
 
-        logger.LogVerbose($"[CREDTRACE] AggregatingSolutionBindingCredentialsLoader.Load for {boundServerUri} via {credentialStoreTypeProvider.CredentialStoreType}: resultType={credentials?.GetType().Name ?? "null"}");
+        logger.WriteLine($"[CREDTRACE] AggregatingSolutionBindingCredentialsLoader.Load for {boundServerUri} via {credentialStoreTypeProvider.CredentialStoreType}: resultType={credentials?.GetType().Name ?? "null"}");
 
         return credentials;
     }
 
     public void Save(IConnectionCredentials credentials, Uri boundServerUri)
     {
-        logger.LogVerbose($"[CREDTRACE] AggregatingSolutionBindingCredentialsLoader.Save for {boundServerUri} via {credentialStoreTypeProvider.CredentialStoreType} [type: {credentials?.GetType().Name ?? "null"}]");
+        logger.WriteLine($"[CREDTRACE] AggregatingSolutionBindingCredentialsLoader.Save for {boundServerUri} via {credentialStoreTypeProvider.CredentialStoreType} [type: {credentials?.GetType().Name ?? "null"}]");
 
         SafeExecute(() =>
         {
@@ -85,7 +87,7 @@ public class AggregatingSolutionBindingCredentialsLoader : ISolutionBindingCrede
         catch (Exception e)
         {
             logger.LogVerbose(GetContext(caller), e.ToString());
-            logger.LogVerbose($"[CREDTRACE] AggregatingSolutionBindingCredentialsLoader.{caller} swallowed exception: {e.GetType().Name}: {e.Message}");
+            logger.WriteLine($"[CREDTRACE] AggregatingSolutionBindingCredentialsLoader.{caller} swallowed exception: {e.GetType().Name}: {e.Message}");
         }
     }
 

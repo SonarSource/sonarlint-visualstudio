@@ -60,17 +60,17 @@ public class DpapiCurrentUserCredentialsLoader(
         if (ReadModel() is not {} model || !model.TryGetValue(boundServerUri, out var dto) )
         {
             log.WriteLine(PersistenceStrings.DpapiCurrentUserCredentialsLoader_NoCredentials, boundServerUri);
-            log.LogVerbose($"[CREDTRACE] DpapiCurrentUserCredentialsLoader.Load for {boundServerUri}: no entry in storage model, returning null");
+            log.WriteLine($"[CREDTRACE] DpapiCurrentUserCredentialsLoader.Load for {boundServerUri}: no entry in storage model, returning null");
             return null;
         }
 
         if (dpapiProvider.UnprotectBase64String(dto.EncryptedToken) is not { } secureToken)
         {
-            log.LogVerbose($"[CREDTRACE] DpapiCurrentUserCredentialsLoader.Load for {boundServerUri}: UnprotectBase64String failed, returning null");
+            log.WriteLine($"[CREDTRACE] DpapiCurrentUserCredentialsLoader.Load for {boundServerUri}: UnprotectBase64String failed, returning null");
             return null;
         }
 
-        log.LogVerbose($"[CREDTRACE] DpapiCurrentUserCredentialsLoader.Load for {boundServerUri}: returning {nameof(TokenAuthCredentials)}");
+        log.WriteLine($"[CREDTRACE] DpapiCurrentUserCredentialsLoader.Load for {boundServerUri}: returning {nameof(TokenAuthCredentials)}");
         return new TokenAuthCredentials(secureToken);
     }
 
@@ -78,11 +78,11 @@ public class DpapiCurrentUserCredentialsLoader(
     {
         if (credentials is not ITokenCredentials tokenCredentials)
         {
-            log.LogVerbose($"[CREDTRACE] DpapiCurrentUserCredentialsLoader.Save for {boundServerUri}: unsupported credentials type {credentials?.GetType().Name ?? "null"}, throwing");
+            log.WriteLine($"[CREDTRACE] DpapiCurrentUserCredentialsLoader.Save for {boundServerUri}: unsupported credentials type {credentials?.GetType().Name ?? "null"}, throwing");
             throw new ArgumentException(PersistenceStrings.DpapiCurrentUserCredentialsLoader_Save_NotATokenError, nameof(credentials));
         }
 
-        log.LogVerbose($"[CREDTRACE] DpapiCurrentUserCredentialsLoader.Save for {boundServerUri} [type: {nameof(TokenAuthCredentials)}]");
+        log.WriteLine($"[CREDTRACE] DpapiCurrentUserCredentialsLoader.Save for {boundServerUri} [type: {nameof(TokenAuthCredentials)}]");
 
         var model = ReadModel() ?? new();
         model[boundServerUri] = new DpapiCredentialJsonModel(dpapiProvider.GetProtectedBase64String(tokenCredentials.Token));
