@@ -133,4 +133,8 @@
   <data name="DpapiCurrentUserCredentialsLoader_NoCredentials" xml:space="preserve">
     <value>Credentials for connection {0} not found</value>
   </data>
+  <data name="AggregatingSolutionBindingCredentialsLoader_ComposedWithImpls" xml:space="preserve">
+    <value>Credentials loaders composed via ImportMany: {0}</value>
+    <comment>{0} comma-separated list of CredentialStoreType loaded via MEF</comment>
+  </data>
 </root>
