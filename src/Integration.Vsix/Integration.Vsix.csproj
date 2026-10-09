@@ -301,14 +301,9 @@
   </Target>
 
   <!-- *************************************************************************** -->
-  <!-- The Microsoft.Alm.Authentication/Git/Vsts.Authentication assemblies are strong-named
-       by StrongNamer inside ConnectedMode's own build (see RequiresAlmAuthentication in
-       SonarLint.VSSpecificAssemblies.props). The default VSIX packaging above resolves
-       these from NuGet's asset graph instead, which points at the original, unsigned
-       package DLLs - not the strong-named copies ConnectedMode produced. That mismatch
-       makes SonarLint.VisualStudio.ConnectedMode.dll (which references the strong-named
-       token) fail to load at runtime in signed builds. Force packaging to use
-       ConnectedMode's own (correctly signed) output copies instead. -->
+  <!-- Default VSIX packaging resolves the Alm assemblies from NuGet, not the strong-named
+       copies StrongNamer produces in ConnectedMode's build output, causing ConnectedMode.dll
+       to fail to load at runtime in signed builds. Use ConnectedMode's copies instead. -->
   <!-- *************************************************************************** -->
   <Target Name="IncludeStrongNamedAlmAuthenticationAssemblies" AfterTargets="GetVsixSourceItems">
     <ItemGroup>
