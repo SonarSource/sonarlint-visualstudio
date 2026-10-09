@@ -60,6 +60,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Credentials loaders composed via ImportMany: {0}.
+        /// </summary>
+        internal static string AggregatingSolutionBindingCredentialsLoader_ComposedWithImpls {
+            get {
+                return ResourceManager.GetString("AggregatingSolutionBindingCredentialsLoader_ComposedWithImpls", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The Connected Mode configuration file &apos;{0}&apos; does not exist. Connected Mode configuration not deleted..
         /// </summary>
         internal static string BindingDirectoryNotDeleted {

@@ -43,6 +43,8 @@ public class AggregatingSolutionBindingCredentialsLoader : ISolutionBindingCrede
         this.credentialStoreTypeProvider = credentialStoreTypeProvider;
         this.logger = logger.ForContext(PersistenceStrings.CredentialsLoader_LogContext).ForVerboseContext(nameof(AggregatingSolutionBindingCredentialsLoader));
         solutionBindingCredentialsLoaderImpls = impls.ToDictionary(x => x.StoreType, y => y);
+
+        this.logger.LogVerbose(PersistenceStrings.AggregatingSolutionBindingCredentialsLoader_ComposedWithImpls, string.Join(", ", solutionBindingCredentialsLoaderImpls.Keys));
     }
 
     public void DeleteCredentials(Uri boundServerUri) =>
