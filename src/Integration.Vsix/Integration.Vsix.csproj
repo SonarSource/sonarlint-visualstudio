@@ -319,12 +319,15 @@
       <_ConnectedModeOutputDir>%(_ConnectedModeOutputAssembly.RootDir)%(_ConnectedModeOutputAssembly.Directory)</_ConnectedModeOutputDir>
     </PropertyGroup>
 
+    <Error Condition="'$(_ConnectedModeOutputDir)' == ''" Text="Could not locate SonarLint.VisualStudio.ConnectedMode in ReferenceCopyLocalPaths; cannot package strong-named Alm assemblies." />
+    <Error Condition="!Exists('$(_ConnectedModeOutputDir)Microsoft.Alm.Authentication.dll') OR !Exists('$(_ConnectedModeOutputDir)Microsoft.Alm.Git.dll') OR !Exists('$(_ConnectedModeOutputDir)Microsoft.Vsts.Authentication.dll')" Text="Strong-named Alm assemblies not found in '$(_ConnectedModeOutputDir)'." />
+
     <ItemGroup>
       <VSIXSourceItem Remove="@(VSIXSourceItem)" Condition="'%(Filename)%(Extension)' == 'Microsoft.Alm.Authentication.dll' OR '%(Filename)%(Extension)' == 'Microsoft.Alm.Git.dll' OR '%(Filename)%(Extension)' == 'Microsoft.Vsts.Authentication.dll'" />
 
-      <VSIXSourceItem Include="$(_ConnectedModeOutputDir)Microsoft.Alm.Authentication.dll" Condition="Exists('$(_ConnectedModeOutputDir)Microsoft.Alm.Authentication.dll')" />
-      <VSIXSourceItem Include="$(_ConnectedModeOutputDir)Microsoft.Alm.Git.dll" Condition="Exists('$(_ConnectedModeOutputDir)Microsoft.Alm.Git.dll')" />
-      <VSIXSourceItem Include="$(_ConnectedModeOutputDir)Microsoft.Vsts.Authentication.dll" Condition="Exists('$(_ConnectedModeOutputDir)Microsoft.Vsts.Authentication.dll')" />
+      <VSIXSourceItem Include="$(_ConnectedModeOutputDir)Microsoft.Alm.Authentication.dll" />
+      <VSIXSourceItem Include="$(_ConnectedModeOutputDir)Microsoft.Alm.Git.dll" />
+      <VSIXSourceItem Include="$(_ConnectedModeOutputDir)Microsoft.Vsts.Authentication.dll" />
     </ItemGroup>
   </Target>
 
