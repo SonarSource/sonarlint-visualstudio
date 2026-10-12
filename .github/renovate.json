@@ -35,6 +35,17 @@
       "enabled": false
     },
     {
+      "description": "Visual Studio provides these assemblies at runtime; keep them at the version shipped with the earliest supported Visual Studio version",
+      "matchManagers": [
+        "nuget"
+      ],
+      "matchPackageNames": [
+        "System.Collections.Immutable",
+        "System.Threading.Channels"
+      ],
+      "enabled": false
+    },
+    {
       "description": "FluentAssertions 8+ is under a commercial license (Xceed); stay on the Apache-2.0 licensed 7.x line",
       "matchManagers": [
         "nuget"
