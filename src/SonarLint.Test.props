@@ -20,7 +20,7 @@
     <PackageReference Include="NSubstitute" Version="6.2.0"/>
     <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17"/>
 
-    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+    <PackageReference Include="FluentAssertions" Version="7.2.2" />
     <PackageReference Include="FluentAssertions.Analyzers" Version="0.34.1" />
   </ItemGroup>
   
