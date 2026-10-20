@@ -20,8 +20,8 @@
 
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation.Analy
 public class AnalysisConfigurationProviderListenerTests
 {
     private IActiveConfigScopeTracker activeConfigScopeTracker;
-    private IHttpServerConfigurationProvider httpServerConfigurationProvider;
+    private IInferredAnalysisPropertiesProvider inferredAnalysisPropertiesProvider;
     private TestLogger logger;
     private AnalysisConfigurationProviderListener testSubject;
 
@@ -41,18 +41,18 @@ public class AnalysisConfigurationProviderListenerTests
     public void TestInitialize()
     {
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-        httpServerConfigurationProvider = Substitute.For<IHttpServerConfigurationProvider>();
+        inferredAnalysisPropertiesProvider = Substitute.For<IInferredAnalysisPropertiesProvider>();
         logger = Substitute.ForPartsOf<TestLogger>();
 
         testSubject = new AnalysisConfigurationProviderListener(
-            activeConfigScopeTracker, httpServerConfigurationProvider, logger);
+            activeConfigScopeTracker, inferredAnalysisPropertiesProvider, logger);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigurationProviderListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
-            MefTestHelpers.CreateExport<IHttpServerConfigurationProvider>(),
+            MefTestHelpers.CreateExport<IInferredAnalysisPropertiesProvider>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
@@ -108,7 +108,7 @@ public class AnalysisConfigurationProviderListenerTests
     public void GetInferredAnalysisProperties_AnyValue_ReturnsHttpServerConfiguration(string configScopeId, string[] files)
     {
         var expectedProperties = new Dictionary<string, string> { { "prop1", "val1" } };
-        httpServerConfigurationProvider.CurrentConfiguration.MapToInferredProperties().Returns(expectedProperties);
+        inferredAnalysisPropertiesProvider.GetProperties().Returns(expectedProperties);
 
         var result = testSubject.GetInferredAnalysisPropertiesAsync(new GetInferredAnalysisPropertiesParams(configScopeId,
                 files.Select(x => new FileUri(x)).ToList()))

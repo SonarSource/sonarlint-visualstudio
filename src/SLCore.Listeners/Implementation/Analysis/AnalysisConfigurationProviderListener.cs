@@ -20,8 +20,8 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class AnalysisConfigurationProviderListener(IActiveConfigScopeTracker activeConfigScopeTracker, IHttpServerConfigurationProvider httpServerConfigurationProvider, ILogger logger)
+internal class AnalysisConfigurationProviderListener(IActiveConfigScopeTracker activeConfigScopeTracker, IInferredAnalysisPropertiesProvider inferredAnalysisPropertiesProvider, ILogger logger)
     : IAnalysisConfigurationProviderListener
 {
     private readonly ILogger analysisConfigLogger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.SLCoreAnalysisConfigurationLogContext);
@@ -54,5 +54,5 @@ internal class AnalysisConfigurationProviderListener(IActiveConfigScopeTracker a
     }
 
     public Task<GetInferredAnalysisPropertiesResponse> GetInferredAnalysisPropertiesAsync(GetInferredAnalysisPropertiesParams parameters) =>
-        Task.FromResult(new GetInferredAnalysisPropertiesResponse(httpServerConfigurationProvider.CurrentConfiguration.MapToInferredProperties()));
+        Task.FromResult(new GetInferredAnalysisPropertiesResponse(inferredAnalysisPropertiesProvider.GetProperties()));
 }
