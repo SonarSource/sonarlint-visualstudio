@@ -8,6 +8,12 @@ on:
       - branch-*
   pull_request:
   workflow_dispatch:
+    inputs:
+      vsix-smoke-version:
+        description: 'SLVS-3097: run only the VSIX smoke spike against this promoted four-part build version (empty runs the normal build)'
+        required: false
+        default: ''
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -19,7 +25,15 @@ permissions:
   checks: write
 
 jobs:
+  vsix-smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.vsix-smoke-version != '' }}
+    uses: ./.github/workflows/vsix-smoke-spike.yml
+    with:
+      project-version: ${{ inputs.vsix-smoke-version }}
+      repetitions: '3'
+
   build:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.vsix-smoke-version == '' }}
     runs-on: warp-custom-sonarlint-visualstudio
     name: Build
     environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release-ready-build' || '' }}
