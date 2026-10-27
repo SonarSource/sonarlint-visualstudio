@@ -1,6 +1,8 @@
 # SLVS-3097: installed VSIX smoke feasibility
 
-Status: prototype; a successful Windows run has not yet been established.
+Status: prototype; Windows execution is blocked by the existing runner image.
+The image has Build Tools, not the full IDE, so installed-extension feasibility
+has not yet been established.
 
 The spike asks whether a built SonarQube VSIX can be installed into a fresh Visual
 Studio 2022 experimental profile, report an actual finding, and clear it after an
@@ -100,6 +102,22 @@ establish initial feasibility, not a measured flake rate.
 Remaining decisions: framework choice, an agent with a dependable desktop
 session, modern Error List API support if needed, profile cleanup, and supported
 VS versions. Until Windows evidence exists, the outcome remains inconclusive.
+
+## Windows CI evidence (27 October 2026)
+
+[Run 40520267897](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/40520267897)
+ran on `warp-custom-sonarlint-visualstudio` against promoted VSIX
+`11.3.0.17474`. Authentication, artifact download and evidence upload succeeded.
+All three independent attempts failed in `prerequisites`:
+
+> Expected exactly one full Visual Studio 2022 IDE; found 0. Installed products: Visual Studio Build Tools 2022.
+
+The captured inventory identifies `Microsoft.VisualStudio.Product.BuildTools`,
+version `17.10.35230.96`. Installation and analysis were not reached. This is an
+infrastructure blocker, not evidence for or against the diagnostic API or either
+candidate framework. The next step is an image with the full VS 2022 IDE, C#
+project system, targeting pack, and usable desktop automation session, followed
+by the same three-run experiment. No release/promotion job ran in this dispatch.
 
 ## Validation performed on macOS
 
