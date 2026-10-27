@@ -112,10 +112,20 @@ try {
     }
     finally { $archive.Dispose() }
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
-    $instances = @(& $vswhere -products '*' -version '[17.0,18.0)' -requires Microsoft.VisualStudio.Component.CoreEditor Microsoft.Net.Component.4.7.2.TargetingPack -format json | ConvertFrom-Json)
-    if ($LASTEXITCODE -ne 0 -or $instances.Count -ne 1) {
-        throw 'Expected exactly one VS 2022 installation with the editor and .NET Framework 4.7.2 targeting pack.'
+    $instanceJson = & $vswhere -all -products '*' -format json
+    if ($LASTEXITCODE -ne 0) { throw 'vswhere could not enumerate Visual Studio installations.' }
+    $instanceJson | Set-Content (Join-Path $ResultsDirectory 'visual-studio-inventory.json') -Encoding UTF8
+    $installedProducts = ConvertFrom-Json -InputObject ($instanceJson -join "`n")
+    $instances = @($installedProducts | Where-Object {
+        $_.installationVersion -like '17.*' -and
+        (Test-Path -LiteralPath (Join-Path $_.installationPath 'Common7\IDE\devenv.exe'))
+    })
+    if ($instances.Count -ne 1) {
+        $productNames = @($installedProducts | ForEach-Object { $_.displayName }) -join ', '
+        throw "Expected exactly one full Visual Studio 2022 IDE; found $($instances.Count). Installed products: $productNames. See visual-studio-inventory.json."
     }
+    $targetingPack = Join-Path ${env:ProgramFiles(x86)} 'Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2'
+    if (-not (Test-Path -LiteralPath $targetingPack)) { throw "Missing .NET Framework 4.7.2 targeting pack: $targetingPack" }
     $instance = $instances[0]
     $devenv = Join-Path $instance.installationPath 'Common7\IDE\devenv.exe'
     $installer = Join-Path $instance.installationPath 'Common7\IDE\VSIXInstaller.exe'
