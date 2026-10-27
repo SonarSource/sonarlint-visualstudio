@@ -60,10 +60,11 @@ jobs:
           ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
           ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
         run: |
+          $ProgressPreference = 'SilentlyContinue'
           $authorization = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("${env:ARTIFACTORY_USER}:${env:ARTIFACTORY_ACCESS_TOKEN}"))
           $name = "SonarLint.VSIX-${env:PROJECT_VERSION}-2022.vsix"
           $url = "$($env:ARTIFACTORY_URL.TrimEnd('/'))/sonarsource-public-builds/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/${env:PROJECT_VERSION}/$name"
-          Invoke-WebRequest -UseBasicParsing -Uri $url -Headers @{ Authorization = "Basic $authorization" } -OutFile (Join-Path $env:RUNNER_TEMP 'candidate.vsix')
+          Invoke-WebRequest -UseBasicParsing -TimeoutSec 180 -Uri $url -Headers @{ Authorization = "Basic $authorization" } -OutFile (Join-Path $env:RUNNER_TEMP 'candidate.vsix')
 
       - name: Exercise independent installations
         shell: powershell
