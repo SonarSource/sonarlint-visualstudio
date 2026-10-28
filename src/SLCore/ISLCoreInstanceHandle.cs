@@ -20,6 +20,7 @@
 
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Service.Log;
 using SonarLint.VisualStudio.Core.ConfigurationScope;

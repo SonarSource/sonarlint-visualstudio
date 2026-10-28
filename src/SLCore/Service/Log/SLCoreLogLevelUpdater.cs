@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.SLCore.Core;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Log;
