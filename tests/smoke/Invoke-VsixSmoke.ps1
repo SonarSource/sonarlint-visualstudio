@@ -71,16 +71,13 @@ function Wait-ForCondition([string] $Description, [scriptblock] $Condition) {
 }
 
 function Get-ErrorListEntries {
-    $items = $dte.ToolWindows.ErrorList.ErrorItems
-    $entries = @()
-    for ($index = 1; $index -le $items.Count; $index++) {
-        $item = $items.Item($index)
-        $entries += [pscustomobject]@{
-            file = $item.FileName
-            line = $item.Line
-            description = $item.Description
+    $entries = @([SonarLint.VisualStudio.Smoke.VisualStudioAutomation]::ReadErrorList($dte) | ForEach-Object {
+        [pscustomobject]@{
+            file = $_.File
+            line = $_.Line
+            description = $_.Description
         }
-    }
+    })
     $script:lastErrors = $entries
     return $entries
 }
@@ -135,7 +132,22 @@ try {
     }
     $report['visualStudioVersion'] = $instance.installationVersion
     $report['instanceId'] = $instance.instanceId
-    Add-Type -Path (Join-Path $PSScriptRoot 'VisualStudioAutomation.cs')
+    $publicAssemblies = Join-Path $instance.installationPath 'Common7\IDE\PublicAssemblies'
+    $unifiedInterop = Join-Path $publicAssemblies 'Microsoft.VisualStudio.Interop.dll'
+    if (Test-Path -LiteralPath $unifiedInterop) {
+        $interopReferences = @($unifiedInterop)
+    }
+    else {
+        $interopReferences = @(
+            (Join-Path $publicAssemblies 'envdte.dll'),
+            (Join-Path $publicAssemblies 'envdte80.dll')
+        )
+    }
+    foreach ($reference in $interopReferences) {
+        if (-not (Test-Path -LiteralPath $reference)) { throw "Missing Visual Studio interop assembly: $reference" }
+        $null = [Reflection.Assembly]::LoadFrom($reference)
+    }
+    Add-Type -Path (Join-Path $PSScriptRoot 'VisualStudioAutomation.cs') -ReferencedAssemblies $interopReferences
 
     $report.phase = 'initialize-profile'
     Invoke-BoundedProcess $devenv @('/RootSuffix', $rootSuffix, '/ResetSettings', "`"$settings`"", '/Command', 'File.Exit', '/NoSplash', '/LCID', '1033')
@@ -236,6 +248,13 @@ catch {
     throw
 }
 finally {
+    if ($null -ne $dte) {
+        try {
+            [SonarLint.VisualStudio.Smoke.VisualStudioAutomation]::ReadSonarOutput($dte) |
+                Set-Content (Join-Path $ResultsDirectory 'SonarOutput.txt') -Encoding UTF8
+        }
+        catch { Write-Warning "Could not capture Sonar output: $($_.Exception.Message)" }
+    }
     $report['finishedAt'] = [DateTime]::UtcNow.ToString('o')
     $report | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $ResultsDirectory 'result.json') -Encoding UTF8
     ConvertTo-Json -InputObject @($script:lastErrors) -Depth 5 | Set-Content (Join-Path $ResultsDirectory 'last-error-list.json') -Encoding UTF8

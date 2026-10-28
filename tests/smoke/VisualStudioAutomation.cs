@@ -7,6 +7,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Text;
 
 namespace SonarLint.VisualStudio.Smoke
 {
@@ -17,6 +18,39 @@ namespace SonarLint.VisualStudio.Smoke
 
         [DllImport("ole32.dll")]
         private static extern int CreateBindCtx(int reserved, out IBindCtx context);
+
+        public static ErrorListEntry[] ReadErrorList(object dte)
+        {
+            var errorList = ((EnvDTE80.DTE2)dte).ToolWindows.ErrorList;
+            errorList.ShowErrors = true;
+            errorList.ShowWarnings = true;
+            errorList.ShowMessages = true;
+            var items = errorList.ErrorItems;
+            var result = new ErrorListEntry[items.Count];
+            for (var index = 0; index < result.Length; index++)
+            {
+                var item = items.Item(index + 1);
+                result[index] = new ErrorListEntry { File = item.FileName, Line = item.Line, Description = item.Description };
+            }
+            return result;
+        }
+
+        public static string ReadSonarOutput(object dte)
+        {
+            var panes = ((EnvDTE80.DTE2)dte).ToolWindows.OutputWindow.OutputWindowPanes;
+            var result = new StringBuilder();
+            for (var index = 1; index <= panes.Count; index++)
+            {
+                var pane = panes.Item(index);
+                if (pane.Name.IndexOf("Sonar", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    result.AppendLine(pane.Name);
+                    var document = pane.TextDocument;
+                    result.AppendLine(document.StartPoint.CreateEditPoint().GetText(document.EndPoint));
+                }
+            }
+            return result.ToString();
+        }
 
         public static object FindDte(int processId)
         {
@@ -65,5 +99,12 @@ namespace SonarLint.VisualStudio.Smoke
                 if (table != null) Marshal.ReleaseComObject(table);
             }
         }
+    }
+
+    public sealed class ErrorListEntry
+    {
+        public string File { get; set; }
+        public int Line { get; set; }
+        public string Description { get; set; }
     }
 }

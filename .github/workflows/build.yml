@@ -14,6 +14,12 @@ on:
         required: false
         default: ''
         type: string
+      vsix-smoke-repetitions:
+        description: Number of fresh IDE profiles for the smoke spike
+        required: false
+        default: '3'
+        type: choice
+        options: ['1', '3']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -30,7 +36,7 @@ jobs:
     uses: ./.github/workflows/vsix-smoke-spike.yml
     with:
       project-version: ${{ inputs.vsix-smoke-version }}
-      repetitions: '3'
+      repetitions: ${{ inputs.vsix-smoke-repetitions || '3' }}
 
   build:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.vsix-smoke-version == '' }}
