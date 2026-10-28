@@ -220,7 +220,7 @@ EndGlobal
     $report.phase = 'detect-finding'
     Wait-ForCondition 'Sonar S1481 in the real Error List' { return @((Get-SmokeFinding)).Count -gt 0 }
     $report['finding'] = @(Get-SmokeFinding)
-    $script:lastErrors | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $ResultsDirectory 'errors-before-fix.json') -Encoding UTF8
+    ConvertTo-Json -InputObject @($script:lastErrors) -Depth 5 | Set-Content (Join-Path $ResultsDirectory 'errors-before-fix.json') -Encoding UTF8
 
     $report.phase = 'fix-file'
     $document = $dte.ActiveDocument
@@ -239,7 +239,7 @@ EndGlobal
         $clearSince.Start()
         return $clearSince.Elapsed.TotalSeconds -ge 5
     }
-    $script:lastErrors | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $ResultsDirectory 'errors-after-fix.json') -Encoding UTF8
+    ConvertTo-Json -InputObject @($script:lastErrors) -Depth 5 | Set-Content (Join-Path $ResultsDirectory 'errors-after-fix.json') -Encoding UTF8
     $report.status = 'passed'
     $report.phase = 'complete'
 }
