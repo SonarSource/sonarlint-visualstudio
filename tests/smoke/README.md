@@ -1,8 +1,8 @@
 # SLVS-3097: installed VSIX smoke feasibility
 
-Status: prototype; Windows execution is blocked by the existing runner image.
-The image has Build Tools, not the full IDE, so installed-extension feasibility
-has not yet been established.
+Status: the candidate full-IDE image can install the VSIX and launch Visual
+Studio. Diagnostic verification is blocked by the prototype's Error List
+automation access; end-to-end feasibility has not yet been established.
 
 The spike asks whether a built SonarQube VSIX can be installed into a fresh Visual
 Studio 2022 experimental profile, report an actual finding, and clear it after an
@@ -31,11 +31,11 @@ profile with the VS SDK's `CreateExpInstance` utility after investigating failur
 
 The manual `VSIX smoke feasibility (SLVS-3097)` workflow downloads a specified
 promoted build and performs three independent installations by default. The
-existing `warp-custom-sonarlint-visualstudio` runner is used. The script requires
-VS 2022, but does not pin its servicing patch. Record the reported version;
-availability of desktop automation on that agent is part of the investigation.
-Test on a developer's Windows desktop if the CI agent cannot expose a usable IDE
-automation session.
+smoke job currently uses the temporary full-IDE runner from image PR #513
+recorded below. The script requires VS 2022, but does not pin its servicing patch.
+Record the reported version; a rebuilt image PR may emit a different runner label.
+The standard `warp-custom-sonarlint-visualstudio` image still contains only Build
+Tools unless separately updated and promoted.
 
 Before the new workflow exists on the default branch, dispatch the existing
 `build.yml` workflow on the spike branch with `vsix-smoke-version` set. This calls
@@ -101,7 +101,8 @@ establish initial feasibility, not a measured flake rate.
 
 Remaining decisions: framework choice, an agent with a dependable desktop
 session, modern Error List API support if needed, profile cleanup, and supported
-VS versions. Until Windows evidence exists, the outcome remains inconclusive.
+VS versions. Until the diagnostic checks execute successfully, the outcome
+remains inconclusive.
 
 ## Windows CI evidence (27 October 2026)
 
@@ -118,6 +119,31 @@ infrastructure blocker, not evidence for or against the diagnostic API or either
 candidate framework. The next step is an image with the full VS 2022 IDE, C#
 project system, targeting pack, and usable desktop automation session, followed
 by the same three-run experiment. No release/promotion job ran in this dispatch.
+
+## Candidate full-IDE evidence (28 October 2026)
+
+[Run 40679681144](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/40679681144)
+used DEV AMI `ami-0efa0d916e52ff996` from
+[ci-ami-images PR #513](https://github.com/SonarSource/ci-ami-images/pull/513),
+through runner `warp-custom-pr-513-sonarlint-visualstudio-v20261028102646`.
+The installed IDE reports version `17.14.37824.6`.
+
+All three attempts passed prerequisites, profile initialization, VSIX installer
+exit checks, IDE launch, DTE attachment, solution opening and file opening. They
+then failed in `detect-finding` with:
+
+> The property 'ToolWindows' cannot be found on this object. Verify that the property exists.
+
+This is a harness automation-interface failure, not a failed diagnostic assertion.
+The IDE ActivityLog also records successful loading of the SonarQube extension.
+No diagnostic snapshot was obtained, and editing/clearing the finding was not
+reached. Installation and IDE automation are now demonstrated on this candidate;
+analysis output and refresh remain unverified.
+
+The next step is to fix Error List access through a suitable automation interface
+or an in-process test harness, then repeat the three-run experiment. The run's
+`slvs3097-vsix-smoke` artifact contains all three result files and IDE logs. Both
+PRs remain drafts and no production image promotion was performed by this spike.
 
 ## Validation performed on macOS
 
