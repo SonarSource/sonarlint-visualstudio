@@ -21,6 +21,7 @@
 using System.Windows.Input;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Settings;
+using SonarLint.VisualStudio.SLCore.Service.Log;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings;
 
@@ -32,6 +33,7 @@ public class GeneralOptionsDialogControlViewModelTests
     private ICommand openSettingsFileCommand;
     private IBrowserService browserService;
     private IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
+    private ISLCoreLogLevelUpdater slCoreLogLevelUpdater;
     private const string JreLocation = "C:/jrePath";
 
     [TestInitialize]
@@ -42,20 +44,21 @@ public class GeneralOptionsDialogControlViewModelTests
         browserService = Substitute.For<IBrowserService>();
         focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
         focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
-        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
+        slCoreLogLevelUpdater = Substitute.For<ISLCoreLogLevelUpdater>();
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, slCoreLogLevelUpdater, browserService, openSettingsFileCommand);
     }
 
     [TestMethod]
     public void Ctor_OpenSettingsFileCommandNull_ThrowsException()
     {
-        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, null);
+        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, slCoreLogLevelUpdater, browserService, null);
         act.Should().Throw<ArgumentNullException>(nameof(openSettingsFileCommand));
     }
 
     [TestMethod]
     public void Ctor_BrowserServiceNull_ThrowsException()
     {
-        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, null, openSettingsFileCommand);
+        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, slCoreLogLevelUpdater, null, openSettingsFileCommand);
         act.Should().Throw<ArgumentNullException>(nameof(browserService));
     }
 
@@ -101,7 +104,7 @@ public class GeneralOptionsDialogControlViewModelTests
     {
         var focusStatus = new FocusOnNewCodeStatus(expected);
         focusOnNewCodeService.Current.Returns(focusStatus);
-        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, slCoreLogLevelUpdater, browserService, openSettingsFileCommand);
         testSubject.IsFocusOnNewCodeEnabled.Should().Be(expected);
     }
 
@@ -116,6 +119,7 @@ public class GeneralOptionsDialogControlViewModelTests
         testSubject.SaveSettings();
 
         settings.Received().DaemonLogLevel = expectedLevel;
+        slCoreLogLevelUpdater.Received().UpdateLogLevel(expectedLevel);
     }
 
     [TestMethod]
@@ -189,7 +193,7 @@ public class GeneralOptionsDialogControlViewModelTests
     public void Ctor_SetsIsShowBuildErrorNotificationEnabledToValueFromSettings(bool expected)
     {
         settings.IsShowBuildErrorNotificationEnabled.Returns(expected);
-        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, slCoreLogLevelUpdater, browserService, openSettingsFileCommand);
 
         testSubject.IsShowBuildErrorNotificationEnabled.Should().Be(expected);
     }
@@ -234,7 +238,7 @@ public class GeneralOptionsDialogControlViewModelTests
     public void Ctor_SetsPragmaRuleSeverityToValueFromSettings(PragmaRuleSeverity expectedSeverity)
     {
         settings.PragmaRuleSeverity.Returns(expectedSeverity);
-        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, slCoreLogLevelUpdater, browserService, openSettingsFileCommand);
 
         testSubject.PragmaRuleSeverity.Should().Be(expectedSeverity);
     }
@@ -256,7 +260,7 @@ public class GeneralOptionsDialogControlViewModelTests
     public void Ctor_SetsUseAbsoluteFilePathsToValueFromSettings(bool expected)
     {
         settings.UseAbsoluteFilePaths.Returns(expected);
-        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, slCoreLogLevelUpdater, browserService, openSettingsFileCommand);
 
         testSubject.UseAbsoluteFilePaths.Should().Be(expected);
     }

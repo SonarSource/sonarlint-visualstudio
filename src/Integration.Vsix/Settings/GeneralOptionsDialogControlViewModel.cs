@@ -21,6 +21,7 @@
 using System.Windows.Input;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.SLCore.Service.Log;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings;
 
@@ -36,6 +37,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private bool useAbsoluteFilePaths;
     private readonly ISonarLintSettings slSettings;
     private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater;
+    private readonly ISLCoreLogLevelUpdater slCoreLogLevelUpdater;
     private readonly IBrowserService browserService;
 
     public ICommand OpenSettingsFileCommand { get; }
@@ -126,6 +128,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     public GeneralOptionsDialogControlViewModel(
         ISonarLintSettings slSettings,
         IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater,
+        ISLCoreLogLevelUpdater slCoreLogLevelUpdater,
         IBrowserService browserService,
         ICommand openSettingsFileCommand)
     {
@@ -135,6 +138,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
 
         this.slSettings = slSettings;
         this.focusOnNewCodeServiceUpdater = focusOnNewCodeServiceUpdater;
+        this.slCoreLogLevelUpdater = slCoreLogLevelUpdater ?? throw new ArgumentNullException(nameof(slCoreLogLevelUpdater));
         SelectedDaemonLogLevel = slSettings.DaemonLogLevel;
         IsActivateMoreEnabled = slSettings.IsActivateMoreEnabled;
         JreLocation = slSettings.JreLocation;
@@ -150,6 +154,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     public void SaveSettings()
     {
         slSettings.DaemonLogLevel = SelectedDaemonLogLevel;
+        slCoreLogLevelUpdater.UpdateLogLevel(SelectedDaemonLogLevel);
         slSettings.IsActivateMoreEnabled = IsActivateMoreEnabled;
         slSettings.JreLocation = JreLocation?.Trim();
         slSettings.IsShowBuildErrorNotificationEnabled = IsShowBuildErrorNotificationEnabled;

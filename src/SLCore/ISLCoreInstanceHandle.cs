@@ -21,6 +21,7 @@
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.SLCore.Service.Log;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
@@ -54,6 +55,7 @@ internal sealed class SLCoreInstanceHandle(
     ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
     ISlCoreTelemetryMigrationProvider telemetryMigrationProvider,
     IFocusOnNewCodeService focusOnNewCodeService,
+    ISonarLintSettings sonarLintSettings,
     IThreadHandling threadHandling) : ISLCoreInstanceHandle
 {
     private ISLCoreRpc? slCoreRpc;
@@ -88,7 +90,8 @@ internal sealed class SLCoreInstanceHandle(
             constantsProvider.TelemetryConstants,
             telemetryMigrationProvider.Get(),
             new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), esLintBridgeLocator.Get())),
-            automaticAnalysisEnabled: true);
+            automaticAnalysisEnabled: true,
+            SlCoreBackendLogLevel.FromDaemonLogLevel(sonarLintSettings.DaemonLogLevel));
 
         slCoreRpcManager.Initialize(initializationParams);
 
