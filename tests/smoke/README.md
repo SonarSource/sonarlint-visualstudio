@@ -10,20 +10,19 @@ edit. It runs separately from the solution's unit/backend tests and release gate
 
 ## Run on Windows
 
-Use Windows PowerShell 5.1 in an interactive desktop session, with exactly one
-full Visual Studio 2022 installation, the C# project system and .NET Framework
-4.7.2 targeting pack. Build Tools alone is insufficient. Use a trusted, signed
-candidate VSIX from an existing build; the spike does not build the product or
-alter certificate trust.
+Use Windows with exactly one full Visual Studio 2022 installation, a usable
+IDE automation session, the .NET SDK, and the .NET Framework 4.7.2 targeting pack.
+Build Tools alone is insufficient. Use a trusted, signed candidate VSIX.
 
 ```powershell
-powershell.exe -NoProfile -STA -ExecutionPolicy Bypass `
-  -File tests/smoke/Invoke-VsixSmoke.ps1 `
-  -VsixPath C:\artifacts\SonarLint.VSIX-11.1.0.17360-2022.vsix `
-  -ResultsDirectory C:\temp\slvs3097-run1
+$idePath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products Microsoft.VisualStudio.Product.Professional -property installationPath
+dotnet build tests/smoke/VsixSmoke.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
+$env:SMOKE_VSIX_PATH = 'C:\artifacts\SonarLint.VSIX-11.3.0.17474-2022.vsix'
+$env:SMOKE_RESULTS_DIRECTORY = 'C:\temp\slvs3097-run1\evidence'
+dotnet test tests/smoke/VsixSmoke.Tests.csproj -c Release --no-build --no-restore --logger trx --results-directory C:\temp\slvs3097-run1 -p:VsTargetVersion=2022
 ```
 
-The results directory must not already exist. Each invocation uses a unique
+The results directory must not already exist. Each test invocation uses a unique
 `SLVS3097...` root suffix. It never resets the normal profile or the shared `Exp`
 profile, and only terminates processes it launched. The experimental profile is
 retained for inspection. On persistent agents, remove only the recorded test
@@ -32,7 +31,7 @@ profile with the VS SDK's `CreateExpInstance` utility after investigating failur
 The manual `VSIX smoke feasibility (SLVS-3097)` workflow downloads a specified
 promoted build and performs three independent installations by default. The
 smoke job currently uses the temporary full-IDE runner from image PR #513
-recorded below. The script requires VS 2022, but does not pin its servicing patch.
+recorded below. The test requires VS 2022, but does not pin its servicing patch.
 Record the reported version; a rebuilt image PR may emit a different runner label.
 The standard `warp-custom-sonarlint-visualstudio` image still contains only Build
 Tools unless separately updated and promoted.
@@ -59,7 +58,7 @@ continue to use the normal build path. The spike does not change release gates.
    `VSIXInstaller`, checking its exit code.
 2. Launch VS 2022 and attach to that process's DTE object through the Running
    Object Table. An unrelated Visual Studio instance cannot satisfy this lookup.
-3. Open a generated C# solution and a file with an unused local variable.
+3. Open a fresh copy of the checked-in `Fixture` C# solution and a file with an unused local variable.
 4. Wait for Sonar's S1481 message about `smokeUnused` in the real Error List,
    including a matching file and line 5. The C# compiler's own
    unused-variable warning does not satisfy this message assertion.
@@ -67,7 +66,7 @@ continue to use the normal build path. The spike does not change release gates.
    five seconds. Each asynchronous phase has a bounded timeout.
 
 Evidence includes the VSIX SHA-256, VS version, unique profile suffix, failed
-phase, Error List snapshots, transcript, Sonar output-pane text and IDE/installer
+phase, Error List snapshots, TRX test results, Sonar output-pane text and IDE/installer
 logs. Snapshots are JSON arrays, including when empty. A missing finding
 is a failure, including if DTE cannot expose the modern diagnostic table. It is
 not silently treated as a skip. The assertion uses an English message because
@@ -77,13 +76,25 @@ in-process harness before adding UI automation.
 
 ## Harness decision
 
-This baseline uses the installed VSIX installer plus DTE, with a small helper
-compiled by PowerShell. The helper obtains DTE from the Running Object Table and
-reads the Error List through the typed `EnvDTE80.DTE2` interface. It references
-the interop assemblies bundled in the selected IDE's PublicAssemblies directory;
-the generic ROT object's default automation interface does not expose
-`ToolWindows` to PowerShell. It adds no NuGet dependencies and does not reference
-the product's assemblies or call its analysis backend directly.
+The scenario is an MSTest C# test in `VsixSmokeTests.cs`, with setup, polling,
+evidence capture and process cleanup in `VisualStudioSession.cs`. The existing
+`VisualStudioAutomation.cs` helper provides typed DTE2 access to the Error List
+and the Running Object Table lookup. `Fixture/Smoke.cs.txt`, `.csproj` and `.sln` are
+copied to a fresh results directory for every attempt. The `.txt` suffix marks
+the deliberately faulty source as test input; the copied file is `Smoke.cs`.
+
+`[STATestMethod]` supplies the STA thread required by COM automation, and
+`[DoNotParallelize]` isolates the scenario from other tests in this test assembly.
+MSTest 4.4.1 and Newtonsoft.Json 13.0.3 match existing repository versions; the
+NuGet lock file pins the dependency graph. Visual Studio interop is referenced
+from the selected IDE, with no reference to product implementation assemblies.
+The project stays outside the product solution so ordinary unit-test runs do
+not install an extension or launch the IDE. CI launches a separate test host
+for each repetition and retains both TRX results and the scenario evidence.
+
+The original PowerShell scenario is replaced by this C# implementation. The
+28 October results below describe the original harness, not validation of the
+C# port. Results for the port must be recorded separately after a Windows run.
 
 Candidates for a maintained suite:
 
@@ -181,14 +192,8 @@ Coverage is one standalone C# analysis scenario on Visual Studio Professional
 manual, uses the temporary DEV image, and does not change release gates. Both
 PRs remain drafts.
 
-## Validation performed on macOS
+## C# port validation (29 October 2026)
 
-- PowerShell parsed the runner and all three inline workflow scripts.
-- The ROT helper compiled successfully through `Add-Type`.
-- The generated fixture project parsed as XML and its C# source compiled.
-- Invoking the runner on macOS returned a nonzero exit with the Windows
-  prerequisite error, rather than a skipped or successful smoke result.
-- The workflow parsed as YAML.
-
-These checks do not validate VSIX installation, COM registration, Error List
-visibility, or diagnostic refresh. Those require the Windows execution above.
+Windows execution of the C# port is pending. Local compilation and workflow
+validation do not establish VSIX installation or diagnostic refresh; those must
+be verified by a new Windows smoke run.
