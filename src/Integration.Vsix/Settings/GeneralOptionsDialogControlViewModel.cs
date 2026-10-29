@@ -138,7 +138,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
 
         this.slSettings = slSettings;
         this.focusOnNewCodeServiceUpdater = focusOnNewCodeServiceUpdater;
-        this.slCoreLogLevelUpdater = slCoreLogLevelUpdater ?? throw new ArgumentNullException(nameof(slCoreLogLevelUpdater));
+        this.slCoreLogLevelUpdater = slCoreLogLevelUpdater;
         SelectedDaemonLogLevel = slSettings.DaemonLogLevel;
         IsActivateMoreEnabled = slSettings.IsActivateMoreEnabled;
         JreLocation = slSettings.JreLocation;
