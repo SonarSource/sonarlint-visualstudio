@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <RequiresSigning>false</RequiresSigning>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <VisualStudioInteropPath Condition="'$(VisualStudioInteropPath)' == ''">$(VisualStudioInstallPath)\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.Interop.dll</VisualStudioInteropPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MSTest" Version="4.4.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <Reference Include="Microsoft.VisualStudio.Interop" HintPath="$(VisualStudioInteropPath)" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Compile Remove="Fixture/**/*.cs" />
+    <None Include="Fixture/**/*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="CheckVisualStudioInterop" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(VisualStudioInteropPath)')" Text="Set VisualStudioInstallPath to the full Visual Studio installation." />
+  </Target>
+</Project>

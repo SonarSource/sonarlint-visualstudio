@@ -1,0 +1,13 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smoke", "Smoke.csproj", "{657836E3-1079-4BFB-BA79-974702074374}"
+EndProject
+Global
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|Any CPU = Debug|Any CPU
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {657836E3-1079-4BFB-BA79-974702074374}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
+        {657836E3-1079-4BFB-BA79-974702074374}.Debug|Any CPU.Build.0 = Debug|AnyCPU
+    EndGlobalSection
+EndGlobal
