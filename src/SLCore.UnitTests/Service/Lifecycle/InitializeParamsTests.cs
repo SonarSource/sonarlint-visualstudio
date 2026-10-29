@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
+using SonarLint.VisualStudio.SLCore.Service.Log;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Lifecycle;
@@ -68,7 +69,8 @@ public class InitializeParamsTests
             new TelemetryClientConstantAttributesDto("TESTkey", "TESTname", "TESTversion", "TESTde", new Dictionary<string, object> { { "telemetryObj", new { field = 10 } } }),
             new TelemetryMigrationDto(true, new DateTimeOffset(2024, 07, 30, 14, 46, 28, TimeSpan.FromHours(1)), 123),
             new LanguageSpecificRequirements(new JsTsRequirementsDto("node", "bundlePath")),
-            automaticAnalysisEnabled: true
+            automaticAnalysisEnabled: true,
+            logLevel: SlCoreBackendLogLevel.Info
         );
 
         const string expectedString = """
@@ -166,9 +168,9 @@ public class InitializeParamsTests
                                           }
                                         },
                                         "automaticAnalysisEnabled": true,
-                                        "logLevel": "DEBUG"
+                                        "logLevel": "INFO"
                                       }
-                                      """; // todo: SLVS-2625 Provide logging level to SLCore to avoid client-side filtering
+                                      """;
 
         var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
 
