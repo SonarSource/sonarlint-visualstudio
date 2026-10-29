@@ -93,8 +93,8 @@ not install an extension or launch the IDE. CI launches a separate test host
 for each repetition and retains both TRX results and the scenario evidence.
 
 The original PowerShell scenario is replaced by this C# implementation. The
-28 October results below describe the original harness, not validation of the
-C# port. Results for the port must be recorded separately after a Windows run.
+28 October results below describe the original harness. The separately verified
+C# port results are recorded at the end of this document.
 
 Candidates for a maintained suite:
 
@@ -192,8 +192,31 @@ Coverage is one standalone C# analysis scenario on Visual Studio Professional
 manual, uses the temporary DEV image, and does not change release gates. Both
 PRs remain drafts.
 
-## C# port validation (29 October 2026)
+## Verified C# MSTest port (29 October 2026)
 
-Windows execution of the C# port is pending. Local compilation and workflow
-validation do not establish VSIX installation or diagnostic refresh; those must
-be verified by a new Windows smoke run.
+The PowerShell scenario was replaced in separate commit
+`cced2d7c736537a3f5323e5487173752d2b7b3f1`.
+[Run 40863247579](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/40863247579)
+passed all three attempts against VSIX `11.3.0.17474` on the same DEV candidate
+runner and VS `17.14.37824.6`. The Windows C# build completed without warnings
+or errors. Downloaded TRX reports each confirm one executed, passing test and
+zero skipped/not-executed tests.
+
+| Attempt | Matching finding before / after | Saved edit verified | Scenario duration |
+| --- | --- | --- | --- |
+| 1 | 1 / 0 | Yes | 137.6 seconds |
+| 2 | 1 / 0 | Yes | 84.3 seconds |
+| 3 | 1 / 0 | Yes | 84.0 seconds |
+
+Each profile suffix was distinct. Every retained `result.json` reports `passed`
+and `complete`; the before/after snapshots and exact saved source were checked
+independently. The VSIX SHA-256 matches the earlier PowerShell experiment.
+The `slvs3097-vsix-smoke` artifact includes TRX reports, JSON snapshots, the edited
+fixture and installation/IDE logs.
+
+Local checks include a successful C# build with .NET Framework reference
+assemblies, actionlint, secrets scanning and dependency checks. Vortex DEEP
+analysis reports no findings in the C# project, fixture or documentation. Its
+workflow analysis reports `[PARSE_ERROR] Error while parsing the file` and
+`[INVALID_CONTEXT] Analysis quality is low because of missing information. Please ensure you have a recent CI analysis of your project.`
+Actionlint accepts that workflow with the custom runner label configured.
