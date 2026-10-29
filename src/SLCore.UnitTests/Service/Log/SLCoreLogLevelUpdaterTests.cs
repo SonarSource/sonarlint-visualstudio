@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Log;
 
@@ -29,6 +31,7 @@ public class SLCoreLogLevelUpdaterTests
 {
     private ISLCoreServiceProvider serviceProvider;
     private IThreadHandling threadHandling;
+    private ILogger logger;
     private ILogSLCoreService logService;
     private SLCoreLogLevelUpdater testSubject;
 
@@ -37,6 +40,7 @@ public class SLCoreLogLevelUpdaterTests
     {
         serviceProvider = Substitute.For<ISLCoreServiceProvider>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        logger = Substitute.For<ILogger>();
         logService = Substitute.For<ILogSLCoreService>();
         serviceProvider.TryGetTransientService(out Arg.Any<ILogSLCoreService>()!)
             .Returns(info =>
@@ -44,7 +48,7 @@ public class SLCoreLogLevelUpdaterTests
                 info[0] = logService;
                 return true;
             });
-        testSubject = new SLCoreLogLevelUpdater(serviceProvider, threadHandling);
+        testSubject = new SLCoreLogLevelUpdater(serviceProvider, threadHandling, logger);
     }
 
     [TestMethod]
@@ -64,5 +68,16 @@ public class SLCoreLogLevelUpdaterTests
         testSubject.UpdateLogLevel(DaemonLogLevel.Verbose);
 
         logService.Received(1).SetLogLevel(Arg.Is<SetLogLevelParams>(p => p.newLevel == SlCoreBackendLogLevel.Debug));
+    }
+
+    [TestMethod]
+    public void UpdateLogLevel_RpcThrows_DoesNotPropagate()
+    {
+        logService.When(x => x.SetLogLevel(Arg.Any<SetLogLevelParams>())).Throw(new InvalidOperationException("rpc lost"));
+
+        Action act = () => testSubject.UpdateLogLevel(DaemonLogLevel.Info);
+
+        act.Should().NotThrow();
+        logger.Received(1).WriteLine(Arg.Is<string>(s => s.Contains("rpc lost")));
     }
 }

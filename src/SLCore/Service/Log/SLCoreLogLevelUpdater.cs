@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
@@ -28,19 +29,27 @@ namespace SonarLint.VisualStudio.SLCore.Service.Log;
 [Export(typeof(ISLCoreLogLevelUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal sealed class SLCoreLogLevelUpdater(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling) : ISLCoreLogLevelUpdater
+internal sealed class SLCoreLogLevelUpdater(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger) : ISLCoreLogLevelUpdater
 {
     public void UpdateLogLevel(DaemonLogLevel daemonLogLevel)
     {
         threadHandling.Run(async () =>
         {
-            await threadHandling.SwitchToBackgroundThread();
-            if (!serviceProvider.TryGetTransientService(out ILogSLCoreService? logService))
+            try
             {
-                return 0;
+                await threadHandling.SwitchToBackgroundThread();
+                if (!serviceProvider.TryGetTransientService(out ILogSLCoreService? logService))
+                {
+                    return 0;
+                }
+
+                logService.SetLogLevel(new SetLogLevelParams(SlCoreBackendLogLevel.FromDaemonLogLevel(daemonLogLevel)));
+            }
+            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+            {
+                logger.WriteLine(e.ToString());
             }
 
-            logService.SetLogLevel(new SetLogLevelParams(SlCoreBackendLogLevel.FromDaemonLogLevel(daemonLogLevel)));
             return 0;
         });
     }
