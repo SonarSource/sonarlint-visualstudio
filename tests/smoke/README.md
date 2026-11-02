@@ -269,3 +269,43 @@ The fresh Wiz report still fails policy with five critical findings in DigiCert'
 `bcprov-jdk18on-1.77.jar`, down from 23. The supported vendor MSI refresh leaves
 this jar installed; no supported fix is verified. Do not treat functional build
 success as security clearance or replace the jar manually.
+
+## Verified VS 18 result (2 November 2026)
+
+[Run 41454767827](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41454767827)
+passed all three canonical attempts at runtime commit
+`52e92dfc84bbcbf0c3737cd901e4c7538b7271c0`, using the single full VS Professional
+18.11.12328.437 DEV image and promoted VSIX 11.3.0.17474. Each downloaded TRX
+confirms one executed, passing `InstalledExtension_DetectsIssue_AndClearsItAfterFix`
+test, with no skipped/not-executed test. Each `result.json` reports passed/complete.
+The retained before/after snapshots, saved fixture and package hash were checked
+independently for the three `run-N/evidence` directories; duplicate TRX attachments
+were not counted as additional attempts.
+
+| Attempt | Profile | Finding before / after | Saved edit | Duration |
+| --- | --- | --- | --- | --- |
+| 1 | `SLVS3097ea244faa` | 1 / 0 | Verified | 133.2s |
+| 2 | `SLVS3097875717a6` | 1 / 0 | Verified | 78.7s |
+| 3 | `SLVS3097c9f31904` | 1 / 0 | Verified | 78.0s |
+
+The VSIX SHA-256 is
+`23FD04E3109F6BF6A050B94A0B663E02AF5079249FB849A25A77DD6BF371D894`.
+[Retained evidence](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41454767827/artifacts/13146667740)
+includes installer/configuration logs, ActivityLogs, TRX results, the actual VSIX
+manifest, result JSON, Error List snapshots and edited fixtures.
+
+All three results record session ID 0 and `userInteractive=false`. This establishes
+that the DTE scenario worked in that environment; it does not establish support
+for foreground interaction, visible rendering or screenshot-based UI tests.
+The prior focused pass is
+[run 41452193318](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41452193318).
+The normal candidate build also passed in
+[run 41448865200](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41448865200):
+6,816 total tests, 6,801 passed, 15 skipped.
+
+Functional feasibility is verified; release readiness is still pending. Wiz
+continues to report five critical Bouncy Castle findings in the DigiCert tools.
+A supported vendor update or reviewed security decision, approved IDE licensing,
+and replacement of both temporary PR runner references with the approved stable
+runner remain prerequisites before production rollout. Both PRs remain drafts;
+no image or product build was promoted to production by this validation.
