@@ -238,3 +238,34 @@ validation. The promoted package's filename still ends in `2022.vsix`; that
 repository manifest permits both VS 17 and VS 18. The supplied promoted
 package must still pass installation on VS 18 before claiming coverage; do not
 invent a separate 2026 artifact name.
+
+## VS 18 candidate execution (2 November 2026)
+
+The single-installation image built at image PR revision
+`452e63663bbd8933079ee763e56fddad07d2cf85` in
+[run 41438626001](https://github.com/SonarSource/ci-ami-images/actions/runs/41438626001).
+Its emitted DEV runner is
+`warp-custom-pr-513-sonarlint-visualstudio-v20261102114059`.
+The normal product build and tests passed on this runner in
+[run 41448865200](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41448865200)
+at product revision `920c6263a54112790a4b7192364174b2b382637c`.
+
+The first VS 18 smoke experiment,
+[run 41448886645](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41448886645),
+failed all three attempts before any diagnostic assertion. All installed VSIX
+11.3.0.17474 into distinct profiles on VS 18.11.12328.437. Two timed out opening
+the sample file with `RPC_E_CALL_REJECTED`; the third IDE exited during startup.
+Activity logs include package-loading errors and an extension-triggered restart.
+These results do not establish VS 18 analysis coverage.
+
+The follow-up adds Microsoft's integration-harness preparation sequence after
+VSIX installation: clear the extension cache, update configuration and reset the
+experimental profile before launching the IDE. It retains the supplied VSIX
+manifest and records the test host's session ID and interactive status for
+diagnosis. Assertions and signed VSIX contents are unchanged. A focused Windows
+retry is required before repeating the three-attempt experiment.
+
+The fresh Wiz report still fails policy with five critical findings in DigiCert's
+`bcprov-jdk18on-1.77.jar`, down from 23. The supported vendor MSI refresh leaves
+this jar installed; no supported fix is verified. Do not treat functional build
+success as security clearance or replace the jar manually.

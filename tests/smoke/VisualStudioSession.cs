@@ -63,6 +63,12 @@ namespace SonarLint.VisualStudio.Smoke
             }
             Directory.CreateDirectory(this.resultsDirectory);
             report["rootSuffix"] = rootSuffix;
+            using (var currentProcess = Process.GetCurrentProcess())
+            {
+                report["sessionId"] = currentProcess.SessionId;
+            }
+            report["userInteractive"] = Environment.UserInteractive;
+            report["sessionName"] = Environment.GetEnvironmentVariable("SESSIONNAME");
         }
 
         public void InstallAndLaunch()
@@ -97,6 +103,7 @@ namespace SonarLint.VisualStudio.Smoke
                     throw new InvalidDataException("The VSIX is not SonarQube for Visual Studio.");
                 }
                 report["vsixVersion"] = identity.Attributes["Version"].Value;
+                File.WriteAllText(Path.Combine(resultsDirectory, "extension.vsixmanifest"), manifest.OuterXml);
             }
 
             var vswhere = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft Visual Studio", "Installer", "vswhere.exe");
@@ -125,6 +132,13 @@ namespace SonarLint.VisualStudio.Smoke
             Phase("install-vsix");
             RunProcess(Path.Combine(ideDirectory, "VSIXInstaller.exe"),
                 $"/quiet /instanceIds:{instance.InstanceId} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(resultsDirectory, "vsix-installer.log"))} {Quote(vsixPath)}", "vsix-process.log");
+
+            // Match Microsoft's integration harness: rebuild extension caches and
+            // configuration before launching a newly installed experimental profile.
+            Phase("configure-vsix");
+            RunProcess(devenv, $"/ClearCache /RootSuffix {rootSuffix}", "clear-cache.log");
+            RunProcess(devenv, $"/UpdateConfiguration /RootSuffix {rootSuffix}", "update-configuration.log");
+            RunProcess(devenv, $"/RootSuffix {rootSuffix} /ResetSettings {Quote(Path.Combine(ideDirectory, "Profiles", "General.vssettings"))} /Command File.Exit /NoSplash /LCID 1033", "post-install-profile.log");
 
             Phase("launch-ide");
             ideProcess = Process.Start(new ProcessStartInfo(devenv,
