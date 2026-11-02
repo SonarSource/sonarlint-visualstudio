@@ -5,12 +5,12 @@ Three fresh profiles installed the VSIX, detected the expected Sonar finding,
 and cleared it after editing and saving the file. Evidence is linked below.
 
 The spike asks whether a built SonarQube VSIX can be installed into a fresh Visual
-Studio 2022 experimental profile, report an actual finding, and clear it after an
+Studio experimental profile, report an actual finding, and clear it after an
 edit. It runs separately from the solution's unit/backend tests and release gates.
 
 ## Run on Windows
 
-Use Windows with exactly one full Visual Studio 2022 installation, a usable
+Use Windows with exactly one full Visual Studio 2022 or 2026 installation, a usable
 IDE automation session, the .NET SDK, and the .NET Framework 4.7.2 targeting pack.
 Build Tools alone is insufficient. Use a trusted, signed candidate VSIX.
 
@@ -31,7 +31,7 @@ profile with the VS SDK's `CreateExpInstance` utility after investigating failur
 The manual `VSIX smoke feasibility (SLVS-3097)` workflow downloads a specified
 promoted build and performs three independent installations by default. The
 smoke job currently uses the temporary full-IDE runner from image PR #513
-recorded below. The test requires VS 2022, but does not pin its servicing patch.
+recorded below. The test supports VS 2022 and VS 2026, but does not pin its servicing patch.
 Record the reported version; a rebuilt image PR may emit a different runner label.
 The standard `warp-custom-sonarlint-visualstudio` image still contains only Build
 Tools unless separately updated and promoted.
@@ -56,7 +56,7 @@ continue to use the normal build path. The spike does not change release gates.
 
 1. Initialize an isolated profile, then install the exact supplied VSIX through
    `VSIXInstaller`, checking its exit code.
-2. Launch VS 2022 and attach to that process's DTE object through the Running
+2. Launch Visual Studio and attach to that process's DTE object through the Running
    Object Table. An unrelated Visual Studio instance cannot satisfy this lookup.
 3. Open a fresh copy of the checked-in `Fixture` C# solution and a file with an unused local variable.
 4. Wait for Sonar's S1481 message about `smokeUnused` in the real Error List,
@@ -220,3 +220,21 @@ analysis reports no findings in the C# project, fixture or documentation. Its
 workflow analysis reports `[PARSE_ERROR] Error while parsing the file` and
 `[INVALID_CONTEXT] Analysis quality is low because of missing information. Please ensure you have a recent CI analysis of your project.`
 Actionlint accepts that workflow with the custom runner label configured.
+
+## Unified VS 2026 candidate (2 November 2026)
+
+Image PR #513 now targets a single full Visual Studio Professional 2026 18.11.3
+installation, including managed desktop, C++, Windows application and VS
+extension build components. The separate VS 2022 Build Tools/IDE installations
+are being replaced. The image discovers MSBuild and VSTest paths with `vswhere`;
+the normal Build workflow similarly discovers the installed C++ compiler instead
+of requiring the old Build Tools directory and MSVC 14.40.
+
+The smoke harness accepts VS 17 or 18 and attaches to either version's DTE
+moniker using the launched process ID. The smoke workflow's compile-time IDE
+discovery accepts both versions too. Existing VS 2022 results remain historical
+evidence; the single VS 18 image requires fresh normal-build, smoke and Wiz
+validation. The promoted package's filename still ends in `2022.vsix`; that
+repository manifest permits both VS 17 and VS 18. The supplied promoted
+package must still pass installation on VS 18 before claiming coverage; do not
+invent a separate 2026 artifact name.

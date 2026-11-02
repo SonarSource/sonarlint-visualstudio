@@ -196,10 +196,21 @@ jobs:
           gpg --pinentry-mode loopback --passphrase "${SIGN_PASSPHRASE}" --armor --detach-sig --default-key infra@sonarsource.com "$sbomname"
           echo "signed $sbomname"
 
+      - name: Discover C++ compiler
+        shell: powershell
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $installPath = & $vswhere -latest -products '*' -version '[17.0,19.0)' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if ($LASTEXITCODE -ne 0 -or -not $installPath) { throw 'Visual Studio C++ tools not found.' }
+          $toolsets = @(Get-ChildItem -LiteralPath (Join-Path $installPath 'VC/Tools/MSVC') -Directory | Sort-Object { [version] $_.Name } -Descending)
+          if ($toolsets.Count -eq 0) { throw 'No MSVC toolset found.' }
+          $compiler = Join-Path $toolsets[0].FullName 'bin/Hostx64/x64/cl.exe'
+          if (-not (Test-Path -LiteralPath $compiler)) { throw "C++ compiler missing: $compiler" }
+          "MSVC=$compiler" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Test with Coverage
         shell: bash
         env:
-          MSVC: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe # Required for CFamily integration tests
           VSTEST_TESTHOST_SHUTDOWN_TIMEOUT: 30000
         run: |
           vstest.console.exe --EnableCodeCoverage --Settings:test.runsettings --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll

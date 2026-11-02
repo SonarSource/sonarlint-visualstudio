@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Smoke
         {
             if (Environment.OSVersion.Platform != PlatformID.Win32NT)
             {
-                throw new PlatformNotSupportedException("Requires Windows and full Visual Studio 2022.");
+                throw new PlatformNotSupportedException("Requires Windows and full Visual Studio 2022 or 2026.");
             }
             if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
             {
@@ -103,11 +103,12 @@ namespace SonarLint.VisualStudio.Smoke
             var inventory = RunProcess(vswhere, "-all -products * -format json", "vswhere.log");
             File.WriteAllText(Path.Combine(resultsDirectory, "visual-studio-inventory.json"), inventory);
             var instances = JsonConvert.DeserializeObject<Installation[]>(inventory)
-                .Where(x => x.InstallationVersion.StartsWith("17.", StringComparison.Ordinal)
+                .Where(x => (x.InstallationVersion.StartsWith("17.", StringComparison.Ordinal)
+                        || x.InstallationVersion.StartsWith("18.", StringComparison.Ordinal))
                     && File.Exists(Path.Combine(x.InstallationPath, "Common7", "IDE", "devenv.exe"))).ToArray();
             if (instances.Length != 1)
             {
-                throw new InvalidOperationException($"Expected exactly one full Visual Studio 2022 IDE; found {instances.Length}.");
+                throw new InvalidOperationException($"Expected exactly one full Visual Studio 2022 or 2026 IDE; found {instances.Length}.");
             }
             var instance = instances[0];
             var ideDirectory = Path.Combine(instance.InstallationPath, "Common7", "IDE");

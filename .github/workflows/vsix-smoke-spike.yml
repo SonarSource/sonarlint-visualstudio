@@ -73,7 +73,7 @@ jobs:
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
         run: |
           $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
-          $idePath = & $vswhere -latest -products Microsoft.VisualStudio.Product.Professional -version '[17.0,18.0)' -property installationPath
+          $idePath = & $vswhere -latest -products Microsoft.VisualStudio.Product.Professional -version '[17.0,19.0)' -property installationPath
           if ($LASTEXITCODE -ne 0 -or -not $idePath) { throw 'Full Visual Studio not found.' }
           dotnet build tests/smoke/VsixSmoke.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
           if ($LASTEXITCODE -ne 0) { throw 'C# smoke-test build failed.' }
