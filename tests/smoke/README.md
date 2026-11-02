@@ -140,6 +140,31 @@ ran; no scenario `result.json` was produced. This is not an issue-detection
 failure or a successful end-to-end result.
 
 The retained artifact contains all three TRX reports and VSIX installation logs.
-A focused follow-up captures the runner's session ID, interactive-state flag and
-Explorer session IDs to establish whether the agent has an interactive desktop.
+The focused follow-up below establishes the runner's actual session mode.
 No image changes or foreground-check bypass are introduced by this diagnostic.
+
+## Confirmed external runner prerequisite
+
+[Focused run 41448020672](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41448020672)
+failed with the same foreground-window error before the scenario. Its retained
+`desktop-session.json` records:
+
+```json
+{
+  "sessionId": 0,
+  "userInteractive": false,
+  "sessionName": null,
+  "explorerSessionIds": []
+}
+```
+
+The job therefore executes in non-interactive Session 0. The pinned Roslyn
+framework requires foreground activation before invoking the test; this runner
+cannot satisfy that prerequisite. Installing Visual Studio and the VSIXs is
+successful, but the issue/fix scenario remains unverified with this framework.
+
+The next step belongs to the runner/image owner: provide a DEV agent executing
+in a usable interactive, unlocked desktop session, then rerun the same test.
+This PR does not configure autologon, store credentials, change desktop policy,
+patch the framework or bypass its foreground check. The image PR is owned by a
+separate agent. Polling has stopped until that external prerequisite changes.
