@@ -110,8 +110,10 @@ CI requires one passing result for the actual scenario plus complete evidence
 matching that attempt's profile and package hash. Missing/skipped tests and
 framework failures cannot produce a successful smoke result.
 
-Windows execution is pending a VS 18 DEV runner supplied by the image owner.
-Existing results from the custom harness do not validate this implementation.
+Windows execution was attempted on the VS 18 DEV runner. The first three
+attempts failed during framework setup, before the scenario body; see the
+verified result below. Existing custom-harness results do not validate this
+implementation.
 
 Local validation: the project compiles with zero warnings/errors against a
 verified VS 18 interop reference and .NET Framework reference assemblies. Locked
@@ -121,3 +123,23 @@ locked restore using the committed configuration succeeds from that verified
 cache. Clean Windows restore through Repox still needs CI validation. NuGet's
 transitive advisory check reported no vulnerable packages in its current data.
 Actionlint and PowerShell parsing pass; using the shared `Exp` suffix is rejected.
+
+## First Windows result (2 November 2026)
+
+[Run 41446071797](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41446071797)
+ran three fresh-profile attempts at `4ab828a7cb4454d6de1e5c334a75b8f63b983f24`
+on DEV runner `warp-custom-pr-513-sonarlint-visualstudio-v20261102114059`
+(AMI `ami-034391bc20272617f`). Windows restore and compilation passed. Installer
+logs confirm successful installation of both SonarQube VSIX 11.3.0.17474 and
+Microsoft's integration-service VSIX into Visual Studio 18.11.12328.437.
+
+All three TRX reports fail with `Failed to set the foreground window.` The
+pinned framework calls `VisualStudio_InProc.ActivateMainWindow()` before invoking
+the test method. The sample was not opened and neither diagnostic assertion
+ran; no scenario `result.json` was produced. This is not an issue-detection
+failure or a successful end-to-end result.
+
+The retained artifact contains all three TRX reports and VSIX installation logs.
+A focused follow-up captures the runner's session ID, interactive-state flag and
+Explorer session IDs to establish whether the agent has an interactive desktop.
+No image changes or foreground-check bypass are introduced by this diagnostic.

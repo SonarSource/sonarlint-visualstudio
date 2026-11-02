@@ -90,6 +90,20 @@ jobs:
           $url = "$($env:ARTIFACTORY_URL.TrimEnd('/'))/sonarsource-public-builds/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/${env:PROJECT_VERSION}/$name"
           Invoke-WebRequest -UseBasicParsing -TimeoutSec 180 -Uri $url -Headers @{ Authorization = "Basic $authorization" } -OutFile (Join-Path $env:RUNNER_TEMP 'candidate.vsix')
 
+      - name: Capture runner desktop context
+        shell: powershell
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'slvs3097'
+          $null = New-Item -ItemType Directory -Path $root -Force
+          $context = [pscustomobject]@{
+            sessionId = (Get-Process -Id $PID).SessionId
+            userInteractive = [Environment]::UserInteractive
+            sessionName = $env:SESSIONNAME
+            explorerSessionIds = @(Get-Process -Name explorer -ErrorAction SilentlyContinue | Select-Object -ExpandProperty SessionId)
+          }
+          $context | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath (Join-Path $root 'desktop-session.json') -Encoding UTF8
+          $context | ConvertTo-Json -Depth 3 | Write-Host
+
       - name: Restore signed test dependencies
         shell: powershell
         working-directory: tests/smoke
