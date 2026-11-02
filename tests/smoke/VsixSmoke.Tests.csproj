@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <RequiresSigning>false</RequiresSigning>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <SmokeRootSuffix Condition="'$(SmokeRootSuffix)' == ''">SLVS3097Roslyn</SmokeRootSuffix>
+    <VisualStudioInteropPath Condition="'$(VisualStudioInteropPath)' == ''">$(VisualStudioInstallPath)\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.Interop.dll</VisualStudioInteropPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="5.14.0-1.26551.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- The harness assembly references 10.0.0.10; its package omits this dependency. -->
+    <PackageReference Include="System.Collections.Immutable" Version="10.0.10" />
+    <Reference Include="Microsoft.VisualStudio.Interop" HintPath="$(VisualStudioInteropPath)" Aliases="VSInterop" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Runtime;System.Collections;System.Collections.Concurrent;System.ObjectModel">
+      <HintPath Condition="Exists('$(FrameworkPathOverride)/Facades/%(Identity).dll')">$(FrameworkPathOverride)/Facades/%(Identity).dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Compile Remove="Fixture/**/*.cs" />
+    <None Include="Fixture/**/*" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(SmokeVsixPath)" Link="candidate.vsix" CopyToOutputDirectory="Always" Condition="'$(SmokeVsixPath)' != ''" />
+  </ItemGroup>
+  <Target Name="CheckSmokeInputs" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(VisualStudioInteropPath)')" Text="Set VisualStudioInstallPath to the full Visual Studio installation." />
+    <Error Condition="'$(SmokeVsixPath)' != '' AND !Exists('$(SmokeVsixPath)')" Text="SmokeVsixPath must identify the built VSIX to deploy." />
+    <Error Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$(SmokeRootSuffix)', '^SLVS3097[A-Za-z0-9]+$'))" Text="SmokeRootSuffix must start with SLVS3097 and contain only letters/digits." />
+  </Target>
+  <Target Name="GenerateSmokeConfiguration" BeforeTargets="CoreCompile">
+    <WriteLinesToFile File="$(IntermediateOutputPath)SmokeConfiguration.g.cs"
+      Lines="namespace SonarLint.VisualStudio.Smoke { internal static class SmokeConfiguration { internal const string RootSuffix = &quot;$(SmokeRootSuffix)&quot;%3B } }"
+      Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)SmokeConfiguration.g.cs" />
+    </ItemGroup>
+  </Target>
+</Project>

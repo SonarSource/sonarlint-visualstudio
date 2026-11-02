@@ -1,0 +1,6 @@
+<RunSettings>
+  <RunConfiguration>
+    <TargetPlatform>x64</TargetPlatform>
+    <TestSessionTimeout>600000</TestSessionTimeout>
+  </RunConfiguration>
+</RunSettings>
