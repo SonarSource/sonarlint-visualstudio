@@ -134,14 +134,20 @@ jobs:
             $env:XUNIT_LOGS = Join-Path $results 'harness'
             dotnet build VsixSmoke.Tests.csproj -c Release --no-restore -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" "-p:SmokeVsixPath=$candidate" "-p:SmokeRootSuffix=$suffix"
             if ($LASTEXITCODE -ne 0) { throw 'Smoke-test compilation failed.' }
-            dotnet test VsixSmoke.Tests.csproj -c Release --no-build --no-restore --settings test.runsettings --filter 'FullyQualifiedName~InstalledExtension_DetectsIssue_AndClearsItAfterFix' --logger 'trx;LogFileName=smoke.trx' --results-directory $results -p:VsTargetVersion=2022
-            $failed = $LASTEXITCODE -ne 0
+            $bin = Join-Path (Get-Location).Path 'bin/Release/net48'
+            $settings = Join-Path (Get-Location).Path 'test.runsettings'
+            $execution = & 'C:\sonar-ci\interactive-desktop\Invoke-InteractiveProcess.ps1' `
+              -FilePath (Get-Command dotnet.exe).Source `
+              -ArgumentList @('vstest', (Join-Path $bin 'VsixSmoke.Tests.dll'), "--Settings:$settings", "--TestAdapterPath:$bin", '--TestCaseFilter:FullyQualifiedName~InstalledExtension_DetectsIssue_AndClearsItAfterFix', '--Logger:trx;LogFileName=smoke.trx', "--ResultsDirectory:$results") `
+              -WorkingDirectory (Get-Location).Path -ResultsDirectory $results `
+              -EnvironmentVariables @{ SMOKE_RESULTS_DIRECTORY = $env:SMOKE_RESULTS_DIRECTORY; XUNIT_LOGS = $env:XUNIT_LOGS; VSInstallDir = $idePath }
+            $failed = $execution.exitCode -ne 0
             try {
               [xml]$trx = Get-Content -LiteralPath (Join-Path $results 'smoke.trx') -Raw -ErrorAction Stop
               $cases = @($trx.SelectNodes("//*[local-name()='UnitTestResult' and contains(@testName, 'InstalledExtension_DetectsIssue_AndClearsItAfterFix')]"))
               if ($cases.Count -ne 1 -or $cases[0].outcome -ne 'Passed') { throw 'The actual smoke scenario must execute and pass; skipped/missing cases fail.' }
               $report = Get-Content -LiteralPath (Join-Path $env:SMOKE_RESULTS_DIRECTORY 'result.json') -Raw -ErrorAction Stop | ConvertFrom-Json
-              if ($report.status -ne 'passed' -or $report.phase -ne 'complete' -or $report.rootSuffix -ne $suffix -or $report.vsixSha256 -ne $candidateHash) { throw 'Missing or inconsistent smoke evidence.' }
+              if ($report.status -ne 'passed' -or $report.phase -ne 'complete' -or $report.rootSuffix -ne $suffix -or $report.vsixSha256 -ne $candidateHash -or $report.ideSessionId -eq 0 -or -not $report.userInteractive) { throw 'Missing or inconsistent smoke evidence.' }
             }
             catch { Write-Warning $_.Exception.Message; $failed = $true }
             if ($failed) { $failedRuns += $iteration }

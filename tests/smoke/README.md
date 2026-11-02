@@ -163,8 +163,25 @@ framework requires foreground activation before invoking the test; this runner
 cannot satisfy that prerequisite. Installing Visual Studio and the VSIXs is
 successful, but the issue/fix scenario remains unverified with this framework.
 
-The next step belongs to the runner/image owner: provide a DEV agent executing
-in a usable interactive, unlocked desktop session, then rerun the same test.
-This PR does not configure autologon, store credentials, change desktop policy,
-patch the framework or bypass its foreground check. The image PR is owned by a
-separate agent. Polling has stopped until that external prerequisite changes.
+This established the missing host prerequisite. The interactive desktop
+candidate below addresses it without patching the framework or bypassing its
+foreground check.
+
+## Interactive desktop candidate
+
+Image PR #513 now provisions a dedicated per-VM standard desktop user and an
+interactive-process helper. WarpBuild's control runner remains in Session 0;
+restore and compilation continue there. The workflow launches only the compiled
+test DLL, through `dotnet vstest`, in the desktop user's interactive token. This
+avoids giving that user access to restore credentials or another user's package
+cache. Only the explicit scenario paths and VS installation path are passed.
+
+The workflow retains per-attempt `interactive-result.json`/`interactive-output.log`
+alongside scenario evidence. The test now asserts a nonzero IDE session and
+`Environment.UserInteractive`, and records those values in `result.json`.
+The root `desktop-session.json` describes the control runner, so Session 0 there
+is expected; the worker/IDE evidence must demonstrate the interactive session.
+
+This candidate is not a native pass yet. Use only the exact new DEV label after
+the image's required interactive-desktop probe passes, then rerun three fresh
+profiles. Do not use the older Session 0-only candidate or accept skipped cases.

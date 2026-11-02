@@ -45,6 +45,8 @@ namespace SonarLint.VisualStudio.Smoke
             // Fail if the custom framework did not actually execute inside the IDE.
             using var process = Process.GetCurrentProcess();
             Assert.Equal("devenv", process.ProcessName);
+            Assert.NotEqual(0, process.SessionId);
+            Assert.True(Environment.UserInteractive);
             Assert.NotNull(Application.Current);
             Assert.True(Application.Current.Dispatcher.CheckAccess());
             Assert.Equal(SmokeConfiguration.RootSuffix, Environment.GetEnvironmentVariable("VSROOTSUFFIX"));

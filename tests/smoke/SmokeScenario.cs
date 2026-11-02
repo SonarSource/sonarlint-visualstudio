@@ -75,6 +75,8 @@ namespace SonarLint.VisualStudio.Smoke
             using (var process = Process.GetCurrentProcess())
             {
                 report["ideProcessId"] = process.Id;
+                report["ideSessionId"] = process.SessionId;
+                report["userInteractive"] = Environment.UserInteractive;
                 report["visualStudioVersion"] = FileVersionInfo.GetVersionInfo(process.MainModule.FileName).ProductVersion;
             }
             var vsixPath = Path.Combine(assemblyDirectory, "candidate.vsix");
