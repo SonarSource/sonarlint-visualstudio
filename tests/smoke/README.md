@@ -42,7 +42,10 @@ The default is three fresh profiles per target (six attempts overall). Use
 `vsix-smoke-repetitions=1` for focused validation of both targets. Matrix jobs run
 independently with fail-fast disabled, so a failure on one version does not cancel
 the other. An empty smoke-version input runs the normal build instead. Ordinary
-push/PR builds do not automatically execute the smoke scenario.
+push/PR builds do not automatically execute the smoke scenario. Only the normal
+PR #6854 build selects the DEV candidate for toolchain validation; all other
+normal builds, including master/release builds after merge, retain the stable
+`warp-custom-sonarlint-visualstudio` runner.
 
 Artifacts are named `slvs3097-vsix-smoke-earliest-vs2022-17.0` and
 `slvs3097-vsix-smoke-latest-vs18`. Each contains per-attempt TRX reports, result JSON,
@@ -89,6 +92,29 @@ dotnet test tests/smoke/VsixSmoke.Tests.csproj -c Release --no-build --no-restor
 The harness creates a unique `SLVS3097...` suffix and only terminates its launched
 IDE process. It never resets the normal/shared Exp profile. Profiles remain for
 failure inspection; persistent agents need scoped cleanup after investigation.
+
+## Dependency-clean image validation (3 November 2026)
+
+[Matrix 41643881110](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41643881110)
+passed six independently verified tests (three per IDE) at `6b0c7afb6`.
+Each canonical attempt passed the exact version/package/experimental-profile
+manifest checks, detected the target finding, saved the exact edit and observed
+its disappearance, with one executed passing test and no skips per TRX.
+[Normal build 41643887843](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41643887843)
+also passed: 6,801 passed and 15 skipped out of 6,816 tests.
+
+These images remove unused DigiCert tools and replace SDK 8.0.415/runtime 8.0.21
+with SDK 8.0.427/runtime 8.0.33. Final provisioning rejected stale .NET 8 runtimes
+and verified DigiCert absence. Latest image `ee8dea7` has zero vulnerability
+findings in [scan 41634758814](https://github.com/SonarSource/ci-ami-images/actions/runs/41634758814)
+(actual verdict `WARN_BY_POLICY`, zero exposed secret findings). Minimum image
+`bbb8e54` has one critical finding in
+[scan 41634848833](https://github.com/SonarSource/ci-ami-images/actions/runs/41634848833):
+CVE-2021-3711 in VS 17.0's bundled OpenSSL 1.1.1k. Its actual verdict remains
+`FAILED_BY_POLICY`; isolation/security approval is still required.
+
+Subsequent Gitar fixes change pre-reboot discovery and workflow rollout guards;
+their fresh image builds are pending. No production promotion is authorized.
 
 ## Verified earliest/latest matrix (3 November 2026)
 
