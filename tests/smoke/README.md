@@ -113,3 +113,24 @@ runner rollout and broader stability measurements separate from the smoke result
 Both image PRs and the test PR remain drafts; nothing is merged or promoted by
 this spike. Before production adoption, replace the temporary DEV labels/policy
 with the explicitly approved stable runner configuration.
+
+## First matrix execution (3 November 2026)
+
+[Run 41620039967](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41620039967)
+executed three real tests on each pinned IDE at code revision `d15255548`.
+All six attempts used distinct profiles and the same signed VSIX/hash. Actual and
+expected versions matched each matrix target. Latest VS 18 passed 3/3; downloaded
+TRX, 1/0 finding snapshots and exact saved edits were independently verified.
+
+VS 17.0 reached the sample and Error List in all three attempts but timed out
+waiting for Sonar S1481. Compiler/IDE diagnostics were present, Sonar output was
+empty and no Sonar package loading was recorded in the retained ActivityLog.
+This is not yet a proven product compatibility defect: extension deployment and
+composition need further evidence. A focused diagnostic follow-up retains the
+experimental profile's extension-file inventory, MEF `.err` logs and default
+VSIX installer logs while leaving the scenario assertions unchanged.
+
+Fresh image scans still fail policy: latest VS 18 has five DigiCert Bouncy Castle
+findings; the minimum image has ten critical findings including its bundled
+OpenSSL and .NET/ASP.NET runtime findings. These are not suppressed. Both images
+remain isolated DEV candidates and production rollout/security review is pending.

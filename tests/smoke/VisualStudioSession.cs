@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Smoke
         private EnvDTE80.DTE2 dte;
         private ErrorListEntry[] lastErrors = Array.Empty<ErrorListEntry>();
         private string sourcePath;
+        private string profileDirectory;
 
         public VisualStudioSession(string vsixPath, string resultsDirectory, TestContext context)
         {
@@ -137,6 +138,9 @@ namespace SonarLint.VisualStudio.Smoke
                 throw new InvalidOperationException($"Expected VS {expectedVisualStudioVersion}; discovered {instance.InstallationVersion}.");
             }
             report["instanceId"] = instance.InstanceId;
+            profileDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Microsoft", "VisualStudio", $"{expectedVisualStudioVersion.Major}.0_{instance.InstanceId}{rootSuffix}");
+            report["profileDirectory"] = profileDirectory;
             var devenv = Path.Combine(ideDirectory, "devenv.exe");
             Phase("initialize-profile");
             RunProcess(devenv, $"/RootSuffix {rootSuffix} /ResetSettings {Quote(Path.Combine(ideDirectory, "Profiles", "General.vssettings"))} /Command File.Exit /NoSplash /LCID 1033", "initialize-profile.log");
@@ -288,6 +292,36 @@ namespace SonarLint.VisualStudio.Smoke
 
         private void WriteJson(string name, object value) => File.WriteAllText(Path.Combine(resultsDirectory, name), JsonConvert.SerializeObject(value, Newtonsoft.Json.Formatting.Indented));
 
+        private void CaptureProfileDiagnostics()
+        {
+            var diagnostics = Path.Combine(resultsDirectory, "profile-diagnostics");
+            Directory.CreateDirectory(diagnostics);
+            if (profileDirectory != null && Directory.Exists(profileDirectory))
+            {
+                var extensions = Path.Combine(profileDirectory, "Extensions");
+                var files = Directory.Exists(extensions)
+                    ? Directory.GetFiles(extensions, "*", SearchOption.AllDirectories)
+                    : Array.Empty<string>();
+                WriteJson("installed-extension-files.json", files);
+                var cache = Path.Combine(profileDirectory, "ComponentModelCache");
+                if (Directory.Exists(cache))
+                {
+                    foreach (var file in Directory.GetFiles(cache, "*.err"))
+                    {
+                        File.Copy(file, Path.Combine(diagnostics, Path.GetFileName(file)), true);
+                    }
+                }
+            }
+            var started = DateTime.Parse((string)report["startedAt"]).ToUniversalTime();
+            foreach (var file in Directory.GetFiles(Path.GetTempPath(), "*VSIX*.log"))
+            {
+                if (File.GetLastWriteTimeUtc(file) >= started)
+                {
+                    File.Copy(file, Path.Combine(diagnostics, Path.GetFileName(file)), true);
+                }
+            }
+        }
+
         public void Dispose()
         {
             try
@@ -296,6 +330,11 @@ namespace SonarLint.VisualStudio.Smoke
                 {
                     try { File.WriteAllText(Path.Combine(resultsDirectory, "SonarOutput.txt"), VisualStudioAutomation.ReadSonarOutput(dte)); }
                     catch (COMException exception) { context.WriteLine("Could not capture Sonar output: " + exception.Message); }
+                }
+                try { CaptureProfileDiagnostics(); }
+                catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
+                {
+                    context.WriteLine("Could not capture profile diagnostics: " + exception.Message);
                 }
                 report["finishedAt"] = DateTime.UtcNow.ToString("o");
                 WriteJson("result.json", report);
