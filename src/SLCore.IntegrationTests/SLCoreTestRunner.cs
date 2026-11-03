@@ -148,6 +148,7 @@ public sealed class SLCoreTestRunner : IDisposable
                 slCoreRulesSettingsProvider,
                 Substitute.For<ISlCoreTelemetryMigrationProvider>(),
                 focusOnNewCodeService,
+                Substitute.For<ISonarLintSettings>(),
                 new NoOpThreadHandler());
 
             await InitializeAndWaitForSloopLog(testLogger);

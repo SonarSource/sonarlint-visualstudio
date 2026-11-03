@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.Vsix.Settings;
+using SonarLint.VisualStudio.SLCore.Service.Log;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -49,7 +50,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     Debug.Assert(Site != null, "Expecting the page to be sited");
                     var browserService = Site.GetMefService<IBrowserService>();
                     var focusOnNewCodeServiceUpdater = Site.GetMefService<IFocusOnNewCodeServiceUpdater>();
-                    viewModel = new GeneralOptionsDialogControlViewModel(Settings, focusOnNewCodeServiceUpdater, browserService, GetOpenSettingsFileWpfCommand());
+                    var slCoreLogLevelUpdater = Site.GetMefService<ISLCoreLogLevelUpdater>();
+                    viewModel = new GeneralOptionsDialogControlViewModel(Settings, focusOnNewCodeServiceUpdater, slCoreLogLevelUpdater, browserService, GetOpenSettingsFileWpfCommand());
                 }
                 return viewModel;
             }

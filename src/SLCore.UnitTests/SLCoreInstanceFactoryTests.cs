@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Analysis;
@@ -51,6 +52,7 @@ public class SLCoreInstanceFactoryTests
             MefTestHelpers.CreateExport<ISLCoreRuleSettingsProvider>(),
             MefTestHelpers.CreateExport<IEsLintBridgeLocator>(),
             MefTestHelpers.CreateExport<IFocusOnNewCodeService>(),
+            MefTestHelpers.CreateExport<ISonarLintSettings>(),
             MefTestHelpers.CreateExport<ISlCoreTelemetryMigrationProvider>());
     }
 
@@ -78,6 +80,7 @@ public class SLCoreInstanceFactoryTests
         var slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
         var telemetryMigrationProvider = Substitute.For<ISlCoreTelemetryMigrationProvider>();
         var focusOnNewCodeService = Substitute.For<IFocusOnNewCodeService>();
+        var sonarLintSettings = Substitute.For<ISonarLintSettings>();
 
         var testSubject = new SLCoreInstanceFactory(
             islCoreRpcFactory,
@@ -94,6 +97,7 @@ public class SLCoreInstanceFactoryTests
             telemetryMigrationProvider,
             esLintBridgeLocator,
             focusOnNewCodeService,
+            sonarLintSettings,
             threadHandling);
 
         testSubject.CreateInstance().Should().NotBeNull();

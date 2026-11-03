@@ -20,6 +20,7 @@
 
 using NSubstitute.ClearExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Analysis;
@@ -31,6 +32,7 @@ using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
+using SonarLint.VisualStudio.SLCore.Service.Log;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.State;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
@@ -73,6 +75,7 @@ public class SLCoreInstanceHandleTests
     private SLCoreInstanceHandle testSubject;
     private ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
     private IFocusOnNewCodeService focusOnNewCodeService;
+    private ISonarLintSettings sonarLintSettings;
 
     [TestInitialize]
     public void TestInitialize()
@@ -93,6 +96,8 @@ public class SLCoreInstanceHandleTests
         telemetryMigrationProvider = Substitute.For<ISlCoreTelemetryMigrationProvider>();
         focusOnNewCodeService = Substitute.For<IFocusOnNewCodeService>();
         focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
+        sonarLintSettings = Substitute.For<ISonarLintSettings>();
+        sonarLintSettings.DaemonLogLevel.Returns(DaemonLogLevel.Minimal);
 
         testSubject = new SLCoreInstanceHandle(
             slCoreRpcFactory,
@@ -109,6 +114,7 @@ public class SLCoreInstanceHandleTests
             slCoreRuleSettingsProvider,
             telemetryMigrationProvider,
             focusOnNewCodeService,
+            sonarLintSettings,
             threadHandling);
     }
 
@@ -160,7 +166,8 @@ public class SLCoreInstanceHandleTests
                 && parameters.languageSpecificRequirements.jsTsRequirements.clientNodeJsPath == nodeJsPath
                 && parameters.languageSpecificRequirements.jsTsRequirements.bundlePath == esLintBridgePath
                 && parameters.telemetryMigration == telemetryMigrationDto
-                && parameters.automaticAnalysisEnabled));
+                && parameters.automaticAnalysisEnabled
+                && parameters.logLevel == SlCoreBackendLogLevel.Info));
             activeSolutionBoundTracker.InitializationProcessor.InitializeAsync();
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
@@ -179,6 +186,17 @@ public class SLCoreInstanceHandleTests
         var initializeParams = (InitializeParams)rpcManager.ReceivedCalls().Single().GetArguments().Single()!;
         initializeParams.enabledLanguagesInStandaloneMode.Should().BeSameAs(standalone);
         initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeSameAs(connected);
+    }
+
+    [TestMethod]
+    public void Initialize_UsesVerboseDaemonLogLevelForBackend()
+    {
+        SetUpFullConfiguration(out _);
+        sonarLintSettings.DaemonLogLevel.Returns(DaemonLogLevel.Verbose);
+
+        testSubject.InitializeAsync();
+
+        rpcManager.Received(1).Initialize(Arg.Is<InitializeParams>(param => param.logLevel == SlCoreBackendLogLevel.Debug));
     }
 
     [TestMethod]
