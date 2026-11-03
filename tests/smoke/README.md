@@ -90,66 +90,72 @@ The harness creates a unique `SLVS3097...` suffix and only terminates its launch
 IDE process. It never resets the normal/shared Exp profile. Profiles remain for
 failure inspection; persistent agents need scoped cleanup after investigation.
 
-## Verified evidence and pending work
+## Verified earliest/latest matrix (3 November 2026)
 
-The original single-target scenario passed three profiles on VS 17.14 in
-[run 40863247579](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/40863247579).
-On VS 18, the initial experiment failed before assertions; adding Microsoft's
-post-install ClearCache/UpdateConfiguration/ResetSettings sequence resolved that
-setup issue. The focused retry passed, followed by independently verified 3/3 in
-[run 41454767827](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41454767827)
-at runtime commit `52e92dfc84bbcbf0c3737cd901e4c7538b7271c0`.
-The same VS 18 image passed the normal product build: 6,801 tests passed, 15 skipped.
+[Run 41628515971](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41628515971)
+passed **three fresh-profile attempts per target (six executed tests, no skips)**
+at runtime commit `327f7f40696e6a2c64eeb9a048f56e6d6c06838a`.
+Both artifacts were downloaded and independently verified using only their three
+canonical `run-N/evidence` directories, not duplicated TRX attachments.
 
-Those results prove the scenario on VS 17.14 and VS 18, **not VS 17.0 or the new
-matrix yet**. Require new native matrix artifacts before claiming both boundaries.
-The earlier successful VS 18 executions recorded Session 0/non-interactive; they
-establish DTE automation, not foreground, screenshot or visual-rendering coverage.
+| Target | Actual / expected IDE build | Results | Scenario durations |
+| --- | --- | --- | --- |
+| Earliest VS 2022 17.0 | 17.0.31903.59 | 3/3 passed | 115.6s, 106.6s, 107.0s |
+| Latest VS 2026 18.11.3 | 18.11.12328.437 | 3/3 passed | 101.0s, 85.3s, 85.1s |
 
-The latest image's last verified Wiz report had five critical findings in
-DigiCert's bundled Bouncy Castle 1.77 jar. Native compatibility passes do not imply
-security clearance. Keep vendor/security review, approved IDE licensing, stable
-runner rollout and broader stability measurements separate from the smoke result.
-Both image PRs and the test PR remain drafts; nothing is merged or promoted by
-this spike. Before production adoption, replace the temporary DEV labels/policy
-with the explicitly approved stable runner configuration.
+Every result reports passed/complete, one executed passing intended test per TRX,
+a unique profile, the target finding before and absent after the edit, and the
+exact expected saved source. The installed extension manifest matches the supplied
+extension ID/version and its actual directory is inside that requested profile.
+All six use signed VSIX 11.3.0.17474, SHA-256
+`23FD04E3109F6BF6A050B94A0B663E02AF5079249FB849A25A77DD6BF371D894`.
 
-## First matrix execution (3 November 2026)
+- [Minimum artifact](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41628515971/artifacts/13228400102)
+- [Latest artifact](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41628515971/artifacts/13227705864)
 
-[Run 41620039967](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41620039967)
-executed three real tests on each pinned IDE at code revision `d15255548`.
-All six attempts used distinct profiles and the same signed VSIX/hash. Actual and
-expected versions matched each matrix target. Latest VS 18 passed 3/3; downloaded
-TRX, 1/0 finding snapshots and exact saved edits were independently verified.
+Both current DEV images built and registered from their respective PR heads:
 
-VS 17.0 reached the sample and Error List in all three attempts but timed out
-waiting for Sonar S1481. Compiler/IDE diagnostics were present, Sonar output was
-empty and no Sonar package loading was recorded in the retained ActivityLog.
-This is not yet a proven product compatibility defect: extension deployment and
-composition need further evidence. A focused diagnostic follow-up retains the
-experimental profile's extension-file inventory, MEF `.err` logs and default
-VSIX installer logs while leaving the scenario assertions unchanged.
+- Latest #513 revision `927b61f`, [image run 41611014286](https://github.com/SonarSource/ci-ami-images/actions/runs/41611014286), AMI `ami-081028ac9e92dde1a`.
+- Minimum #520 revision `c85a3a8`, [image run 41612090162](https://github.com/SonarSource/ci-ami-images/actions/runs/41612090162), AMI `ami-0ae7f36db65e2bc0d`.
 
-Fresh image scans still fail policy: latest VS 18 has five DigiCert Bouncy Castle
-findings; the minimum image has ten critical findings including its bundled
-OpenSSL and .NET/ASP.NET runtime findings. These are not suppressed. Both images
-remain isolated DEV candidates and production rollout/security review is pending.
+All six successful results record Session 0 and `userInteractive=false`. This
+establishes DTE automation in that environment, not foreground interaction,
+screenshot support or visual-rendering correctness. Three passes per version
+establish feasibility; they are not a measured long-term flake rate.
 
-## Minimum installer-routing diagnosis
+## Minimum-version installer routing
 
-The focused diagnostic run
-[41623202726](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41623202726)
-identified why no Sonar finding appeared: the VS 17.0 installer returned success
-but its log records deployment under the normal `17.0_<instance>` profile, while
-the requested experimental profile contains only three cache/list files and no
-Sonar binaries. The root suffix was present in the captured command line. This
-is a deployment-routing failure, not evidence that the analyzer cannot run on
-VS 17.0.
+The initial [matrix run 41620039967](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41620039967)
+passed on latest but failed on minimum with no Sonar finding. The focused
+[diagnostic run 41623202726](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41623202726)
+proved the RTM VS 17 installer had accepted RootSuffix but deployed into the
+normal profile. The requested test profile contained only cache/list files.
 
-The follow-up uses the explicit application/SKU installer route for VS 17.0 and
-keeps the current instance-ID route for VS 18. It additionally requires the exact
-extension ID/version manifest inside the requested experimental profile before
-launching the IDE, retaining that installed manifest as evidence. It does not
-copy loose binaries, change signed manifests or accept a normal-profile install
-as an experimental-profile pass. Native verification of this routing change is
-still required before claiming minimum-version coverage.
+For VS 17.0 the harness therefore uses the installer's explicit application/SKU
+route; VS 18 retains its instance-ID route. A mandatory deployment guard checks
+the exact installed manifest in the experimental profile before launching the
+IDE. It does not copy loose binaries or change the signed package. Both targets
+passed the focused [routing verification 41626340328](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41626340328)
+before the final six-pass confirmation above.
+
+The helper retains extension-file inventory, MEF error files and default VSIX
+installer logs, so a successful installer exit alone cannot be mistaken for
+correct deployment into the intended profile. Post-install cache/configuration
+preparation follows Microsoft's integration-harness sequence.
+
+## Security and rollout still require review
+
+Fresh Wiz reports return FAILED_BY_POLICY despite green scan jobs: the latest
+image reports five critical findings and the minimum reports ten. Those are
+scanner findings, not a completed exploitability assessment. Separate triage
+identified possible Bouncy Castle module-matching false positives, but actual
+bundled-JAR confirmation is pending; no finding has been accepted or suppressed.
+Native smoke passes do not establish security clearance.
+
+The minimum image deliberately tests the user-selected VS 17.0 compatibility
+boundary, which is outside Microsoft's maintained servicing lines. Keep it
+isolated for compatibility/security review. Approved IDE licensing, supported
+vendor remediation or reviewed security decisions, stable runner rollout and
+broader stability measurements remain prerequisites to production adoption.
+Both image PRs and the test PR remain drafts; nothing is merged or promoted.
+#520 is stacked on #513 and must be retargeted after the parent is merged.
