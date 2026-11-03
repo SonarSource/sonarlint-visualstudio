@@ -24,6 +24,11 @@ label or point both axes at the same image. The workflow rejects missing,
 non-DEV and duplicate labels. The harness independently compares the actual VS
 build with the target's expected build before installing the extension.
 
+The candidate images now select **Visual Studio Community**. The matrix asserts
+`Microsoft.VisualStudio.Product.Community` and records the actual product ID
+in `result.json`; the earlier passing runs below used Professional. Community
+image builds and a fresh six-attempt matrix must pass before claiming equivalence.
+
 ## Run the matrix
 
 ```sh
@@ -81,10 +86,11 @@ targeting packs. The job account must be able to install a VSIX. Set the expecte
 build explicitly; use a new evidence directory every time.
 
 ```powershell
-$idePath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products Microsoft.VisualStudio.Product.Professional -property installationPath
+$idePath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products Microsoft.VisualStudio.Product.Community -property installationPath
 dotnet build tests/smoke/VsixSmoke.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
 $env:SMOKE_VSIX_PATH = 'C:\artifacts\SonarLint.VSIX-11.3.0.17474-2022.vsix'
 $env:SMOKE_EXPECTED_VS_VERSION = '18.11.12328.437'
+$env:SMOKE_EXPECTED_VS_PRODUCT = 'Microsoft.VisualStudio.Product.Community'
 $env:SMOKE_RESULTS_DIRECTORY = 'C:\temp\slvs3097-run1\evidence'
 dotnet test tests/smoke/VsixSmoke.Tests.csproj -c Release --no-build --no-restore --logger trx --results-directory C:\temp\slvs3097-run1 -p:VsTargetVersion=2022
 ```

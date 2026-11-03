@@ -126,6 +126,12 @@ namespace SonarLint.VisualStudio.Smoke
                 throw new InvalidOperationException($"Expected exactly one full Visual Studio 2022 or 2026 IDE; found {instances.Length}.");
             }
             var instance = instances[0];
+            report["visualStudioProductId"] = instance.ProductId;
+            var expectedProduct = Environment.GetEnvironmentVariable("SMOKE_EXPECTED_VS_PRODUCT");
+            if (!string.IsNullOrEmpty(expectedProduct) && instance.ProductId != expectedProduct)
+            {
+                throw new InvalidOperationException($"Expected IDE product {expectedProduct}; found {instance.ProductId}.");
+            }
             var ideDirectory = Path.Combine(instance.InstallationPath, "Common7", "IDE");
             var targetingPack = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework", ".NETFramework", "v4.7.2");
             if (!Directory.Exists(targetingPack))
