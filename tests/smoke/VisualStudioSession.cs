@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Smoke
 {
     internal sealed class VisualStudioSession : IDisposable
     {
+        private const string ExtensionId = "SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D";
         private const string FindingMessage = "Remove the unused local variable 'smokeUnused'.";
         private static readonly TimeSpan PhaseTimeout = TimeSpan.FromSeconds(180);
         private readonly string vsixPath;
@@ -105,7 +106,7 @@ namespace SonarLint.VisualStudio.Smoke
                 using var reader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null });
                 manifest.Load(reader);
                 var identity = manifest.SelectSingleNode("/*[local-name()='PackageManifest']/*[local-name()='Metadata']/*[local-name()='Identity']");
-                if (identity?.Attributes?["Id"]?.Value != "SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D")
+                if (identity?.Attributes?["Id"]?.Value != ExtensionId)
                 {
                     throw new InvalidDataException("The VSIX is not SonarQube for Visual Studio.");
                 }
@@ -145,8 +146,11 @@ namespace SonarLint.VisualStudio.Smoke
             Phase("initialize-profile");
             RunProcess(devenv, $"/RootSuffix {rootSuffix} /ResetSettings {Quote(Path.Combine(ideDirectory, "Profiles", "General.vssettings"))} /Command File.Exit /NoSplash /LCID 1033", "initialize-profile.log");
             Phase("install-vsix");
+            var installationTarget = GetVsixInstallationTarget(instance, devenv);
             RunProcess(Path.Combine(ideDirectory, "VSIXInstaller.exe"),
-                $"/quiet /instanceIds:{instance.InstanceId} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(resultsDirectory, "vsix-installer.log"))} {Quote(vsixPath)}", "vsix-process.log");
+                $"/quiet {installationTarget} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(resultsDirectory, "vsix-installer.log"))} {Quote(vsixPath)}", "vsix-process.log");
+            Phase("verify-vsix-installation");
+            WaitUntil("the signed VSIX in the requested experimental profile", VerifyInstalledExtension);
 
             // Match Microsoft's integration harness: rebuild extension caches and
             // configuration before launching a newly installed experimental profile.
@@ -163,6 +167,47 @@ namespace SonarLint.VisualStudio.Smoke
                 dte = (EnvDTE80.DTE2)VisualStudioAutomation.FindDte(ideProcess.Id);
                 return dte != null;
             });
+        }
+
+        private string GetVsixInstallationTarget(Installation instance, string devenv)
+        {
+            if (expectedVisualStudioVersion.Major != 17 || expectedVisualStudioVersion.Minor != 0)
+            {
+                return $"/instanceIds:{instance.InstanceId}";
+            }
+            // The RTM installer routes instance-ID installs to the normal profile
+            // even when RootSuffix is supplied. Use its explicit application/SKU route.
+            var sku = instance.ProductId switch
+            {
+                "Microsoft.VisualStudio.Product.Professional" => "Pro",
+                "Microsoft.VisualStudio.Product.Enterprise" => "Enterprise",
+                "Microsoft.VisualStudio.Product.Community" => "Community",
+                _ => throw new InvalidOperationException("Unsupported IDE product: " + instance.ProductId)
+            };
+            return $"/appidinstallpath:{Quote(devenv)} /appidname:{Quote(instance.DisplayName)} "
+                + $"/skuName:{sku} /skuVersion:{instance.InstallationVersion}";
+        }
+
+        private bool VerifyInstalledExtension()
+        {
+            var extensions = Path.Combine(profileDirectory, "Extensions");
+            if (!Directory.Exists(extensions)) { return false; }
+            foreach (var manifestPath in Directory.GetFiles(extensions, "extension.vsixmanifest", SearchOption.AllDirectories))
+            {
+                var document = new XmlDocument { XmlResolver = null };
+                using var reader = XmlReader.Create(manifestPath,
+                    new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null });
+                document.Load(reader);
+                var identity = document.SelectSingleNode("/*[local-name()='PackageManifest']/*[local-name()='Metadata']/*[local-name()='Identity']");
+                if (identity?.Attributes?["Id"]?.Value == ExtensionId
+                    && identity.Attributes["Version"]?.Value == (string)report["vsixVersion"])
+                {
+                    File.Copy(manifestPath, Path.Combine(resultsDirectory, "installed-extension.vsixmanifest"), true);
+                    report["installedExtensionDirectory"] = Path.GetDirectoryName(manifestPath);
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void OpenSample()
@@ -359,6 +404,10 @@ namespace SonarLint.VisualStudio.Smoke
             public string InstallationVersion { get; set; }
             [JsonProperty("instanceId")]
             public string InstanceId { get; set; }
+            [JsonProperty("productId")]
+            public string ProductId { get; set; }
+            [JsonProperty("displayName")]
+            public string DisplayName { get; set; }
         }
     }
 }

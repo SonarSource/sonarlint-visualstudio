@@ -134,3 +134,22 @@ Fresh image scans still fail policy: latest VS 18 has five DigiCert Bouncy Castl
 findings; the minimum image has ten critical findings including its bundled
 OpenSSL and .NET/ASP.NET runtime findings. These are not suppressed. Both images
 remain isolated DEV candidates and production rollout/security review is pending.
+
+## Minimum installer-routing diagnosis
+
+The focused diagnostic run
+[41623202726](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41623202726)
+identified why no Sonar finding appeared: the VS 17.0 installer returned success
+but its log records deployment under the normal `17.0_<instance>` profile, while
+the requested experimental profile contains only three cache/list files and no
+Sonar binaries. The root suffix was present in the captured command line. This
+is a deployment-routing failure, not evidence that the analyzer cannot run on
+VS 17.0.
+
+The follow-up uses the explicit application/SKU installer route for VS 17.0 and
+keeps the current instance-ID route for VS 18. It additionally requires the exact
+extension ID/version manifest inside the requested experimental profile before
+launching the IDE, retaining that installed manifest as evidence. It does not
+copy loose binaries, change signed manifests or accept a normal-profile install
+as an experimental-profile pass. Native verification of this routing change is
+still required before claiming minimum-version coverage.
