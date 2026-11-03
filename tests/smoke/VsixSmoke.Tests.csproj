@@ -10,13 +10,15 @@
   <ItemGroup>
     <PackageReference Include="MSTest" Version="4.4.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <Reference Include="Microsoft.VisualStudio.Interop" HintPath="$(VisualStudioInteropPath)" />
+    <Reference Include="Microsoft.VisualStudio.Interop" HintPath="$(VisualStudioInteropPath)" Condition="Exists('$(VisualStudioInteropPath)')" />
+    <Reference Include="EnvDTE" HintPath="$(VisualStudioInstallPath)\Common7\IDE\PublicAssemblies\envdte.dll" Condition="!Exists('$(VisualStudioInteropPath)')" />
+    <Reference Include="EnvDTE80" HintPath="$(VisualStudioInstallPath)\Common7\IDE\PublicAssemblies\envdte80.dll" Condition="!Exists('$(VisualStudioInteropPath)')" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Compile Remove="Fixture/**/*.cs" />
     <None Include="Fixture/**/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <Target Name="CheckVisualStudioInterop" BeforeTargets="ResolveReferences">
-    <Error Condition="!Exists('$(VisualStudioInteropPath)')" Text="Set VisualStudioInstallPath to the full Visual Studio installation." />
+    <Error Condition="!Exists('$(VisualStudioInteropPath)') and (!Exists('$(VisualStudioInstallPath)\Common7\IDE\PublicAssemblies\envdte.dll') or !Exists('$(VisualStudioInstallPath)\Common7\IDE\PublicAssemblies\envdte80.dll'))" Text="Set VisualStudioInstallPath to the full Visual Studio installation." />
   </Target>
 </Project>

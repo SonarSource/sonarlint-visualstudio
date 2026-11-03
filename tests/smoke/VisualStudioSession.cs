@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.Smoke
         private const string FindingMessage = "Remove the unused local variable 'smokeUnused'.";
         private static readonly TimeSpan PhaseTimeout = TimeSpan.FromSeconds(180);
         private readonly string vsixPath;
+        private readonly Version expectedVisualStudioVersion;
         private readonly string resultsDirectory;
         private readonly TestContext context;
         private readonly string rootSuffix = "SLVS3097" + Guid.NewGuid().ToString("N").Substring(0, 8);
@@ -57,6 +58,11 @@ namespace SonarLint.VisualStudio.Smoke
             this.vsixPath = Path.GetFullPath(vsixPath ?? throw new ArgumentException("Set SMOKE_VSIX_PATH to a built VSIX."));
             this.resultsDirectory = Path.GetFullPath(resultsDirectory ?? throw new ArgumentException("Set SMOKE_RESULTS_DIRECTORY to a new directory."));
             this.context = context;
+            var expectedVersion = Environment.GetEnvironmentVariable("SMOKE_EXPECTED_VS_VERSION");
+            if (!Version.TryParse(expectedVersion, out expectedVisualStudioVersion))
+            {
+                throw new ArgumentException("Set SMOKE_EXPECTED_VS_VERSION to the pinned Visual Studio build for this target.");
+            }
             if (Directory.Exists(this.resultsDirectory))
             {
                 throw new ArgumentException("Use a new results directory for each run.");
@@ -124,7 +130,12 @@ namespace SonarLint.VisualStudio.Smoke
             {
                 throw new DirectoryNotFoundException("Missing .NET Framework 4.7.2 targeting pack.");
             }
+            report["expectedVisualStudioVersion"] = expectedVisualStudioVersion.ToString();
             report["visualStudioVersion"] = instance.InstallationVersion;
+            if (Version.Parse(instance.InstallationVersion) != expectedVisualStudioVersion)
+            {
+                throw new InvalidOperationException($"Expected VS {expectedVisualStudioVersion}; discovered {instance.InstallationVersion}.");
+            }
             report["instanceId"] = instance.InstanceId;
             var devenv = Path.Combine(ideDirectory, "devenv.exe");
             Phase("initialize-profile");

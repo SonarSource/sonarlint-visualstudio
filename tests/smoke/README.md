@@ -1,311 +1,115 @@
-# SLVS-3097: installed VSIX smoke feasibility
+# Installed-VSIX smoke tests (SLVS-3097)
 
-Status: end-to-end smoke scenario verified on the candidate full-IDE image.
-Three fresh profiles installed the VSIX, detected the expected Sonar finding,
-and cleared it after editing and saving the file. Evidence is linked below.
+The same C# MSTest scenario runs against the extension's minimum supported IDE
+and the latest pinned IDE. Each matrix job installs the supplied signed VSIX in
+fresh experimental profiles, opens a sample file, observes the Sonar finding,
+edits/saves the file and verifies that the finding remains absent for five seconds.
+This is a manual DEV compatibility check; it does not change production release gates.
 
-The spike asks whether a built SonarQube VSIX can be installed into a fresh Visual
-Studio experimental profile, report an actual finding, and clear it after an
-edit. It runs separately from the solution's unit/backend tests and release gates.
+## Image matrix
 
-## Run on Windows
+| Target | Pinned release | Required installed build | Image PR |
+| --- | --- | --- | --- |
+| Earliest | VS 2022 17.0.0 | 17.0.31903.59 | [ci-ami-images #520](https://github.com/SonarSource/ci-ami-images/pull/520) |
+| Latest | VS 2026 18.11.3 | 18.11.12328.437 | [ci-ami-images #513](https://github.com/SonarSource/ci-ami-images/pull/513) |
 
-Use Windows with exactly one full Visual Studio 2022 or 2026 installation, a usable
-IDE automation session, the .NET SDK, and the .NET Framework 4.7.2 targeting pack.
-Build Tools alone is insufficient. Use a trusted, signed candidate VSIX.
+The user chose the extension's minimum VS 17.0 compatibility boundary, rather
+than Microsoft's maintained VS 2022 servicing line. The minimum image is a
+separate isolated compatibility candidate. Each image contains one full IDE.
+Image #520 is stacked on #513 and reuses its installation recipe.
+
+Both DEV images must finish building and registering before dispatch. Copy their
+exact temporary WarpBuild labels from the registration output; do not guess a
+label or point both axes at the same image. The workflow rejects missing,
+non-DEV and duplicate labels. The harness independently compares the actual VS
+build with the target's expected build before installing the extension.
+
+## Run the matrix
+
+```sh
+gh workflow run build.yml --ref codex/slvs-3097-vsix-smoke-spike \
+  -f vsix-smoke-version=11.3.0.17474 \
+  -f vsix-smoke-earliest-runner=<actual-minimum-image-DEV-label> \
+  -f vsix-smoke-latest-runner=<actual-latest-image-DEV-label> \
+  -f vsix-smoke-repetitions=3
+```
+
+This downloads the same promoted VSIX independently on both images. The existing
+`2022.vsix` filename is retained; installation must establish compatibility with
+each actual IDE. It never changes the package manifest or signature to force a pass.
+
+The default is three fresh profiles per target (six attempts overall). Use
+`vsix-smoke-repetitions=1` for focused validation of both targets. Matrix jobs run
+independently with fail-fast disabled, so a failure on one version does not cancel
+the other. An empty smoke-version input runs the normal build instead. Ordinary
+push/PR builds do not automatically execute the smoke scenario.
+
+Artifacts are named `slvs3097-vsix-smoke-earliest-vs2022-17.0` and
+`slvs3097-vsix-smoke-latest-vs18`. Each contains per-attempt TRX reports, result JSON,
+actual VSIX manifest, package SHA-256, actual/expected IDE versions, profile/session
+identity, before/after Error List snapshots, saved fixture and IDE/installer logs.
+TRX attachments can duplicate evidence files; count only canonical `run-N/evidence`
+directories as independent attempts.
+
+## Test structure
+
+- `VsixSmokeTests.cs` contains the scenario and assertions.
+- `VisualStudioSession.cs` installs/launches the IDE, polls bounded conditions,
+  prepares the post-install extension cache/configuration and collects evidence.
+- `VisualStudioAutomation.cs` attaches to the launched process's DTE object and
+  reads the real Error List through typed DTE2. It supports VS 17/18 monikers.
+- `Fixture/Smoke.cs.txt`, `Smoke.csproj` and `Smoke.sln` are copied for each attempt;
+  the `.txt` template becomes `Smoke.cs` at runtime.
+
+The target finding is Sonar S1481: `Remove the unused local variable 'smokeUnused'.`
+at line 5 of the exact sample path. The compiler's own unused-variable warning
+does not satisfy this check. Other diagnostics can remain after the targeted
+finding clears. Assertions are unchanged between the two IDE versions.
+
+The project uses MSTest 4.4.1 and Newtonsoft.Json 13.0.3 with a locked dependency
+graph. It references the IDE's unified interop assembly or older EnvDTE assemblies
+when the unified assembly is absent. It does not call the product analysis backend
+directly and remains outside the normal product solution.
+
+## Run one target locally
+
+Use Windows, a full supported IDE, the .NET SDK and the .NET Framework 4.7.2/4.8
+targeting packs. The job account must be able to install a VSIX. Set the expected
+build explicitly; use a new evidence directory every time.
 
 ```powershell
 $idePath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products Microsoft.VisualStudio.Product.Professional -property installationPath
 dotnet build tests/smoke/VsixSmoke.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
 $env:SMOKE_VSIX_PATH = 'C:\artifacts\SonarLint.VSIX-11.3.0.17474-2022.vsix'
+$env:SMOKE_EXPECTED_VS_VERSION = '18.11.12328.437'
 $env:SMOKE_RESULTS_DIRECTORY = 'C:\temp\slvs3097-run1\evidence'
 dotnet test tests/smoke/VsixSmoke.Tests.csproj -c Release --no-build --no-restore --logger trx --results-directory C:\temp\slvs3097-run1 -p:VsTargetVersion=2022
 ```
 
-The results directory must not already exist. Each test invocation uses a unique
-`SLVS3097...` root suffix. It never resets the normal profile or the shared `Exp`
-profile, and only terminates processes it launched. The experimental profile is
-retained for inspection. On persistent agents, remove only the recorded test
-profile with the VS SDK's `CreateExpInstance` utility after investigating failures.
+The harness creates a unique `SLVS3097...` suffix and only terminates its launched
+IDE process. It never resets the normal/shared Exp profile. Profiles remain for
+failure inspection; persistent agents need scoped cleanup after investigation.
 
-The manual `VSIX smoke feasibility (SLVS-3097)` workflow downloads a specified
-promoted build and performs three independent installations by default. The
-smoke job currently uses the temporary full-IDE runner from image PR #513
-recorded below. The test supports VS 2022 and VS 2026, but does not pin its servicing patch.
-Record the reported version; a rebuilt image PR may emit a different runner label.
-The standard `warp-custom-sonarlint-visualstudio` image still contains only Build
-Tools unless separately updated and promoted.
+## Verified evidence and pending work
 
-Before the new workflow exists on the default branch, dispatch the existing
-`build.yml` workflow on the spike branch with `vsix-smoke-version` set. This calls
-the reusable smoke workflow and skips the normal build/publish/promote job:
+The original single-target scenario passed three profiles on VS 17.14 in
+[run 40863247579](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/40863247579).
+On VS 18, the initial experiment failed before assertions; adding Microsoft's
+post-install ClearCache/UpdateConfiguration/ResetSettings sequence resolved that
+setup issue. The focused retry passed, followed by independently verified 3/3 in
+[run 41454767827](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41454767827)
+at runtime commit `52e92dfc84bbcbf0c3737cd901e4c7538b7271c0`.
+The same VS 18 image passed the normal product build: 6,801 tests passed, 15 skipped.
 
-```sh
-gh workflow run build.yml --ref codex/slvs-3097-vsix-smoke-spike \
-  -f vsix-smoke-version=<promoted-build-version>
-```
+Those results prove the scenario on VS 17.14 and VS 18, **not VS 17.0 or the new
+matrix yet**. Require new native matrix artifacts before claiming both boundaries.
+The earlier successful VS 18 executions recorded Session 0/non-interactive; they
+establish DTE automation, not foreground, screenshot or visual-rendering coverage.
 
-For a focused debugging run, add `-f vsix-smoke-repetitions=1`. The default is
-three fresh profiles. The standalone smoke workflow also offers a repetitions
-input once available on the default branch.
-
-An empty input preserves the normal build. Push and pull-request builds also
-continue to use the normal build path. The spike does not change release gates.
-
-## Scenario and evidence
-
-1. Initialize an isolated profile, then install the exact supplied VSIX through
-   `VSIXInstaller`, checking its exit code.
-2. Launch Visual Studio and attach to that process's DTE object through the Running
-   Object Table. An unrelated Visual Studio instance cannot satisfy this lookup.
-3. Open a fresh copy of the checked-in `Fixture` C# solution and a file with an unused local variable.
-4. Wait for Sonar's S1481 message about `smokeUnused` in the real Error List,
-   including a matching file and line 5. The C# compiler's own
-   unused-variable warning does not satisfy this message assertion.
-5. Edit and save through the IDE, then require the finding to remain absent for
-   five seconds. Each asynchronous phase has a bounded timeout.
-
-Evidence includes the VSIX SHA-256, VS version, unique profile suffix, failed
-phase, Error List snapshots, TRX test results, Sonar output-pane text and IDE/installer
-logs. Snapshots are JSON arrays, including when empty. A missing finding
-is a failure, including if DTE cannot expose the modern diagnostic table. It is
-not silently treated as a skip. The assertion uses an English message because
-legacy DTE ErrorItems do not expose a diagnostic code; the IDE starts with LCID
-1033. If this surface is inadequate, evaluate the modern table APIs from an
-in-process harness before adding UI automation.
-
-## Harness decision
-
-The scenario is an MSTest C# test in `VsixSmokeTests.cs`, with setup, polling,
-evidence capture and process cleanup in `VisualStudioSession.cs`. The existing
-`VisualStudioAutomation.cs` helper provides typed DTE2 access to the Error List
-and the Running Object Table lookup. `Fixture/Smoke.cs.txt`, `.csproj` and `.sln` are
-copied to a fresh results directory for every attempt. The `.txt` suffix marks
-the deliberately faulty source as test input; the copied file is `Smoke.cs`.
-
-`[STATestMethod]` supplies the STA thread required by COM automation, and
-`[DoNotParallelize]` isolates the scenario from other tests in this test assembly.
-MSTest 4.4.1 and Newtonsoft.Json 13.0.3 match existing repository versions; the
-NuGet lock file pins the dependency graph. Visual Studio interop is referenced
-from the selected IDE, with no reference to product implementation assemblies.
-The project stays outside the product solution so ordinary unit-test runs do
-not install an extension or launch the IDE. CI launches a separate test host
-for each repetition and retains both TRX results and the scenario evidence.
-
-The original PowerShell scenario is replaced by this C# implementation. The
-28 October results below describe the original harness. The separately verified
-C# port results are recorded at the end of this document.
-
-Candidates for a maintained suite:
-
-- [Microsoft VS Extension Testing](https://github.com/microsoft/vs-extension-testing)
-  supplies experimental-instance tests and VSIX deployment. Its original repo is
-  archived and points to Roslyn; verify the current distribution/support path.
-- [VsixTesting](https://github.com/josetr/VsixTesting) supplies in-process tests and
-  automatic VSIX deployment. Verify current VS compatibility and repository
-  package-signing policy before introducing it.
-- [VS SDK Test Framework](https://github.com/microsoft/vssdktestfx) supports VS
-  services outside the IDE and does not establish installed-extension coverage.
-
-The native automation baseline is verified below. The alternative frameworks
-have not been evaluated by this spike.
-
-## Exit criteria
-
-Run at least three fresh installations of the same candidate and retain all
-results. Record elapsed time and which phases fail. Deliberately use a non-VSIX
-input to verify failure propagation. Before adopting a gate, confirm the expected
-failure when Sonar is absent/disabled, confirm file-and-line assertions against
-the chosen diagnostic API, and assess stability over more builds. Three passes
-establish initial feasibility, not a measured flake rate.
-
-Rollout decisions remain: approved IDE edition/licensing, the promoted runner
-label, profile cleanup, supported VS versions, and stability across more builds.
-
-## Windows CI evidence (27 October 2026)
-
-[Run 40520267897](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/40520267897)
-ran on `warp-custom-sonarlint-visualstudio` against promoted VSIX
-`11.3.0.17474`. Authentication, artifact download and evidence upload succeeded.
-All three independent attempts failed in `prerequisites`:
-
-> Expected exactly one full Visual Studio 2022 IDE; found 0. Installed products: Visual Studio Build Tools 2022.
-
-The captured inventory identifies `Microsoft.VisualStudio.Product.BuildTools`,
-version `17.10.35230.96`. Installation and analysis were not reached. This is an
-infrastructure blocker, not evidence for or against the diagnostic API or either
-candidate framework. The next step is an image with the full VS 2022 IDE, C#
-project system, targeting pack, and usable desktop automation session, followed
-by the same three-run experiment. No release/promotion job ran in this dispatch.
-
-## Candidate full-IDE evidence (28 October 2026)
-
-[Run 40679681144](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/40679681144)
-used DEV AMI `ami-0efa0d916e52ff996` from
-[ci-ami-images PR #513](https://github.com/SonarSource/ci-ami-images/pull/513),
-through runner `warp-custom-pr-513-sonarlint-visualstudio-v20261028102646`.
-The installed IDE reports version `17.14.37824.6`.
-
-All three attempts passed prerequisites, profile initialization, VSIX installer
-exit checks, IDE launch, DTE attachment, solution opening and file opening. They
-then failed in `detect-finding` with:
-
-> The property 'ToolWindows' cannot be found on this object. Verify that the property exists.
-
-This is a harness automation-interface failure, not a failed diagnostic assertion.
-The IDE ActivityLog also records successful loading of the SonarQube extension.
-No diagnostic snapshot was obtained, and editing/clearing the finding was not
-reached. Installation and IDE automation are now demonstrated on this candidate;
-analysis output and refresh remain unverified.
-
-This failure was resolved by using the typed DTE2 helper described above. The
-failed run's `slvs3097-vsix-smoke` artifact retains the original evidence.
-
-## Verified end-to-end result (28 October 2026)
-
-[Run 40688355572](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/40688355572)
-passed all three fresh-profile attempts at harness commit
-`f0715b0af9ccb7d7429dfa44fa43240596e3804b`. It used the same candidate image and
-VSIX versions listed above. Each run's result, before/after JSON snapshots and
-saved fixture source were independently checked after download.
-
-| Attempt | Result | Matching finding before / after edit | Scenario duration |
-| --- | --- | --- | --- |
-| 1 | Passed | 1 / 0 | 129.5 seconds |
-| 2 | Passed | 1 / 0 | 82.9 seconds |
-| 3 | Passed | 1 / 0 | 82.3 seconds |
-
-All three profiles had distinct root suffixes. The before snapshot contains
-`Remove the unused local variable 'smokeUnused'.` at line 5 of `Smoke.cs`; after
-editing, the matching Sonar finding is absent for at least five seconds. The
-retained file matches the expected saved edit with the unused declaration
-removed. Other fixture diagnostics may remain in the Error List.
-
-All three attempts used VSIX SHA-256
-`23FD04E3109F6BF6A050B94A0B663E02AF5079249FB849A25A77DD6BF371D894`.
-The job completed in 5m37s, excluding queue time. The earlier focused
-[run 40687290556](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/40687290556)
-also passed the scenario once.
-
-Coverage is one standalone C# analysis scenario on Visual Studio Professional
-2022 17.14.43 with SonarQube VSIX 11.3.0.17474. The smoke workflow remains
-manual, uses the temporary DEV image, and does not change release gates. Both
-PRs remain drafts.
-
-## Verified C# MSTest port (29 October 2026)
-
-The PowerShell scenario was replaced in separate commit
-`cced2d7c736537a3f5323e5487173752d2b7b3f1`.
-[Run 40863247579](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/40863247579)
-passed all three attempts against VSIX `11.3.0.17474` on the same DEV candidate
-runner and VS `17.14.37824.6`. The Windows C# build completed without warnings
-or errors. Downloaded TRX reports each confirm one executed, passing test and
-zero skipped/not-executed tests.
-
-| Attempt | Matching finding before / after | Saved edit verified | Scenario duration |
-| --- | --- | --- | --- |
-| 1 | 1 / 0 | Yes | 137.6 seconds |
-| 2 | 1 / 0 | Yes | 84.3 seconds |
-| 3 | 1 / 0 | Yes | 84.0 seconds |
-
-Each profile suffix was distinct. Every retained `result.json` reports `passed`
-and `complete`; the before/after snapshots and exact saved source were checked
-independently. The VSIX SHA-256 matches the earlier PowerShell experiment.
-The `slvs3097-vsix-smoke` artifact includes TRX reports, JSON snapshots, the edited
-fixture and installation/IDE logs.
-
-Local checks include a successful C# build with .NET Framework reference
-assemblies, actionlint, secrets scanning and dependency checks. Vortex DEEP
-analysis reports no findings in the C# project, fixture or documentation. Its
-workflow analysis reports `[PARSE_ERROR] Error while parsing the file` and
-`[INVALID_CONTEXT] Analysis quality is low because of missing information. Please ensure you have a recent CI analysis of your project.`
-Actionlint accepts that workflow with the custom runner label configured.
-
-## Unified VS 2026 candidate (2 November 2026)
-
-Image PR #513 now targets a single full Visual Studio Professional 2026 18.11.3
-installation, including managed desktop, C++, Windows application and VS
-extension build components. The separate VS 2022 Build Tools/IDE installations
-are being replaced. The image discovers MSBuild and VSTest paths with `vswhere`;
-the normal Build workflow similarly discovers the installed C++ compiler instead
-of requiring the old Build Tools directory and MSVC 14.40.
-
-The smoke harness accepts VS 17 or 18 and attaches to either version's DTE
-moniker using the launched process ID. The smoke workflow's compile-time IDE
-discovery accepts both versions too. Existing VS 2022 results remain historical
-evidence; the single VS 18 image requires fresh normal-build, smoke and Wiz
-validation. The promoted package's filename still ends in `2022.vsix`; that
-repository manifest permits both VS 17 and VS 18. The supplied promoted
-package must still pass installation on VS 18 before claiming coverage; do not
-invent a separate 2026 artifact name.
-
-## VS 18 candidate execution (2 November 2026)
-
-The single-installation image built at image PR revision
-`452e63663bbd8933079ee763e56fddad07d2cf85` in
-[run 41438626001](https://github.com/SonarSource/ci-ami-images/actions/runs/41438626001).
-Its emitted DEV runner is
-`warp-custom-pr-513-sonarlint-visualstudio-v20261102114059`.
-The normal product build and tests passed on this runner in
-[run 41448865200](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41448865200)
-at product revision `920c6263a54112790a4b7192364174b2b382637c`.
-
-The first VS 18 smoke experiment,
-[run 41448886645](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41448886645),
-failed all three attempts before any diagnostic assertion. All installed VSIX
-11.3.0.17474 into distinct profiles on VS 18.11.12328.437. Two timed out opening
-the sample file with `RPC_E_CALL_REJECTED`; the third IDE exited during startup.
-Activity logs include package-loading errors and an extension-triggered restart.
-These results do not establish VS 18 analysis coverage.
-
-The follow-up adds Microsoft's integration-harness preparation sequence after
-VSIX installation: clear the extension cache, update configuration and reset the
-experimental profile before launching the IDE. It retains the supplied VSIX
-manifest and records the test host's session ID and interactive status for
-diagnosis. Assertions and signed VSIX contents are unchanged. A focused Windows
-retry is required before repeating the three-attempt experiment.
-
-The fresh Wiz report still fails policy with five critical findings in DigiCert's
-`bcprov-jdk18on-1.77.jar`, down from 23. The supported vendor MSI refresh leaves
-this jar installed; no supported fix is verified. Do not treat functional build
-success as security clearance or replace the jar manually.
-
-## Verified VS 18 result (2 November 2026)
-
-[Run 41454767827](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41454767827)
-passed all three canonical attempts at runtime commit
-`52e92dfc84bbcbf0c3737cd901e4c7538b7271c0`, using the single full VS Professional
-18.11.12328.437 DEV image and promoted VSIX 11.3.0.17474. Each downloaded TRX
-confirms one executed, passing `InstalledExtension_DetectsIssue_AndClearsItAfterFix`
-test, with no skipped/not-executed test. Each `result.json` reports passed/complete.
-The retained before/after snapshots, saved fixture and package hash were checked
-independently for the three `run-N/evidence` directories; duplicate TRX attachments
-were not counted as additional attempts.
-
-| Attempt | Profile | Finding before / after | Saved edit | Duration |
-| --- | --- | --- | --- | --- |
-| 1 | `SLVS3097ea244faa` | 1 / 0 | Verified | 133.2s |
-| 2 | `SLVS3097875717a6` | 1 / 0 | Verified | 78.7s |
-| 3 | `SLVS3097c9f31904` | 1 / 0 | Verified | 78.0s |
-
-The VSIX SHA-256 is
-`23FD04E3109F6BF6A050B94A0B663E02AF5079249FB849A25A77DD6BF371D894`.
-[Retained evidence](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41454767827/artifacts/13146667740)
-includes installer/configuration logs, ActivityLogs, TRX results, the actual VSIX
-manifest, result JSON, Error List snapshots and edited fixtures.
-
-All three results record session ID 0 and `userInteractive=false`. This establishes
-that the DTE scenario worked in that environment; it does not establish support
-for foreground interaction, visible rendering or screenshot-based UI tests.
-The prior focused pass is
-[run 41452193318](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41452193318).
-The normal candidate build also passed in
-[run 41448865200](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41448865200):
-6,816 total tests, 6,801 passed, 15 skipped.
-
-Functional feasibility is verified; release readiness is still pending. Wiz
-continues to report five critical Bouncy Castle findings in the DigiCert tools.
-A supported vendor update or reviewed security decision, approved IDE licensing,
-and replacement of both temporary PR runner references with the approved stable
-runner remain prerequisites before production rollout. Both PRs remain drafts;
-no image or product build was promoted to production by this validation.
+The latest image's last verified Wiz report had five critical findings in
+DigiCert's bundled Bouncy Castle 1.77 jar. Native compatibility passes do not imply
+security clearance. Keep vendor/security review, approved IDE licensing, stable
+runner rollout and broader stability measurements separate from the smoke result.
+Both image PRs and the test PR remain drafts; nothing is merged or promoted by
+this spike. Before production adoption, replace the temporary DEV labels/policy
+with the explicitly approved stable runner configuration.

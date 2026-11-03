@@ -14,6 +14,16 @@ on:
         required: false
         default: ''
         type: string
+      vsix-smoke-earliest-runner:
+        description: Exact DEV runner label from the minimum VS 2022 image PR
+        required: false
+        default: ''
+        type: string
+      vsix-smoke-latest-runner:
+        description: Exact DEV runner label from the latest VS 18 image PR
+        required: false
+        default: ''
+        type: string
       vsix-smoke-repetitions:
         description: Number of fresh IDE profiles for the smoke spike
         required: false
@@ -36,6 +46,8 @@ jobs:
     uses: ./.github/workflows/vsix-smoke-spike.yml
     with:
       project-version: ${{ inputs.vsix-smoke-version }}
+      earliest-runner: ${{ inputs.vsix-smoke-earliest-runner }}
+      latest-runner: ${{ inputs.vsix-smoke-latest-runner }}
       repetitions: ${{ inputs.vsix-smoke-repetitions || '3' }}
 
   build:

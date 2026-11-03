@@ -6,6 +6,12 @@ on:
       project-version:
         required: true
         type: string
+      earliest-runner:
+        required: true
+        type: string
+      latest-runner:
+        required: true
+        type: string
       repetitions:
         default: '3'
         required: false
@@ -14,6 +20,14 @@ on:
     inputs:
       project-version:
         description: Promoted build version, for example 11.1.0.17360
+        required: true
+        type: string
+      earliest-runner:
+        description: Exact DEV runner label emitted by the VS 2022 minimum image PR
+        required: true
+        type: string
+      latest-runner:
+        description: Exact DEV runner label emitted by the latest VS 18 image PR
         required: true
         type: string
       repetitions:
@@ -28,8 +42,40 @@ permissions:
   id-token: write
 
 jobs:
+  configure:
+    runs-on: sonar-xs
+    outputs:
+      targets: ${{ steps.targets.outputs.targets }}
+    steps:
+      - name: Validate candidate runners and define version matrix
+        id: targets
+        shell: bash
+        env:
+          EARLIEST_RUNNER: ${{ inputs.earliest-runner }}
+          LATEST_RUNNER: ${{ inputs.latest-runner }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, re
+          targets = [
+              {"name": "earliest-vs2022-17.0", "runner": os.environ["EARLIEST_RUNNER"], "version": "17.0.31903.59"},
+              {"name": "latest-vs18", "runner": os.environ["LATEST_RUNNER"], "version": "18.11.12328.437"},
+          ]
+          for target in targets:
+              if not re.fullmatch(r"warp-custom-pr-\d+-sonarlint-visualstudio(?:-vs2022-min)?-v\d{14}", target["runner"]):
+                  raise SystemExit("Supply the actual DEV runner labels from the two image workflow outputs.")
+          if targets[0]["runner"] == targets[1]["runner"]:
+              raise SystemExit("Earliest and latest must use distinct image runners.")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("targets=" + json.dumps({"include": targets}) + "\n")
+          PYTHON
+
   smoke:
-    runs-on: warp-custom-pr-513-sonarlint-visualstudio-v20261102114059
+    name: Smoke (${{ matrix.name }})
+    needs: configure
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.configure.outputs.targets) }}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -82,6 +128,7 @@ jobs:
         shell: powershell
         env:
           REPETITIONS: ${{ inputs.repetitions }}
+          SMOKE_EXPECTED_VS_VERSION: ${{ matrix.version }}
         run: |
           $failedRuns = @()
           for ($iteration = 1; $iteration -le [int]$env:REPETITIONS; $iteration++) {
@@ -97,7 +144,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: slvs3097-vsix-smoke
+          name: slvs3097-vsix-smoke-${{ matrix.name }}
           path: ${{ runner.temp }}/slvs3097/
           if-no-files-found: warn
           retention-days: 7
