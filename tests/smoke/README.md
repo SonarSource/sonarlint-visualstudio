@@ -26,8 +26,7 @@ build with the target's expected build before installing the extension.
 
 The candidate images now select **Visual Studio Community**. The matrix asserts
 `Microsoft.VisualStudio.Product.Community` and records the actual product ID
-in `result.json`; the earlier passing runs below used Professional. Community
-image builds and a fresh six-attempt matrix must pass before claiming equivalence.
+in `result.json`. The Community matrix below has passed on both exact versions.
 
 ## Run the matrix
 
@@ -99,61 +98,36 @@ The harness creates a unique `SLVS3097...` suffix and only terminates its launch
 IDE process. It never resets the normal/shared Exp profile. Profiles remain for
 failure inspection; persistent agents need scoped cleanup after investigation.
 
-## Dependency-clean image validation (3 November 2026)
+## Verified Community matrix (3 November 2026)
 
-[Matrix 41643881110](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41643881110)
-passed six independently verified tests (three per IDE) at `6b0c7afb6`.
-Each canonical attempt passed the exact version/package/experimental-profile
-manifest checks, detected the target finding, saved the exact edit and observed
-its disappearance, with one executed passing test and no skips per TRX.
-[Normal build 41643887843](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41643887843)
-also passed: 6,801 passed and 15 skipped out of 6,816 tests.
+[Matrix 41660020382](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41660020382)
+passed **six executed tests, no skips**, at runtime revision `573bd27a3`:
 
-These images remove unused DigiCert tools and replace SDK 8.0.415/runtime 8.0.21
-with SDK 8.0.427/runtime 8.0.33. Final provisioning rejected stale .NET 8 runtimes
-and verified DigiCert absence. Latest image `ee8dea7` has zero vulnerability
-findings in [scan 41634758814](https://github.com/SonarSource/ci-ami-images/actions/runs/41634758814)
-(actual verdict `WARN_BY_POLICY`, zero exposed secret findings). Minimum image
-`bbb8e54` has one critical finding in
-[scan 41634848833](https://github.com/SonarSource/ci-ami-images/actions/runs/41634848833):
-CVE-2021-3711 in VS 17.0's bundled OpenSSL 1.1.1k. Its actual verdict remains
-`FAILED_BY_POLICY`; isolation/security approval is still required.
-
-Subsequent Gitar fixes change pre-reboot discovery and workflow rollout guards;
-their fresh image builds are pending. No production promotion is authorized.
-
-## Verified earliest/latest matrix (3 November 2026)
-
-[Run 41628515971](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41628515971)
-passed **three fresh-profile attempts per target (six executed tests, no skips)**
-at runtime commit `327f7f40696e6a2c64eeb9a048f56e6d6c06838a`.
-Both artifacts were downloaded and independently verified using only their three
-canonical `run-N/evidence` directories, not duplicated TRX attachments.
-
-| Target | Actual / expected IDE build | Results | Scenario durations |
+| Community target | Actual / expected IDE build | Results | Durations |
 | --- | --- | --- | --- |
-| Earliest VS 2022 17.0 | 17.0.31903.59 | 3/3 passed | 115.6s, 106.6s, 107.0s |
-| Latest VS 2026 18.11.3 | 18.11.12328.437 | 3/3 passed | 101.0s, 85.3s, 85.1s |
+| Earliest VS 2022 17.0 | 17.0.31903.59 | 3/3 | 115.7s, 106.0s, 105.6s |
+| Latest VS 2026 18.11.3 | 18.11.12328.437 | 3/3 | 101.4s, 85.1s, 85.1s |
 
-Every result reports passed/complete, one executed passing intended test per TRX,
-a unique profile, the target finding before and absent after the edit, and the
-exact expected saved source. The installed extension manifest matches the supplied
-extension ID/version and its actual directory is inside that requested profile.
-All six use signed VSIX 11.3.0.17474, SHA-256
-`23FD04E3109F6BF6A050B94A0B663E02AF5079249FB849A25A77DD6BF371D894`.
+Downloaded evidence was independently checked using only the three canonical
+`run-N/evidence` directories per target. Each result is passed/complete and records
+`Microsoft.VisualStudio.Product.Community`, the expected exact IDE version and a
+unique profile. The installed manifest matches the package ID/version inside the
+requested profile; each TRX contains one executed passing intended test and no
+skips. Each snapshot has one target finding before, zero after, and the saved
+fixture matches the exact expected edit. All six use signed VSIX 11.3.0.17474,
+SHA-256 `23FD04E3109F6BF6A050B94A0B663E02AF5079249FB849A25A77DD6BF371D894`.
 
-- [Minimum artifact](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41628515971/artifacts/13228400102)
-- [Latest artifact](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41628515971/artifacts/13227705864)
+- [Minimum artifact 13242621188](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41660020382/artifacts/13242621188)
+- [Latest artifact 13242057236](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41660020382/artifacts/13242057236)
+- [Normal Community build 41660028648](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41660028648): 6,801 passed / 15 skipped / 6,816 total.
+- Latest Community image `7f43851`, [41650398066](https://github.com/SonarSource/ci-ami-images/actions/runs/41650398066), AMI `ami-0933354b69dded36a`.
+- Minimum Community image `a6b00cf`, [41650520185](https://github.com/SonarSource/ci-ami-images/actions/runs/41650520185), AMI `ami-00309eb7431b939b7`.
 
-Both current DEV images built and registered from their respective PR heads:
-
-- Latest #513 revision `927b61f`, [image run 41611014286](https://github.com/SonarSource/ci-ami-images/actions/runs/41611014286), AMI `ami-081028ac9e92dde1a`.
-- Minimum #520 revision `c85a3a8`, [image run 41612090162](https://github.com/SonarSource/ci-ami-images/actions/runs/41612090162), AMI `ami-0ae7f36db65e2bc0d`.
-
-All six successful results record Session 0 and `userInteractive=false`. This
-establishes DTE automation in that environment, not foreground interaction,
-screenshot support or visual-rendering correctness. Three passes per version
-establish feasibility; they are not a measured long-term flake rate.
+All six record Session 0 and `userInteractive=false`: this establishes native
+IDE/DTE behavior, not foreground interaction or rendered UI correctness. Three
+passes per version establish feasibility, not a measured long-term flake rate.
+The earlier [Professional matrix 41643881110](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41643881110)
+also passed 6/6 before the edition switch.
 
 ## Minimum-version installer routing
 
@@ -177,17 +151,29 @@ preparation follows Microsoft's integration-harness sequence.
 
 ## Security and rollout still require review
 
-Fresh Wiz reports return FAILED_BY_POLICY despite green scan jobs: the latest
-image reports five critical findings and the minimum reports ten. Those are
-scanner findings, not a completed exploitability assessment. Separate triage
-identified possible Bouncy Castle module-matching false positives, but actual
-bundled-JAR confirmation is pending; no finding has been accepted or suppressed.
-Native smoke passes do not establish security clearance.
+Unused DigiCert tools were removed and .NET SDK 8.0.427/runtime 8.0.33 replaced
+the old 8.0.415/8.0.21 installation. Final provisioning checks reject leftover
+old .NET 8 runtimes in either architecture and any remaining DigiCert tools.
+Fresh Community Wiz artifacts show:
 
-The minimum image deliberately tests the user-selected VS 17.0 compatibility
-boundary, which is outside Microsoft's maintained servicing lines. Keep it
-isolated for compatibility/security review. Approved IDE licensing, supported
-vendor remediation or reviewed security decisions, stable runner rollout and
-broader stability measurements remain prerequisites to production adoption.
-Both image PRs and the test PR remain drafts; nothing is merged or promoted.
-#520 is stacked on #513 and must be retargeted after the parent is merged.
+- Latest artifact 13242946959: `WARN_BY_POLICY`, zero reported vulnerability
+  findings and zero exposed secret findings. The named secrets-policy warning
+  does not establish a secret leak or unconditional security clearance.
+- Minimum artifact 13240797960: `FAILED_BY_POLICY`, one critical CVE-2021-3711
+  in VS17.0 Team Explorer Git's bundled OpenSSL 1.1.1k (`mingw32/bin/libssl-1_1.dll`).
+  Zero exposed secret findings. This remains a real security/isolation decision.
+
+No findings were suppressed or vendor libraries manually replaced. Reported
+policy counts do not imply every other SBOM component is risk-free.
+
+The Community extension-development/testing licence exception was reviewed;
+historical-version support is separate. Microsoft's supported Community channel
+tracks its latest release. The minimum deliberately tests the extension's VS17.0
+compatibility boundary. Actual installation and smoke success do not constitute
+a Microsoft support guarantee for the fixed-bootstrapper/product-selection setup.
+
+Code-owner/security review, stable runner rollout and broader stability measures
+remain before production adoption. All three PRs remain drafts; nothing is merged
+or promoted. #520 is stacked on #513 and must be retargeted after its parent merges.
+The separate Roslyn experiment #6859 expects desktop helpers absent from these
+images; the verified custom DTE scenario here does not require those helpers.
