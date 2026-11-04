@@ -53,7 +53,7 @@ jobs:
   build:
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.vsix-smoke-version == '' }}
     # Only this draft PR validates the candidate; release and other builds keep the stable image.
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 6854 && 'warp-custom-pr-513-sonarlint-visualstudio-v20261103140819' || 'warp-custom-sonarlint-visualstudio' }}
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 6854 && 'warp-custom-pr-513-sonarlint-visualstudio-v20261104092520' || 'warp-custom-sonarlint-visualstudio' }}
     name: Build
     environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release-ready-build' || '' }}
     steps:
