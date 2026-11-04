@@ -98,36 +98,31 @@ The harness creates a unique `SLVS3097...` suffix and only terminates its launch
 IDE process. It never resets the normal/shared Exp profile. Profiles remain for
 failure inspection; persistent agents need scoped cleanup after investigation.
 
-## Verified Community matrix (3 November 2026)
+## Verified minimal Community image (4 November 2026)
 
-[Matrix 41660020382](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41660020382)
-passed **six executed tests, no skips**, at runtime revision `573bd27a3`:
+[Matrix 41815343155](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41815343155)
+passed **6/6 intended tests, no skips**: three fresh profiles on each Community
+version, earliest 17.0.31903.59 and latest 18.11.12328.437. The latest image is the
+minimal Community-only revision `2560082` in
+[41807224664](https://github.com/SonarSource/ci-ami-images/actions/runs/41807224664),
+AMI `ami-0719459c10c7d75ad`. Its dependency/security provisioning matches master.
+The minimum comparison uses its previously verified Community image.
 
-| Community target | Actual / expected IDE build | Results | Durations |
-| --- | --- | --- | --- |
-| Earliest VS 2022 17.0 | 17.0.31903.59 | 3/3 | 115.7s, 106.0s, 105.6s |
-| Latest VS 2026 18.11.3 | 18.11.12328.437 | 3/3 | 101.4s, 85.1s, 85.1s |
+Every canonical attempt's downloaded evidence was independently verified:
+actual Community product ID and exact expected IDE build; one executed passing
+intended test per TRX/no skips; six distinct profiles; exact installed manifest
+inside its requested suffix; one target Sonar finding before/zero after; exact
+saved source edit. All use signed VSIX 11.3.0.17474, SHA256
+`23FD04E3109F6BF6A050B94A0B663E02AF5079249FB849A25A77DD6BF371D894`.
 
-Downloaded evidence was independently checked using only the three canonical
-`run-N/evidence` directories per target. Each result is passed/complete and records
-`Microsoft.VisualStudio.Product.Community`, the expected exact IDE version and a
-unique profile. The installed manifest matches the package ID/version inside the
-requested profile; each TRX contains one executed passing intended test and no
-skips. Each snapshot has one target finding before, zero after, and the saved
-fixture matches the exact expected edit. All six use signed VSIX 11.3.0.17474,
-SHA-256 `23FD04E3109F6BF6A050B94A0B663E02AF5079249FB849A25A77DD6BF371D894`.
+- [Minimum artifact 13315235892](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41815343155/artifacts/13315235892)
+- [Latest artifact 13315400387](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41815343155/artifacts/13315400387)
+- [Normal build 41815423140](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41815423140): 6,808 passed / 15 skipped / 6,823 total on the minimal latest image.
 
-- [Minimum artifact 13242621188](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41660020382/artifacts/13242621188)
-- [Latest artifact 13242057236](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41660020382/artifacts/13242057236)
-- [Normal Community build 41660028648](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41660028648): 6,801 passed / 15 skipped / 6,816 total.
-- Latest Community image `7f43851`, [41650398066](https://github.com/SonarSource/ci-ami-images/actions/runs/41650398066), AMI `ami-0933354b69dded36a`.
-- Minimum Community image `a6b00cf`, [41650520185](https://github.com/SonarSource/ci-ami-images/actions/runs/41650520185), AMI `ami-00309eb7431b939b7`.
-
-All six record Session 0 and `userInteractive=false`: this establishes native
-IDE/DTE behavior, not foreground interaction or rendered UI correctness. Three
-passes per version establish feasibility, not a measured long-term flake rate.
-The earlier [Professional matrix 41643881110](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/41643881110)
-also passed 6/6 before the edition switch.
+The smoke dispatch references `2e539f49c`; subsequent `60e5107f0` changes only the
+normal-build runner label, leaving smoke runtime identical. All six tests ran in
+Session 0/userInteractive=false. This establishes native DTE behavior, not
+foreground/pixel rendering or a measured long-term flake rate.
 
 ## Minimum-version installer routing
 
@@ -149,31 +144,24 @@ installer logs, so a successful installer exit alone cannot be mistaken for
 correct deployment into the intended profile. Post-install cache/configuration
 preparation follows Microsoft's integration-harness sequence.
 
-## Security and rollout still require review
+## Security and rollout remain separate
 
-Unused DigiCert tools were removed and .NET SDK 8.0.427/runtime 8.0.33 replaced
-the old 8.0.415/8.0.21 installation. Final provisioning checks reject leftover
-old .NET 8 runtimes in either architecture and any remaining DigiCert tools.
-Fresh Community Wiz artifacts show:
+Image PR #513 now contains only full Community installation, required tool-path
+changes and IDE checks. No custom security scripts, dependency remediation or
+policy suppression are included; all other provisioning matches master.
 
-- Latest artifact 13242946959: `WARN_BY_POLICY`, zero reported vulnerability
-  findings and zero exposed secret findings. The named secrets-policy warning
-  does not establish a secret leak or unconditional security clearance.
-- Minimum artifact 13240797960: `FAILED_BY_POLICY`, one critical CVE-2021-3711
-  in VS17.0 Team Explorer Git's bundled OpenSSL 1.1.1k (`mingw32/bin/libssl-1_1.dll`).
-  Zero exposed secret findings. This remains a real security/isolation decision.
+Fresh Wiz artifact 13314698752 reports `FAILED_BY_POLICY`, 27 critical file/CVE
+matches across 18 unique CVEs, zero exposed secret findings and additional
+wider-SBOM risks. A [read-only metadata inspection](https://github.com/SonarSource/ci-ami-images/actions/runs/41818010102)
+verified actual module hashes and TLS features. The
+[SLVS-3097 infra handoff](https://sonarsource.atlassian.net/browse/SLVS-3097?focusedCommentId=1046402)
+separates artifact/build false matches from present affected code and conditional
+or unknown exploitability, with primary sources. No hostile-input exploitation
+was demonstrated; unknown reachability is not declared harmless. Infra owns the
+follow-up, as requested. Passing smoke tests do not clear these findings.
 
-No findings were suppressed or vendor libraries manually replaced. Reported
-policy counts do not imply every other SBOM component is risk-free.
-
-The Community extension-development/testing licence exception was reviewed;
-historical-version support is separate. Microsoft's supported Community channel
-tracks its latest release. The minimum deliberately tests the extension's VS17.0
-compatibility boundary. Actual installation and smoke success do not constitute
-a Microsoft support guarantee for the fixed-bootstrapper/product-selection setup.
-
-Code-owner/security review, stable runner rollout and broader stability measures
-remain before production adoption. All three PRs remain drafts; nothing is merged
-or promoted. #520 is stacked on #513 and must be retargeted after its parent merges.
-The separate Roslyn experiment #6859 expects desktop helpers absent from these
-images; the verified custom DTE scenario here does not require those helpers.
+All PRs remain drafts for the user's review. Coordinate image promotion with
+this PR's dynamic MSVC discovery; existing stable CI hard-codes the old Build
+Tools path. No merge or production promotion has been performed. The separate
+Roslyn experiment #6859 expects desktop helpers absent from these images; this
+verified DTE harness does not need them.
