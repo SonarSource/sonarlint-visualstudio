@@ -124,23 +124,6 @@
         "resolved": "1.1.3",
         "contentHash": "3Wrmi0kJDzClwAC+iBdUBpEKmEle8FQNsCs77fkiOIw/9oYA07bL1EZNX0kQ2OMN3xpwvl0vAtOCYY3ndDNlhQ=="
       },
-      "Microsoft.Owin": {
-        "type": "Transitive",
-        "resolved": "4.2.3",
-        "contentHash": "uoOKm7Ouj06+ULS7Ss60tRM2E5t0ku7rQ7cJk864jArtE35WTJKMzUxgHxs7gdiqHZYnC3ddZSr9zj8yRjguEA==",
-        "dependencies": {
-          "Owin": "1.0.0"
-        }
-      },
-      "Microsoft.Owin.Host.HttpListener": {
-        "type": "Transitive",
-        "resolved": "4.2.3",
-        "contentHash": "gcy5I34Mtmd1l8nPpZevQrgQHoim0r9dlfLHB17xr6NYXtqfiUtJ+swD0TLkyC4ggPs6oOWqshBVRlzSE4pO3w==",
-        "dependencies": {
-          "Microsoft.Owin": "4.2.3",
-          "Owin": "1.0.0"
-        }
-      },
       "Microsoft.ServiceHub.Analyzers": {
         "type": "Transitive",
         "resolved": "3.0.3078",
@@ -880,11 +863,6 @@
           "Microsoft.VisualStudio.TemplateWizardInterface": "17.10.40170"
         }
       },
-      "Owin": {
-        "type": "Transitive",
-        "resolved": "1.0.0",
-        "contentHash": "OseTFniKmyp76mEzOBwIKGBRS5eMoYNkMKaMXOpxx9jv88+b6mh1rSaw43vjBOItNhaLFG3d0a20PfHyibH5sw=="
-      },
       "Sentry": {
         "type": "Transitive",
         "resolved": "6.12.0",
@@ -1301,8 +1279,6 @@
       "SonarLint.VisualStudio.IssueVisualization.Security": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Owin": "[4.2.3, )",
-          "Microsoft.Owin.Host.HttpListener": "[4.2.3, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",

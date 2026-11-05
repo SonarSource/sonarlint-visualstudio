@@ -2,25 +2,6 @@
   "version": 1,
   "dependencies": {
     ".NETFramework,Version=v4.7.2": {
-      "Microsoft.Owin": {
-        "type": "Direct",
-        "requested": "[4.2.3, )",
-        "resolved": "4.2.3",
-        "contentHash": "uoOKm7Ouj06+ULS7Ss60tRM2E5t0ku7rQ7cJk864jArtE35WTJKMzUxgHxs7gdiqHZYnC3ddZSr9zj8yRjguEA==",
-        "dependencies": {
-          "Owin": "1.0.0"
-        }
-      },
-      "Microsoft.Owin.Host.HttpListener": {
-        "type": "Direct",
-        "requested": "[4.2.3, )",
-        "resolved": "4.2.3",
-        "contentHash": "gcy5I34Mtmd1l8nPpZevQrgQHoim0r9dlfLHB17xr6NYXtqfiUtJ+swD0TLkyC4ggPs6oOWqshBVRlzSE4pO3w==",
-        "dependencies": {
-          "Microsoft.Owin": "4.2.3",
-          "Owin": "1.0.0"
-        }
-      },
       "Microsoft.VisualStudio.SDK": {
         "type": "Direct",
         "requested": "[17.0.31902.203, )",
@@ -835,11 +816,6 @@
         "type": "Transitive",
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
-      },
-      "Owin": {
-        "type": "Transitive",
-        "resolved": "1.0.0",
-        "contentHash": "OseTFniKmyp76mEzOBwIKGBRS5eMoYNkMKaMXOpxx9jv88+b6mh1rSaw43vjBOItNhaLFG3d0a20PfHyibH5sw=="
       },
       "stdole": {
         "type": "Transitive",
