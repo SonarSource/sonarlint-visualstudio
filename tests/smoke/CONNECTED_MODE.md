@@ -14,19 +14,19 @@ No staging project, shared cloud account or long-lived token is required.
 
 1. Install signed VSIX11.3.0.17474 into a fresh VS18 Community experimental
    profile. Open the same C# sample unbound; require standalone S1481 and absence
-   of the server-only naming-pattern diagnostic.
+   of the server-only cognitive-complexity diagnostic.
 2. Create a unique server project and empty C# quality profile through public
-   Web APIs. Activate only `csharpsquid:S117` with `format=^cloud_[a-z]+$`; assign
+   Web APIs. Activate only `csharpsquid:S3776` with `threshold=1`; assign
    the profile and independently query its rule list. S1481 is disabled.
 3. Store the disposable connection/binding using the extension's actual JSON
    contracts and its `Microsoft.Alm.Authentication` credential-store namespace.
    This restores a persisted binding. **The connection/binding wizard UI is not
    automated.** Refuse to overwrite existing connections/credentials.
 4. Install the same VSIX in another fresh profile, open a uniquely named solution
-   and require the naming finding at the exact sample path/line5 containing the
-   server pattern. Require standalone S1481 to be absent. A standalone analysis
-   cannot satisfy that positive server-parameter assertion.
-5. Rename the variable to `cloud_value` through DTE and save. Assert the exact
+   and require the exact cognitive-complexity finding at the sample path/line3:
+   complexity3 exceeds the server limit1. Require standalone S1481 to be absent.
+   The input has two nested ifs; default threshold15 cannot satisfy that finding.
+5. Remove the nested ifs through DTE and save. Assert the exact
    saved edit and stable absence of both target diagnostics for five seconds.
 
 This calls the actual installed extension/IDE analysis pipeline; server Web APIs
@@ -96,3 +96,10 @@ primary failure. The API calls now follow Orchestrator's own name/language
 assignment contract and the service's profile-delete parameter, preserve the
 original exception and retain sanitized API messages. Focused retry is pending.
 No connected E2E pass is claimed yet.
+
+The second native run surfaced the original fixture error: C# does not implement
+S117 (the similarly named rule exists for other languages). The server API
+returned rule-not-found. This was a fixture selection mistake, not a connected
+analysis result. The updated proof uses implemented C# S3776 with its verified
+`threshold` parameter/default15 and exact expected message3-to1. Cleanup now
+uses the profile name plus C# language as required by this server's API.

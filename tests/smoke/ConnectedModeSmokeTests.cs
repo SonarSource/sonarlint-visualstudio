@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Smoke
     [DoNotParallelize]
     public class ConnectedModeSmokeTests
     {
+        private const string NestedBranches = "        if (value > 0) { if (value > 1) { return 1; } }";
         public TestContext TestContext { get; set; }
 
         [STATestMethod]
@@ -45,6 +46,7 @@ namespace SonarLint.VisualStudio.Smoke
                 try
                 {
                     standalone.PrepareSample("Unbound" + Guid.NewGuid().ToString("N"));
+                    ArrangeComplexity(standalone.SourcePath);
                     standalone.InstallAndLaunch();
                     standalone.OpenSample();
                     standalone.WaitForFinding();
@@ -58,6 +60,7 @@ namespace SonarLint.VisualStudio.Smoke
             using var binding = new ConnectedServerFixture(solutionName + ".sln", results);
             using var connected = new VisualStudioSession(vsix, Path.Combine(results, "connected"), TestContext);
             connected.PrepareSample(solutionName);
+            ArrangeComplexity(connected.SourcePath);
             try
             {
                 connected.InstallAndLaunch();
@@ -65,7 +68,7 @@ namespace SonarLint.VisualStudio.Smoke
                 connected.WaitForSampleFindings("server-profile-applied", rows =>
                     rows.Count(IsServerFinding) == 1 && !rows.Any(IsStandaloneFinding));
 
-                var edited = File.ReadAllText(connected.SourcePath).Replace("smokeUnused", "cloud_value");
+                var edited = File.ReadAllText(connected.SourcePath).Replace(NestedBranches, "");
                 connected.ReplaceSampleSource(edited);
                 connected.WaitForSampleFindings("after-connected-edit", rows =>
                     !rows.Any(IsServerFinding) && !rows.Any(IsStandaloneFinding), TimeSpan.FromSeconds(5));
@@ -75,9 +78,15 @@ namespace SonarLint.VisualStudio.Smoke
             catch (Exception e) { connected.RecordFailure(e); throw; }
         }
 
-        private static bool IsServerFinding(ErrorListEntry row) => row.Line == 5
-            && row.Description.Contains(ConnectedServerFixture.Pattern)
-            && row.Description.IndexOf("regular expression", StringComparison.OrdinalIgnoreCase) >= 0;
+        private static void ArrangeComplexity(string sourcePath)
+        {
+            var source = File.ReadAllText(sourcePath).Replace("Run()", "Run(int value)")
+                .Replace("        return 0;", NestedBranches + Environment.NewLine + "        return 0;");
+            File.WriteAllText(sourcePath, source);
+        }
+
+        private static bool IsServerFinding(ErrorListEntry row) => row.Line == 3
+            && row.Description == ConnectedServerFixture.ExpectedFinding;
 
         private static bool IsStandaloneFinding(ErrorListEntry row) => row.Line == 5
             && row.Description == "Remove the unused local variable 'smokeUnused'.";

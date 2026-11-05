@@ -35,7 +35,9 @@ namespace SonarLint.VisualStudio.Smoke
     // They never inject rules or call the product's analysis backend.
     internal sealed class ConnectedServerFixture : IDisposable
     {
-        public const string Pattern = "^cloud_[a-z]+$";
+        public const string RuleKey = "csharpsquid:S3776";
+        public const int Threshold = 1;
+        public const string ExpectedFinding = "Refactor this method to reduce its Cognitive Complexity from 3 to the 1 allowed.";
         private readonly string projectKey = "slvs-connected-" + Guid.NewGuid().ToString("N");
         private readonly HttpClient http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         private readonly SecretStore credentials = new SecretStore("SonarLint.VisualStudio.Integration");
@@ -84,12 +86,17 @@ namespace SonarLint.VisualStudio.Smoke
                 projectCreated = true;
                 var profile = Post("api/qualityprofiles/create", "language", "cs", "name", projectKey);
                 profileKey = (string)profile["profile"]["key"];
-                Post("api/qualityprofiles/activate_rule", "key", profileKey, "rule", "csharpsquid:S117", "params", "format=" + Pattern);
+                var rule = Get("api/rules/show?key=" + Uri.EscapeDataString(RuleKey));
+                var defaultThreshold = rule["rule"]["params"].Values<JObject>()
+                    .Single(x => (string)x["key"] == "threshold")["defaultValue"];
+                if ((string)defaultThreshold != "15") { throw new InvalidDataException("Unexpected default cognitive-complexity threshold."); }
+                File.WriteAllText(Path.Combine(results, "server-rule-defaults.json"), rule.ToString());
+                Post("api/qualityprofiles/activate_rule", "key", profileKey, "rule", RuleKey, "params", "threshold=" + Threshold);
                 Post("api/qualityprofiles/add_project", "qualityProfile", projectKey, "language", "cs", "project", projectKey);
                 var rules = Get("api/rules/search?activation=true&qprofile=" + Uri.EscapeDataString(profileKey) + "&ps=500");
-                if ((int)rules["total"] != 1 || (string)rules["rules"][0]["key"] != "csharpsquid:S117")
+                if ((int)rules["total"] != 1 || (string)rules["rules"][0]["key"] != RuleKey)
                 {
-                    throw new InvalidDataException("Server profile must contain exactly S117; S1481 must be disabled.");
+                    throw new InvalidDataException("Server profile must contain exactly S3776; S1481 must be disabled.");
                 }
                 File.WriteAllText(Path.Combine(results, "server-profile.json"), rules.ToString());
                 if (credentials.ReadCredentials(new TargetUri(server)) != null)
@@ -125,7 +132,7 @@ namespace SonarLint.VisualStudio.Smoke
         public void SaveEvidence() => File.WriteAllText(Path.Combine(results, "connected-fixture.json"),
             JsonConvert.SerializeObject(new
             {
-                server = server.AbsoluteUri, projectKey, profileKey, rule = "csharpsquid:S117", pattern = Pattern,
+                server = server.AbsoluteUri, projectKey, profileKey, rule = RuleKey, threshold = Threshold,
                 bindingSetup = "persisted connection/binding and Windows Credential Manager; binding UI not exercised"
             }, Formatting.Indented));
 
@@ -180,7 +187,7 @@ namespace SonarLint.VisualStudio.Smoke
                 try { if (projectCreated) { Post("api/projects/delete", "project", projectKey); } }
                 finally
                 {
-                    try { if (profileKey != null) { Post("api/qualityprofiles/delete", "qualityProfile", profileKey); } }
+                    try { if (profileKey != null) { Post("api/qualityprofiles/delete", "qualityProfile", projectKey, "language", "cs"); } }
                     finally { http.Dispose(); }
                 }
             }
