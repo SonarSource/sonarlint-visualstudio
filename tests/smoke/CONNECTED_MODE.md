@@ -2,8 +2,8 @@
 
 This separate draft is stacked on #6854 so its diff adds connected-mode coverage
 to the already verified custom C# MSTest/DTE harness. It changes no product code
-or runner image. Native connected-mode execution is pending; local compilation
-alone is not an E2E pass.
+or runner image. Native connected-mode execution passed three confirmation
+attempts; the evidence is recorded below.
 
 ## Scenario and discriminating assertions
 
@@ -85,21 +85,42 @@ edition/license and baseline server analysis. They are not claimed by this PoC.
 Staging Cloud can later use a separately provisioned project/user, but would add
 credential/cleanup/shared-state dependencies that this local first proof avoids.
 
-## Native checkpoint
+## Verified native result (5 November 2026)
 
-[First focused run 42017794803](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/42017794803)
-started the real Orchestrator server, restored/compiled the C# tests and passed
-the installed-extension standalone control on VS18. It then failed arranging the
-profile/binding fixture before connected IDE assertions. The helper used the
-wrong quality-profile API parameters; cleanup's HTTP400 initially hid the
-primary failure. The API calls now follow Orchestrator's own name/language
-assignment contract and the service's profile-delete parameter, preserve the
-original exception and retain sanitized API messages. Focused retry is pending.
-No connected E2E pass is claimed yet.
+[Confirmation run 42025124331](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/42025124331)
+passed **3/3 executed intended tests, no skips**, at runtime revision
+`3df38bca2764508b935ac0fc8525c9c2dacfbed0`.
+[Artifact 13414806635](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/42025124331/artifacts/13414806635)
+was downloaded and independently verified using canonical `run-1`, `run-2` and
+`run-3` directories rather than duplicate TRX attachments.
 
-The second native run surfaced the original fixture error: C# does not implement
-S117 (the similarly named rule exists for other languages). The server API
-returned rule-not-found. This was a fixture selection mistake, not a connected
-analysis result. The updated proof uses implemented C# S3776 with its verified
-`threshold` parameter/default15 and exact expected message3-to1. Cleanup now
-uses the profile name plus C# language as required by this server's API.
+- All six standalone/connected profiles were distinct and recorded actual
+  Community 18.11.12328.437 and the expected signed VSIX11.3.0.17474 SHA256
+  `23FD04E3109F6BF6A050B94A0B663E02AF5079249FB849A25A77DD6BF371D894`.
+- Each exact extension manifest/version was inside its requested experimental
+  profile. Each TRX contained the intended executed passing test and no skips.
+- Three distinct server projects, quality profiles and connected solution names
+  were recorded. Server defaults showed threshold15; assigned profiles contained
+  only S3776 with the test's threshold1 configuration.
+- Every standalone snapshot contained S1481 at line5 and no server-specific
+  S3776 diagnostic. Every bound snapshot contained the exact 3-to1 cognitive
+  finding at the sample path/line3 and no S1481. After the DTE edit, neither target
+  finding remained. Unrelated compiler/IDE diagnostics are allowed.
+- Every saved connected source exactly matched its standalone control with the
+  nested-if statement removed. The unused variable remains, so the absence of
+  S1481 after editing continues to exercise the server's rule deactivation.
+- Test durations: 224.4s, 170.2s and 162.9s. The focused
+  [42022643379](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/42022643379)
+  also passed and was independently verified before confirmation.
+
+The artifact contains no private `server.json` or Maven settings and no recorded
+fixture-cleanup failure. All runs used Session0/userInteractive=false. This proves
+persisted binding authentication/profile synchronization and native IDE connected
+analysis on this configuration. It does not prove wizard interaction, rendered UI,
+Cloud staging behavior, enterprise rules or a long-term flake rate.
+
+Initial attempts exposed an unavailable C# naming-rule choice and profile API
+parameter mistakes before connected assertions. The implemented C# S3776 and its
+actual `threshold` contract were then verified against analyzer source. Those
+fixture errors were corrected before the native focused and confirmation passes.
+All PRs remain drafts for the user's review; no merge or production promotion.
