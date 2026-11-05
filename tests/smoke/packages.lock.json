@@ -2,6 +2,15 @@
   "version": 1,
   "dependencies": {
     ".NETFramework,Version=v4.8": {
+      "Microsoft.Alm.Authentication": {
+        "type": "Direct",
+        "requested": "[4.0.0.1, )",
+        "resolved": "4.0.0.1",
+        "contentHash": "G+EwnnZeoee3McrWZQ0TOtQShJyCzFwhJdEXIbz5t+G2e67KICipAHfflDSYwokB43YK+y5J7ArnRHDLYtNliA==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.8"
+        }
+      },
       "MSTest": {
         "type": "Direct",
         "requested": "[4.4.1, )",
@@ -57,6 +66,11 @@
           "System.Text.Encodings.Web": "10.0.10",
           "System.Text.Json": "10.0.10"
         }
+      },
+      "Microsoft.IdentityModel.Clients.ActiveDirectory": {
+        "type": "Transitive",
+        "resolved": "3.13.8",
+        "contentHash": "RAYmpEVVnl8qWdPmm62k9wm6MUB9H4Gk3l7uBADDCCQJDOkpTAINzgWHTBF8hkaTHFLaGIfgOeeLcKT+K1PG7A=="
       },
       "Microsoft.NET.Test.Sdk": {
         "type": "Transitive",

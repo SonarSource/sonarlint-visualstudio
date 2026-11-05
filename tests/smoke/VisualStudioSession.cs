@@ -53,6 +53,8 @@ namespace SonarLint.VisualStudio.Smoke
         private EnvDTE80.DTE2 dte;
         private ErrorListEntry[] lastErrors = Array.Empty<ErrorListEntry>();
         private string sourcePath;
+        private string solutionPath;
+        public string SourcePath => sourcePath;
         private string profileDirectory;
 
         public VisualStudioSession(string vsixPath, string resultsDirectory, TestContext context)
@@ -216,9 +218,8 @@ namespace SonarLint.VisualStudio.Smoke
             return false;
         }
 
-        public void OpenSample()
+        public string PrepareSample(string solutionName = "Smoke")
         {
-            Phase("open-sample");
             var fixtureDirectory = Path.Combine(resultsDirectory, "fixture");
             Directory.CreateDirectory(fixtureDirectory);
             foreach (var file in Directory.GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixture")))
@@ -226,9 +227,18 @@ namespace SonarLint.VisualStudio.Smoke
                 File.Copy(file, Path.Combine(fixtureDirectory, Path.GetFileName(file).Replace(".txt", "")));
             }
             sourcePath = Path.Combine(fixtureDirectory, "Smoke.cs");
+            solutionPath = Path.Combine(fixtureDirectory, solutionName + ".sln");
+            if (solutionName != "Smoke") { File.Move(Path.Combine(fixtureDirectory, "Smoke.sln"), solutionPath); }
+            return solutionPath;
+        }
+
+        public void OpenSample()
+        {
+            Phase("open-sample");
+            if (sourcePath == null) { PrepareSample(); }
             WaitUntil("the solution to open", () =>
             {
-                if (!dte.Solution.IsOpen) { dte.Solution.Open(Path.Combine(fixtureDirectory, "Smoke.sln")); }
+                if (!dte.Solution.IsOpen) { dte.Solution.Open(solutionPath); }
                 return dte.Solution.IsOpen;
             });
             WaitUntil("the sample file to open", () =>
@@ -275,6 +285,32 @@ namespace SonarLint.VisualStudio.Smoke
                 clearSince.Start();
                 return clearSince.Elapsed >= stableFor;
             });
+        }
+
+        public ErrorListEntry[] WaitForSampleFindings(string name, Func<ErrorListEntry[], bool> predicate, TimeSpan? stableFor = null)
+        {
+            Phase(name);
+            ErrorListEntry[] findings = null;
+            DateTime? since = null;
+            WaitUntil(name, () =>
+            {
+                findings = VisualStudioAutomation.ReadErrorList(dte)
+                    .Where(x => string.Equals(x.File, sourcePath, StringComparison.OrdinalIgnoreCase)).ToArray();
+                if (!predicate(findings)) { since = null; return false; }
+                since ??= DateTime.UtcNow;
+                return DateTime.UtcNow - since.Value >= (stableFor ?? TimeSpan.Zero);
+            });
+            WriteJson(name + ".json", findings);
+            return findings;
+        }
+
+        public void ReplaceSampleSource(string text)
+        {
+            var selection = (EnvDTE.TextSelection)dte.ActiveDocument.Selection;
+            selection.SelectAll();
+            selection.Insert(text);
+            dte.ActiveDocument.Save();
+            Assert.AreEqual(text, File.ReadAllText(sourcePath), "The IDE must save the exact edit.");
         }
 
         public void SaveErrorList(string name)

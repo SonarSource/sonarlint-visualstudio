@@ -9,6 +9,22 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      connected-smoke-version:
+        description: Run only the connected-mode VS18 smoke against this promoted VSIX
+        required: false
+        default: ''
+        type: string
+      connected-smoke-runner:
+        description: Exact VS18 DEV image runner label
+        required: false
+        default: ''
+        type: string
+      connected-smoke-repetitions:
+        description: Connected-mode fresh-profile attempts
+        required: false
+        default: '1'
+        type: choice
+        options: ['1', '3']
       vsix-smoke-version:
         description: 'SLVS-3097: run only the VSIX smoke spike against this promoted four-part build version (empty runs the normal build)'
         required: false
@@ -42,7 +58,7 @@ permissions:
 
 jobs:
   vsix-smoke:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.vsix-smoke-version != '' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.vsix-smoke-version != '' && inputs.connected-smoke-version == '' }}
     uses: ./.github/workflows/vsix-smoke-spike.yml
     with:
       project-version: ${{ inputs.vsix-smoke-version }}
@@ -50,10 +66,18 @@ jobs:
       latest-runner: ${{ inputs.vsix-smoke-latest-runner }}
       repetitions: ${{ inputs.vsix-smoke-repetitions || '3' }}
 
+  connected-smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.connected-smoke-version != '' }}
+    uses: ./.github/workflows/connected-vsix-smoke-spike.yml
+    with:
+      project-version: ${{ inputs.connected-smoke-version }}
+      runner: ${{ inputs.connected-smoke-runner }}
+      repetitions: ${{ inputs.connected-smoke-repetitions || '1' }}
+
   build:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.vsix-smoke-version == '' }}
-    # Only this draft PR validates the candidate; release and other builds keep the stable image.
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 6854 && 'warp-custom-pr-513-sonarlint-visualstudio-v20261104092520' || 'warp-custom-sonarlint-visualstudio' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.vsix-smoke-version == '' && inputs.connected-smoke-version == '') }}
+    # Draft smoke PRs validate the DEV candidate; release and other builds retain the stable image.
+    runs-on: ${{ github.event_name == 'pull_request' && (github.event.pull_request.number == 6854 || github.head_ref == 'codex/slvs-3097-connected-smoke-spike') && 'warp-custom-pr-513-sonarlint-visualstudio-v20261104092520' || 'warp-custom-sonarlint-visualstudio' }}
     name: Build
     environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release-ready-build' || '' }}
     steps:
