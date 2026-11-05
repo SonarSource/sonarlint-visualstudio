@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using NuGet;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.Initialization;
@@ -77,7 +76,7 @@ public class GlobalSettingsStorageTest
 
         Received.InOrder(() =>
         {
-            processorFactory.Create<GlobalSettingsStorage>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(collection => collection.IsEmpty()),
+            processorFactory.Create<GlobalSettingsStorage>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(collection => !collection.Any()),
                 Arg.Any<Func<IThreadHandling, Task>>());
             initializationProcessor.InitializeAsync();
             environmentVariableProvider.GetFolderPath(Environment.SpecialFolder.ApplicationData);

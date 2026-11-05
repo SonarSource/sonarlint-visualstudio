@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel;
-using NuGet;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 
@@ -124,7 +123,7 @@ public class AnalysisPropertiesViewModelTests
     {
         testSubject.UpdateAnalysisProperties();
 
-        solutionUserSettingsUpdater.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x => x.IsEmpty()));
+        solutionUserSettingsUpdater.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x => !x.Any()));
     }
 
     [TestMethod]
