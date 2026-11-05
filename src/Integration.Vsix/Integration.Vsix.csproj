@@ -376,7 +376,7 @@
   <ItemGroup>
     <PackageReference Include="Devtility.CheckAsmRefs" Version="0.11.0-rc">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <IncludeAssets>build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
