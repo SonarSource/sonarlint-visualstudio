@@ -11,7 +11,6 @@
 
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
     <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
-    <RequiresChannels>true</RequiresChannels>
   </PropertyGroup>
 
   <ItemGroup>
