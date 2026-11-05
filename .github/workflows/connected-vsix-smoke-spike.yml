@@ -1,0 +1,104 @@
+name: Connected VSIX smoke feasibility (SLVS-3097)
+on:
+  workflow_call:
+    inputs:
+      project-version:
+        type: string
+        required: true
+      runner:
+        type: string
+        required: true
+      repetitions:
+        type: string
+        default: '1'
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  configure:
+    runs-on: sonar-xs
+    outputs:
+      runner: ${{ steps.validate.outputs.runner }}
+    steps:
+      - id: validate
+        shell: bash
+        env:
+          RUNNER: ${{ inputs.runner }}
+          VERSION: ${{ inputs.project-version }}
+          REPETITIONS: ${{ inputs.repetitions }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, re
+          runner = os.environ['RUNNER']
+          if not re.fullmatch(r'warp-custom-pr-513-sonarlint-visualstudio-v\d{14}', runner):
+              raise SystemExit('Supply the actual VS18 DEV image runner label.')
+          if not re.fullmatch(r'\d+\.\d+\.\d+\.\d+', os.environ['VERSION']):
+              raise SystemExit('Supply a four-part promoted VSIX version.')
+          if os.environ['REPETITIONS'] not in ('1', '3'):
+              raise SystemExit('Use one focused attempt or three confirmation attempts.')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('runner=' + runner + '\n')
+          PYTHON
+  connected:
+    needs: configure
+    runs-on: ${{ needs.configure.outputs.runner }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Read artifact credentials
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/kv/data/repox url | ARTIFACTORY_URL;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username | ARTIFACTORY_USER;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_ACCESS_TOKEN;
+
+      - name: Download the built VSIX
+        shell: powershell
+        env:
+          PROJECT_VERSION: ${{ inputs.project-version }}
+          ARTIFACTORY_URL: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_URL }}
+          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+          ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          $authorization = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("${env:ARTIFACTORY_USER}:${env:ARTIFACTORY_ACCESS_TOKEN}"))
+          $name = "SonarLint.VSIX-${env:PROJECT_VERSION}-2022.vsix"
+          $url = "$($env:ARTIFACTORY_URL.TrimEnd('/'))/sonarsource-public-builds/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/${env:PROJECT_VERSION}/$name"
+          Invoke-WebRequest -UseBasicParsing -TimeoutSec 180 -Uri $url -Headers @{ Authorization = "Basic $authorization" } -OutFile (Join-Path $env:RUNNER_TEMP 'candidate.vsix')
+
+      - name: Build C# smoke tests
+        shell: powershell
+        env:
+          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $idePath = & $vswhere -latest -products Microsoft.VisualStudio.Product.Community -version '[18.0,19.0)' -property installationPath
+          if ($LASTEXITCODE -ne 0 -or -not $idePath) { throw 'Full Visual Studio not found.' }
+          dotnet build tests/smoke/VsixSmoke.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
+          if ($LASTEXITCODE -ne 0) { throw 'C# smoke-test build failed.' }
+
+
+      - name: Exercise connected mode against disposable Orchestrator server
+        shell: powershell
+        env:
+          REPETITIONS: ${{ inputs.repetitions }}
+          SMOKE_EXPECTED_VS_VERSION: '18.11.12328.437'
+          SMOKE_EXPECTED_VS_PRODUCT: Microsoft.VisualStudio.Product.Community
+          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+        run: .\.github\scripts\Invoke-ConnectedVsixSmoke.ps1
+      - name: Retain connected scenario evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slvs3097-connected-vsix-smoke-vs18
+          path: ${{ runner.temp }}/slvs3097-connected-results
+          if-no-files-found: warn
+          retention-days: 7
