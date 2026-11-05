@@ -84,3 +84,15 @@ shared-binding restoration. Taint/enterprise rules need the relevant server
 edition/license and baseline server analysis. They are not claimed by this PoC.
 Staging Cloud can later use a separately provisioned project/user, but would add
 credential/cleanup/shared-state dependencies that this local first proof avoids.
+
+## Native checkpoint
+
+[First focused run 42017794803](https://github.com/SonarSource/sonarlint-visualstudio/actions/runs/42017794803)
+started the real Orchestrator server, restored/compiled the C# tests and passed
+the installed-extension standalone control on VS18. It then failed arranging the
+profile/binding fixture before connected IDE assertions. The helper used the
+wrong quality-profile API parameters; cleanup's HTTP400 initially hid the
+primary failure. The API calls now follow Orchestrator's own name/language
+assignment contract and the service's profile-delete parameter, preserve the
+original exception and retain sanitized API messages. Focused retry is pending.
+No connected E2E pass is claimed yet.

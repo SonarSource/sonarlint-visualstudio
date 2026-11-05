@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -39,6 +40,7 @@ namespace SonarLint.VisualStudio.Smoke
         private readonly HttpClient http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         private readonly SecretStore credentials = new SecretStore("SonarLint.VisualStudio.Integration");
         private readonly Uri server;
+        private readonly string token;
         private readonly string results;
         private readonly string connectionsPath;
         private readonly string bindingDirectory;
@@ -60,7 +62,7 @@ namespace SonarLint.VisualStudio.Smoke
                 throw new InvalidOperationException("This PoC accepts only its disposable loopback SonarQube server.");
             }
             http.BaseAddress = server;
-            var token = (string)info["token"] ?? throw new InvalidDataException("Missing server token.");
+            token = (string)info["token"] ?? throw new InvalidDataException("Missing server token.");
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
                 Convert.ToBase64String(Encoding.UTF8.GetBytes(token + ":")));
             var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SonarLint for Visual Studio");
@@ -83,7 +85,7 @@ namespace SonarLint.VisualStudio.Smoke
                 var profile = Post("api/qualityprofiles/create", "language", "cs", "name", projectKey);
                 profileKey = (string)profile["profile"]["key"];
                 Post("api/qualityprofiles/activate_rule", "key", profileKey, "rule", "csharpsquid:S117", "params", "format=" + Pattern);
-                Post("api/qualityprofiles/add_project", "key", profileKey, "project", projectKey);
+                Post("api/qualityprofiles/add_project", "qualityProfile", projectKey, "language", "cs", "project", projectKey);
                 var rules = Get("api/rules/search?activation=true&qprofile=" + Uri.EscapeDataString(profileKey) + "&ps=500");
                 if ((int)rules["total"] != 1 || (string)rules["rules"][0]["key"] != "csharpsquid:S117")
                 {
@@ -112,7 +114,12 @@ namespace SonarLint.VisualStudio.Smoke
                     ["ServerConnectionId"] = server.AbsoluteUri, ["ProjectKey"] = projectKey
                 }.ToString());
             }
-            catch { Dispose(); throw; }
+            catch
+            {
+                try { Dispose(); }
+                catch (Exception cleanup) { File.WriteAllText(Path.Combine(results, "fixture-cleanup-error.txt"), cleanup.ToString()); }
+                throw;
+            }
         }
 
         public void SaveEvidence() => File.WriteAllText(Path.Combine(results, "connected-fixture.json"),
@@ -134,11 +141,21 @@ namespace SonarLint.VisualStudio.Smoke
             using (request)
             using (var response = http.SendAsync(request).GetAwaiter().GetResult())
             {
+                var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new InvalidOperationException("Fixture API failed: " + request.RequestUri.AbsolutePath + " HTTP " + (int)response.StatusCode);
+                    var detail = "";
+                    try
+                    {
+                        detail = string.Join("; ", JObject.Parse(body)["errors"]?.Values<JObject>()
+                            .Select(x => (string)x["msg"]) ?? Array.Empty<string>());
+                    }
+                    catch (JsonException) { /* Do not echo arbitrary non-JSON response bodies. */ }
+                    detail = detail.Replace(token, "[REDACTED]")
+                        .Replace(Convert.ToBase64String(Encoding.UTF8.GetBytes(token + ":")), "[REDACTED]");
+                    throw new InvalidOperationException("Fixture API failed: " + request.RequestUri.AbsolutePath
+                        + " HTTP " + (int)response.StatusCode + " " + detail);
                 }
-                var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                 return string.IsNullOrWhiteSpace(body) ? new JObject() : JObject.Parse(body);
             }
         }
@@ -163,7 +180,7 @@ namespace SonarLint.VisualStudio.Smoke
                 try { if (projectCreated) { Post("api/projects/delete", "project", projectKey); } }
                 finally
                 {
-                    try { if (profileKey != null) { Post("api/qualityprofiles/delete", "key", profileKey); } }
+                    try { if (profileKey != null) { Post("api/qualityprofiles/delete", "qualityProfile", profileKey); } }
                     finally { http.Dispose(); }
                 }
             }
