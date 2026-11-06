@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\SonarLint.Test.props" />
+  <Import Project="..\..\build\version.props" />
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>SonarLint.VisualStudio.Integration.Vsix.PackageTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Integration.Vsix.PackageTests</AssemblyName>
+    <RequiresNewtonsoft>true</RequiresNewtonsoft>
+  </PropertyGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Integration.Vsix\Integration.Vsix.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- The tests inspect the VSIX that Integration.Vsix copies to the binaries folder, so they need its exact path
+       and the locations of the files used to classify its assemblies. -->
+  <Target Name="GenerateBuildPaths" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <_BuildPathsFile>$(IntermediateOutputPath)BuildPaths.g.cs</_BuildPathsFile>
+      <_VsixPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\binaries\SonarLint.VSIX-$(VsixVersion)-$(VsTargetVersion).vsix'))</_VsixPath>
+      <_VsixProjectDirectory>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\Integration.Vsix'))</_VsixProjectDirectory>
+    </PropertyGroup>
+
+    <WriteLinesToFile File="$(_BuildPathsFile)" Overwrite="true" WriteOnlyWhenDifferent="true" Lines="namespace SonarLint.VisualStudio.Integration.Vsix.PackageTests%3B;internal static class BuildPaths;{;    internal const string Vsix = @&quot;$(_VsixPath)&quot;%3B;    internal const string VsixProjectDirectory = @&quot;$(_VsixProjectDirectory)&quot;%3B;    internal const string NuGetPackageRoot = @&quot;$(NuGetPackageRoot)&quot;%3B;}" />
+
+    <ItemGroup>
+      <Compile Include="$(_BuildPathsFile)" />
+      <FileWrites Include="$(_BuildPathsFile)" />
+    </ItemGroup>
+  </Target>
+
+</Project>
