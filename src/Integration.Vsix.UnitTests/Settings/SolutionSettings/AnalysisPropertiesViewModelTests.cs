@@ -123,7 +123,7 @@ public class AnalysisPropertiesViewModelTests
     {
         testSubject.UpdateAnalysisProperties();
 
-        solutionUserSettingsUpdater.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x => !x.Any()));
+        solutionUserSettingsUpdater.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x => x.Count == 0));
     }
 
     [TestMethod]

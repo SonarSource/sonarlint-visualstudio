@@ -39,8 +39,9 @@ internal static class AssemblyNameExtensions
         {
             return AssemblyName.GetAssemblyName(path);
         }
-        catch (BadImageFormatException)
+        catch (BadImageFormatException ex)
         {
+            Console.WriteLine($"Skipping '{path}': not a managed assembly ({ex.Message})");
             return null;
         }
     }

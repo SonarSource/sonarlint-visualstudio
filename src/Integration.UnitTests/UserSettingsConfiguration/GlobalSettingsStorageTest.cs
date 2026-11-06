@@ -76,7 +76,7 @@ public class GlobalSettingsStorageTest
 
         Received.InOrder(() =>
         {
-            processorFactory.Create<GlobalSettingsStorage>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(collection => !collection.Any()),
+            processorFactory.Create<GlobalSettingsStorage>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(collection => collection.Count == 0),
                 Arg.Any<Func<IThreadHandling, Task>>());
             initializationProcessor.InitializeAsync();
             environmentVariableProvider.GetFolderPath(Environment.SpecialFolder.ApplicationData);
