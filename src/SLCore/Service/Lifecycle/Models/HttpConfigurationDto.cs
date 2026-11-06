@@ -24,18 +24,5 @@ public record HttpConfigurationDto(SslConfigurationDto sslConfiguration);
 
 // the following fields are left as defaults:
 
-// private final Duration connectTimeout;
-// private final Duration socketTimeout;
-// private final Duration connectionRequestTimeout;
-// private final Duration responseTimeout;
 
 public record SslConfigurationDto;
-
-// the following fields are left as defaults:
-
-// private final Path trustStorePath;
-// private final String trustStorePassword;
-// private final String trustStoreType;
-// private final Path keyStorePath;
-// private final String keyStorePassword;
-// private final String keyStoreType;
