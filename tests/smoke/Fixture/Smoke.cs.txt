@@ -1,0 +1,8 @@
+public class Smoke
+{
+    public int Run()
+    {
+        int smokeUnused = 42;
+        return 0;
+    }
+}
