@@ -989,14 +989,6 @@
           "System.Security.Principal.Windows": "5.0.0"
         }
       },
-      "System.Threading.Channels": {
-        "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "qmeeYNROMsONF6ndEZcIQ+VxR4Q/TX/7uIVLJqtwIWL7dDWeh0l1UIqgo4wYyjG//5lUNhwkLDSFl+pAWO6oiA==",
-        "dependencies": {
-          "System.Threading.Tasks.Extensions": "4.5.4"
-        }
-      },
       "System.Threading.Tasks.Dataflow": {
         "type": "Transitive",
         "resolved": "5.0.0",
@@ -1104,8 +1096,7 @@
           "BouncyCastle.Cryptography": "[2.7.0, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "System.Collections.Immutable": "[5.0.0, )",
-          "System.IO.Abstractions": "[9.0.6, )",
-          "System.Threading.Channels": "[7.0.0, )"
+          "System.IO.Abstractions": "[9.0.6, )"
         }
       },
       "SonarLint.VisualStudio.Infrastructure.VS": {
