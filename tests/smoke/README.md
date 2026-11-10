@@ -1,106 +1,108 @@
-# Installed VSIX smoke tests
+# Installed VSIX smoke test
 
-These tests install a published SonarQube for Visual Studio extension in a fresh
-experimental IDE profile and exercise analysis through the real Visual Studio
-DTE API. They run independently of the product solution and unit tests.
+This test runs once after every successful push build on `master`, using Visual
+Studio Community 18.11.12328.437 from [image PR #513](https://github.com/SonarSource/ci-ami-images/pull/513)
+on `warp-custom-pr-513-sonarlint-visualstudio-v20261109151945`.
+PR builds do not run it automatically. It can also be enabled explicitly when
+manually dispatching Build on a PR branch. Earliest-supported-version coverage
+is deferred to a separate PR.
 
 ## Scenario
 
-For each installation, the test:
+The test installs the signed VSIX from the same workflow run's `binaries`
+artifact into a unique experimental IDE profile. It does not download an older
+published package or rebuild the extension.
 
-1. Verifies the actual IDE product/build and the supplied VSIX identity.
-2. Installs the signed VSIX into a unique experimental profile and verifies its
-   installed manifest in that profile.
-3. Opens the checked-in C# sample and requires Sonar S1481 at the exact sample
-   path and line: `Remove the unused local variable 'smokeUnused'.`
-4. Removes the unused variable through DTE, saves the document and checks the
-   exact saved source.
-5. Requires that specific finding to remain absent for five seconds.
+1. Verify the actual IDE product/version and supplied VSIX identity.
+2. Install the VSIX and verify its installed manifest in the requested profile.
+3. Open the C# fixture through DTE and require the Sonar S1481 message at the
+   exact sample path and line 5: `Remove the unused local variable 'smokeUnused'.`
+4. Remove the unused variable through the IDE editor and save the document.
+5. Check that the declaration is gone from disk and the matching finding remains
+   absent for five continuous seconds.
 
-The compiler's unused-variable warning cannot satisfy the Sonar assertion. Other
-unrelated diagnostics may remain. Tests use native IDE automation; they do not
-establish foreground/pixel-rendering behavior or automate a connection wizard.
+There is one installation and one test execution, with no repetition loop or
+version matrix. The five-second absence check is part of that single execution.
+Compiler unused-variable warnings cannot satisfy the Sonar-message assertion.
+Other unrelated diagnostics may remain. This exercises native IDE/DTE behavior;
+it does not validate foreground/pixel rendering or a connection wizard.
 
-## Run in CI
+## CI integration
 
-The reusable [smoke workflow](../../.github/workflows/vsix-smoke.yml) defines the
-minimum/latest IDE matrix and its expected installation builds. Each target
-must have Visual Studio Community, MSBuild/VSTest, the .NET SDK and the required
-.NET Framework targeting packs. Copy the exact runner labels from the image
-registration output; do not infer them from a timestamp or use one image for both
-targets. CI currently accepts isolated DEV image labels only.
+The Build workflow calls the reusable [smoke workflow](../../.github/workflows/vsix-smoke.yml)
+after its `build` job succeeds on a push to `master`, or on a manual dispatch
+with the `vsix-smoke` checkbox enabled. The normal build and its
+publication conditions are unchanged. Smoke failures fail the workflow, but the
+smoke job runs after publication and does not gate promotion or dogfood delivery.
 
-Dispatch the main Build workflow on a revision containing the tests:
+The runner requires Visual Studio Community 18.11.12328.437, MSBuild/VSTest,
+the .NET SDK and .NET Framework targeting packs. The harness checks the exact IDE
+build supplied by image #513. The DEV runner label is pinned to that candidate;
+when the image is promoted, update the runner label to its stable equivalent.
+The test project targets .NET Framework 4.8; the fixture targets 4.7.2.
+NuGet restoration is locked and IDE interop assemblies come from the target IDE.
+
+## Run manually on a PR
+
+In Actions, select **Build → Run workflow**, choose the PR's source branch,
+and enable **vsix-smoke**. This builds the selected branch and runs one smoke
+test against that run's signed VSIX. The branch must contain these workflow
+changes. Manual dispatch is available once the workflow exists on the default
+branch; it is not a rerun of the existing `pull_request` event.
+
+Or use the CLI, replacing the branch name:
 
 ```sh
-gh workflow run build.yml --ref <branch-or-tag> \
-  -f vsix-smoke-version=<published-four-part-VSIX-version> \
-  -f vsix-smoke-earliest-runner=<minimum-IDE-DEV-runner-label> \
-  -f vsix-smoke-latest-runner=<latest-IDE-DEV-runner-label> \
-  -f vsix-smoke-repetitions=3
+gh workflow run build.yml --repo SonarSource/sonarlint-visualstudio \
+  --ref <pr-source-branch> -f vsix-smoke=true
 ```
 
-A nonempty smoke version runs only the smoke matrix; an empty value runs the
-normal product build. Ordinary PR/push builds keep their existing stable runner
-and do not execute the installed-VSIX scenario automatically. Release and
-publication conditions are unchanged.
-
-The default is three fresh installations per target. Choose one for focused
-validation; one to five are supported. Targets run independently with fail-fast
-disabled. The workflow uses read-only artifact credentials to download the same
-published VSIX on both targets. It never modifies the package manifest/signature
-to force compatibility. The downloaded artifact retains its `2022.vsix` filename
-while installation verifies compatibility with the actual target IDE.
+Leaving the checkbox off retains the usual manual build. Use an in-repository
+PR branch that can run the normal Build workflow with its signing credentials.
 
 ## Evidence and failures
 
-Artifacts are named `vsix-smoke-earliest-vs2022-17.0` and
-`vsix-smoke-latest-vs18`. Each contains a TRX report and canonical
-`run-N/evidence` directories with:
+The `vsix-smoke-vs18.11` artifact is retained for seven days and contains a TRX
+report plus `run-1/evidence`, including:
 
-- Result/phase, actual and expected IDE builds, product ID and profile/session identity.
-- Package SHA-256, VSIX manifests and installed extension-file inventory.
-- Before/after Error List snapshots and the saved sample source.
+- Result/phase, actual and expected IDE versions, product and profile identity.
+- Package SHA-256, package/installed manifests and extension-file inventory.
+- Before/after Error Lists and the saved sample source.
 - IDE activity, installer, cache/configuration and MEF diagnostic logs.
 
-TRX attachments can duplicate evidence; count canonical directories as separate
-attempts. A successful installer exit alone does not prove that the extension
-was deployed to the requested profile. The deployment guard must pass before
-the IDE opens the sample.
+TRX attachments may duplicate canonical evidence. Installer success alone does
+not prove deployment into the intended profile; manifest verification must pass
+before opening the sample. Each phase has a bounded wait.
 
-Profiles use a unique `VsixSmoke...` suffix. The harness only terminates the IDE
-process it launches and never resets the normal/shared experimental profile.
-Profiles are retained for diagnosis; persistent runners need scoped cleanup after
-investigation. Artifacts have a seven-day retention period.
+Profiles use a unique `VsixSmoke...` suffix. The harness terminates only the IDE
+process it launches. Profiles are retained for diagnosis; persistent runners
+need scoped cleanup after investigation.
 
 ## Run locally
 
-Use Windows and the prerequisites above, with an account allowed to install a
-VSIX. Supply the expected IDE build from the workflow matrix and a new results
-directory. Replace the placeholders before running:
+On Windows with the prerequisites above and permission to install a VSIX:
 
 ```powershell
-$idePath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products Microsoft.VisualStudio.Product.Community -property installationPath
+$idePath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products Microsoft.VisualStudio.Product.Community -version '[18.11,18.12)' -property installationPath
 dotnet build tests/smoke/VsixSmoke.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
 $env:SMOKE_VSIX_PATH = 'C:\artifacts\SonarLint.VSIX-<version>-2022.vsix'
-$env:SMOKE_EXPECTED_VS_VERSION = '<expected-four-part-IDE-build>'
+$env:SMOKE_EXPECTED_VS_VERSION = '18.11.12328.437'
 $env:SMOKE_EXPECTED_VS_PRODUCT = 'Microsoft.VisualStudio.Product.Community'
 $env:SMOKE_RESULTS_DIRECTORY = 'C:\temp\vsix-smoke\run-1\evidence'
 dotnet test tests/smoke/VsixSmoke.Tests.csproj -c Release --no-build --no-restore --filter TestCategory=InstalledVsixSmoke --logger trx --results-directory C:\temp\vsix-smoke\run-1 -p:VsTargetVersion=2022
 ```
 
+Use a new results directory for every execution.
+
 ## Implementation
 
-- `VsixSmokeTests.cs` defines the MSTest scenario and assertions.
-- `VisualStudioSession.cs` manages installation, bounded waits, sample edits,
-  post-install cache/configuration preparation and evidence collection.
-- `VisualStudioAutomation.cs` attaches to the launched process's typed DTE2 object
-  and reads its actual Error List.
-- `Fixture` contains the sample solution/project and source template. The `.txt`
-  template becomes `Smoke.cs` in each attempt's isolated directory.
+- `VsixSmokeTests.cs`: MSTest scenario and assertions on an STA thread.
+- `VisualStudioSession.cs`: installation, isolated profile, bounded waits,
+  sample edits, configuration preparation and evidence collection.
+- `VisualStudioAutomation.cs`: attach to the launched process's DTE2 object and
+  read its actual Error List and Sonar output.
+- `Fixture`: sample solution/project and source template, copied to the attempt's
+  isolated directory; `Smoke.cs.txt` becomes `Smoke.cs`.
 
-VS 17 RTM requires the VSIX installer's explicit application/SKU route to target
-its experimental profile; newer IDEs use the instance-ID route. Both routes
-require the same installed-manifest verification. No loose extension binaries
-or analysis responses are copied/injected. The project uses locked NuGet
-restoration and resolves interop assemblies from the target IDE.
+The VSIX installer targets the discovered instance and unique profile. No loose
+extension binaries or analysis responses are injected.

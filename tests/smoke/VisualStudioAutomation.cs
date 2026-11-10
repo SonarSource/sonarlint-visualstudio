@@ -83,8 +83,7 @@ namespace SonarLint.VisualStudio.Smoke
                     {
                         string name;
                         monikers[0].GetDisplayName(context, null, out name);
-                        if ((name.StartsWith("!VisualStudio.DTE.17.0:", StringComparison.Ordinal)
-                            || name.StartsWith("!VisualStudio.DTE.18.0:", StringComparison.Ordinal))
+                        if (name.StartsWith("!VisualStudio.DTE.18.0:", StringComparison.Ordinal)
                             && name.EndsWith(":" + processId, StringComparison.Ordinal))
                         {
                             object dte;

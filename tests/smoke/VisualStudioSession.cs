@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Smoke
         {
             if (Environment.OSVersion.Platform != PlatformID.Win32NT)
             {
-                throw new PlatformNotSupportedException("Requires Windows and full Visual Studio 2022 or 2026.");
+                throw new PlatformNotSupportedException("Requires Windows and full Visual Studio 18.11.");
             }
             if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
             {
@@ -118,12 +118,11 @@ namespace SonarLint.VisualStudio.Smoke
             var inventory = RunProcess(vswhere, "-all -products * -format json", "vswhere.log");
             File.WriteAllText(Path.Combine(resultsDirectory, "visual-studio-inventory.json"), inventory);
             var instances = JsonConvert.DeserializeObject<Installation[]>(inventory)
-                .Where(x => (x.InstallationVersion.StartsWith("17.", StringComparison.Ordinal)
-                        || x.InstallationVersion.StartsWith("18.", StringComparison.Ordinal))
+                .Where(x => x.InstallationVersion.StartsWith("18.", StringComparison.Ordinal)
                     && File.Exists(Path.Combine(x.InstallationPath, "Common7", "IDE", "devenv.exe"))).ToArray();
             if (instances.Length != 1)
             {
-                throw new InvalidOperationException($"Expected exactly one full Visual Studio 2022 or 2026 IDE; found {instances.Length}.");
+                throw new InvalidOperationException($"Expected exactly one full Visual Studio 18 IDE; found {instances.Length}.");
             }
             var instance = instances[0];
             report["visualStudioProductId"] = instance.ProductId;
@@ -152,9 +151,8 @@ namespace SonarLint.VisualStudio.Smoke
             Phase("initialize-profile");
             RunProcess(devenv, $"/RootSuffix {rootSuffix} /ResetSettings {Quote(Path.Combine(ideDirectory, "Profiles", "General.vssettings"))} /Command File.Exit /NoSplash /LCID 1033", "initialize-profile.log");
             Phase("install-vsix");
-            var installationTarget = GetVsixInstallationTarget(instance, devenv);
             RunProcess(Path.Combine(ideDirectory, "VSIXInstaller.exe"),
-                $"/quiet {installationTarget} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(resultsDirectory, "vsix-installer.log"))} {Quote(vsixPath)}", "vsix-process.log");
+                $"/quiet /instanceIds:{instance.InstanceId} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(resultsDirectory, "vsix-installer.log"))} {Quote(vsixPath)}", "vsix-process.log");
             Phase("verify-vsix-installation");
             WaitUntil("the signed VSIX in the requested experimental profile", VerifyInstalledExtension);
 
@@ -173,25 +171,6 @@ namespace SonarLint.VisualStudio.Smoke
                 dte = (EnvDTE80.DTE2)VisualStudioAutomation.FindDte(ideProcess.Id);
                 return dte != null;
             });
-        }
-
-        private string GetVsixInstallationTarget(Installation instance, string devenv)
-        {
-            if (expectedVisualStudioVersion.Major != 17 || expectedVisualStudioVersion.Minor != 0)
-            {
-                return $"/instanceIds:{instance.InstanceId}";
-            }
-            // The RTM installer routes instance-ID installs to the normal profile
-            // even when RootSuffix is supplied. Use its explicit application/SKU route.
-            var sku = instance.ProductId switch
-            {
-                "Microsoft.VisualStudio.Product.Professional" => "Pro",
-                "Microsoft.VisualStudio.Product.Enterprise" => "Enterprise",
-                "Microsoft.VisualStudio.Product.Community" => "Community",
-                _ => throw new InvalidOperationException("Unsupported IDE product: " + instance.ProductId)
-            };
-            return $"/appidinstallpath:{Quote(devenv)} /appidname:{Quote(instance.DisplayName)} "
-                + $"/skuName:{sku} /skuVersion:{instance.InstallationVersion}";
         }
 
         private bool VerifyInstalledExtension()

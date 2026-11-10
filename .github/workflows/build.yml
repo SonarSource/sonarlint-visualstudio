@@ -9,27 +9,11 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      vsix-smoke-version:
-        description: 'Published four-part VSIX version to test (empty runs the normal build)'
+      vsix-smoke:
+        description: Run the installed VSIX smoke test after this build (select the PR branch)
         required: false
-        default: ''
-        type: string
-      vsix-smoke-earliest-runner:
-        description: Exact DEV runner label from the minimum VS 2022 image PR
-        required: false
-        default: ''
-        type: string
-      vsix-smoke-latest-runner:
-        description: Exact DEV runner label from the latest VS 18 image PR
-        required: false
-        default: ''
-        type: string
-      vsix-smoke-repetitions:
-        description: Number of fresh IDE profiles per target
-        required: false
-        default: '3'
-        type: choice
-        options: ['1', '2', '3', '4', '5']
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -42,16 +26,15 @@ permissions:
 
 jobs:
   vsix-smoke:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.vsix-smoke-version != '' }}
+    needs: build
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.vsix-smoke) }}
+    permissions:
+      contents: read
+      id-token: write
+      actions: read
     uses: ./.github/workflows/vsix-smoke.yml
-    with:
-      project-version: ${{ inputs.vsix-smoke-version }}
-      earliest-runner: ${{ inputs.vsix-smoke-earliest-runner }}
-      latest-runner: ${{ inputs.vsix-smoke-latest-runner }}
-      repetitions: ${{ inputs.vsix-smoke-repetitions || '3' }}
 
   build:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.vsix-smoke-version == '' }}
     runs-on: warp-custom-sonarlint-visualstudio
     name: Build
     environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release-ready-build' || '' }}
