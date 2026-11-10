@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.E2E
     internal sealed class VisualStudioSession : IDisposable
     {
         private const string ExtensionId = "SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D";
+        private const string RemainingFindingMessage = "Remove the unused local variable 'e2eRemaining'.";
         private const string FindingMessage = "Remove the unused local variable 'e2eUnused'.";
         private static readonly TimeSpan PhaseTimeout = TimeSpan.FromSeconds(180);
         private readonly string vsixPath;
@@ -221,18 +222,29 @@ namespace SonarLint.VisualStudio.E2E
         public ErrorListEntry WaitForFinding()
         {
             Phase("detect-finding");
-            WaitUntil("Sonar S1481 in the real Error List", () => MatchingFindings().Length > 0);
+            WaitUntil("both Sonar S1481 findings in the real Error List", () =>
+            {
+                var errors = ReadErrors();
+                return errors.Any(IsTargetFinding) && errors.Any(IsRemainingFinding);
+            });
             var findings = MatchingFindings();
             report["finding"] = findings;
             return findings[0];
         }
 
-        public ErrorListEntry[] MatchingFindings()
-        {
-            lastErrors = VisualStudioAutomation.ReadErrorList(dte);
-            return lastErrors.Where(x => string.Equals(x.File, sourcePath, StringComparison.OrdinalIgnoreCase)
-                && x.Line == 5 && x.Description == FindingMessage).ToArray();
-        }
+        public ErrorListEntry[] MatchingFindings() => ReadErrors().Where(IsTargetFinding).ToArray();
+
+        public ErrorListEntry[] RemainingFindings() => ReadErrors().Where(IsRemainingFinding).ToArray();
+
+        private ErrorListEntry[] ReadErrors() => lastErrors = VisualStudioAutomation.ReadErrorList(dte);
+
+        private bool IsTargetFinding(ErrorListEntry entry) => IsSampleFinding(entry, 5, FindingMessage);
+
+        private bool IsRemainingFinding(ErrorListEntry entry) => IsSampleFinding(entry, 6, RemainingFindingMessage);
+
+        private bool IsSampleFinding(ErrorListEntry entry, int line, string message) =>
+            string.Equals(entry.File, sourcePath, StringComparison.OrdinalIgnoreCase)
+            && entry.Line == line && entry.Description == message;
 
         public void RemoveUnusedVariableAndSave()
         {
@@ -250,9 +262,23 @@ namespace SonarLint.VisualStudio.E2E
             var clearSince = new Stopwatch();
             WaitUntil("the finding to remain absent after saving", () =>
             {
-                if (MatchingFindings().Length > 0) { clearSince.Reset(); return false; }
-                clearSince.Start();
-                return clearSince.Elapsed >= stableFor;
+                try
+                {
+                    var errors = ReadErrors();
+                    if (errors.Any(IsTargetFinding) || !errors.Any(IsRemainingFinding))
+                    {
+                        clearSince.Reset();
+                        return false;
+                    }
+                    clearSince.Start();
+                    return clearSince.Elapsed >= stableFor;
+                }
+                catch (COMException)
+                {
+                    // An unreadable Error List cannot establish continuous absence.
+                    clearSince.Reset();
+                    throw;
+                }
             });
         }
 

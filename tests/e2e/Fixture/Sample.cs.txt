@@ -3,6 +3,7 @@ public class Sample
     public int Run()
     {
         int e2eUnused = 42;
+        int e2eRemaining = 43;
         return 0;
     }
 }

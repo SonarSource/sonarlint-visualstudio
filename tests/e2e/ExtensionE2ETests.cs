@@ -51,6 +51,7 @@ namespace SonarLint.VisualStudio.E2E
 
                 ide.WaitForFindingToDisappear(TimeSpan.FromSeconds(5));
                 Assert.AreEqual(0, ide.MatchingFindings().Length);
+                Assert.AreEqual(1, ide.RemainingFindings().Length, "The unedited Sonar finding must remain visible.");
                 ide.SaveErrorList("errors-after-fix.json");
                 ide.MarkPassed();
             }

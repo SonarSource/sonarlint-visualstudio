@@ -17,12 +17,15 @@ published package or rebuild the extension.
 2. Install the VSIX and verify its installed manifest in the requested profile.
 3. Open the C# fixture through DTE and require the Sonar S1481 message at the
    exact sample path and line 5: `Remove the unused local variable 'e2eUnused'.`
-4. Remove the unused variable through the IDE editor and save the document.
-5. Check that the declaration is gone from disk and the matching finding remains
-   absent for five continuous seconds.
+4. Require a second S1481 finding for `e2eRemaining` at line 6.
+5. Remove only `e2eUnused` through the IDE editor and save the document.
+6. Check that its declaration is gone from disk and its finding remains absent
+   for five continuous seconds while the unedited `e2eRemaining` finding stays
+   visible. Unreadable Error List snapshots reset that stability window.
 
 There is one installation and one test execution, with no repetition loop or
-version matrix. The five-second absence check is part of that single execution.
+version matrix. CI requires a TRX containing exactly one executed, passed test
+and a completed harness result; zero selected or skipped tests fail. The five-second absence check is part of that single execution.
 Compiler unused-variable warnings cannot satisfy the Sonar-message assertion.
 Other unrelated diagnostics may remain. This exercises native IDE/DTE behavior;
 it does not validate foreground/pixel rendering or a connection wizard.
@@ -41,6 +44,9 @@ build supplied by image #513. The DEV runner label is pinned to that candidate;
 when the image is promoted, update the runner label to its stable equivalent.
 The test project targets .NET Framework 4.8; the fixture targets 4.7.2.
 NuGet restoration is locked and IDE interop assemblies come from the target IDE.
+
+Temporarily, PR #6854 also enables this job automatically to validate the revised
+workflow. Remove that PR-specific condition after collecting validation evidence.
 
 ## Run manually on a PR
 
