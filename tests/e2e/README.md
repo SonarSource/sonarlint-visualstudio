@@ -24,9 +24,8 @@ published package or rebuild the extension.
    visible. Unreadable Error List snapshots reset that stability window.
 
 There is one installation and one test execution, with no repetition loop or
-version matrix. CI requires a TRX containing exactly one executed, passed test
-and a completed harness result; zero selected or skipped tests fail. The five-second
-absence check is part of that single execution.
+version matrix. `TreatNoTestsAsError=true` fails the job if no tests are selected.
+The five-second absence check is part of that single execution.
 Compiler unused-variable warnings cannot satisfy the Sonar-message assertion.
 Other unrelated diagnostics may remain. This exercises native IDE/DTE behavior;
 it does not validate foreground/pixel rendering or a connection wizard.

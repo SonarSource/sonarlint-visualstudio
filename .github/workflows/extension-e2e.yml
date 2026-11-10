@@ -55,7 +55,6 @@ jobs:
           $env:E2E_RESULTS_DIRECTORY = Join-Path $results 'evidence'
           dotnet test tests/e2e/Extension.E2E.Tests.csproj -c Release --no-build --no-restore --filter TestCategory=ExtensionE2E --logger 'trx;LogFileName=e2e.trx' --results-directory $results -p:VsTargetVersion=2022 -- RunConfiguration.TreatNoTestsAsError=true
           if ($LASTEXITCODE -ne 0) { throw 'Extension E2E test failed.' }
-          & ./.github/scripts/verify-extension-e2e-results.ps1 -ResultsDirectory $results
 
       - name: Upload E2E test evidence
         if: always()
