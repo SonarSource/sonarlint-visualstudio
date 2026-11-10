@@ -33,10 +33,12 @@ namespace SonarLint.VisualStudio.E2E
         [TestCategory("ExtensionE2E")]
         public void InstalledExtension_DetectsIssue_AndClearsItAfterFix()
         {
+            using var messageFilter = ComMessageFilter.Register();
             using var ide = new VisualStudioSession(
                 Environment.GetEnvironmentVariable("E2E_VSIX_PATH"),
                 Environment.GetEnvironmentVariable("E2E_RESULTS_DIRECTORY"),
-                TestContext);
+                TestContext,
+                messageFilter);
             try
             {
                 ide.InstallAndLaunch();

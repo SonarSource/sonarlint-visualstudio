@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.E2E
         private readonly Version expectedVisualStudioVersion;
         private readonly string resultsDirectory;
         private readonly TestContext context;
+        private readonly ComMessageFilter messageFilter;
         private readonly string rootSuffix = "ExtensionE2E" + Guid.NewGuid().ToString("N").Substring(0, 8);
         private readonly Dictionary<string, object> report = new Dictionary<string, object>
         {
@@ -56,11 +57,12 @@ namespace SonarLint.VisualStudio.E2E
         private string sourcePath;
         private string profileDirectory;
 
-        public VisualStudioSession(string vsixPath, string resultsDirectory, TestContext context)
+        public VisualStudioSession(string vsixPath, string resultsDirectory, TestContext context, ComMessageFilter messageFilter)
         {
             this.vsixPath = Path.GetFullPath(vsixPath ?? throw new ArgumentException("Set E2E_VSIX_PATH to a built VSIX."));
             this.resultsDirectory = Path.GetFullPath(resultsDirectory ?? throw new ArgumentException("Set E2E_RESULTS_DIRECTORY to a new directory."));
             this.context = context;
+            this.messageFilter = messageFilter;
             var expectedVersion = Environment.GetEnvironmentVariable("E2E_EXPECTED_VS_VERSION");
             if (!Version.TryParse(expectedVersion, out expectedVisualStudioVersion))
             {
@@ -264,7 +266,13 @@ namespace SonarLint.VisualStudio.E2E
             {
                 try
                 {
+                    var busyCallsBeforeRead = messageFilter.BusyCallCount;
                     var errors = ReadErrors();
+                    if (messageFilter.BusyCallCount != busyCallsBeforeRead)
+                    {
+                        // The filter can hide a busy response by retrying the COM call.
+                        clearSince.Reset();
+                    }
                     if (errors.Any(IsTargetFinding) || !errors.Any(IsRemainingFinding))
                     {
                         clearSince.Reset();
@@ -310,7 +318,11 @@ namespace SonarLint.VisualStudio.E2E
             {
                 if (ideProcess != null && ideProcess.HasExited) { throw new InvalidOperationException("Visual Studio exited during " + description); }
                 try { if (condition()) { return; } }
-                catch (COMException exception) { lastComError = exception; }
+                catch (COMException exception) when (exception.HResult == unchecked((int)0x8001010A)
+                    || exception.HResult == unchecked((int)0x80010001))
+                {
+                    lastComError = exception;
+                }
                 Thread.Sleep(500);
             }
             throw new TimeoutException("Timed out waiting for " + description, lastComError);
@@ -392,6 +404,7 @@ namespace SonarLint.VisualStudio.E2E
                 {
                     context.WriteLine("Could not capture profile diagnostics: " + exception.Message);
                 }
+                report["comBusyResponses"] = messageFilter.BusyCallCount;
                 report["finishedAt"] = DateTime.UtcNow.ToString("o");
                 WriteJson("result.json", report);
                 WriteJson("last-error-list.json", lastErrors);

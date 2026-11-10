@@ -21,7 +21,8 @@ published package or rebuild the extension.
 5. Remove only `e2eUnused` through the IDE editor and save the document.
 6. Check that its declaration is gone from disk and its finding remains absent
    for five continuous seconds while the unedited `e2eRemaining` finding stays
-   visible. Unreadable Error List snapshots reset that stability window.
+   visible. Unreadable Error List snapshots and COM busy retries reset that
+   stability window.
 
 There is one installation and one test execution, with no repetition loop or
 version matrix. `TreatNoTestsAsError=true` fails the job if no tests are selected.
@@ -102,6 +103,10 @@ Use a new results directory for every execution.
 - `ExtensionE2ETests.cs`: MSTest scenario and assertions on an STA thread.
 - `VisualStudioSession.cs`: installation, isolated profile, bounded waits,
   sample edits, configuration preparation and evidence collection.
+- `ComMessageFilter.cs`: retries temporary COM busy responses on the STA test
+  thread for up to 30 seconds per call, then restores the previous thread filter
+  at cleanup. Permanent rejections and unrelated COM errors are not retried by
+  the filter. The harness records the busy-response count in `result.json`.
 - `VisualStudioAutomation.cs`: attach to the launched process's DTE2 object and
   read its actual Error List and Sonar output.
 - `Fixture`: sample solution/project and source template, copied to the attempt's
