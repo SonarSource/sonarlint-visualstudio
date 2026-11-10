@@ -26,9 +26,8 @@ permissions:
 
 jobs:
   extension-e2e:
-    # Temporary: PR #6854 also runs E2E to validate this workflow before merge.
     needs: build
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.extension-e2e) || (github.event_name == 'pull_request' && github.event.pull_request.number == 6854) }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.extension-e2e) }}
     permissions:
       contents: read
       id-token: write

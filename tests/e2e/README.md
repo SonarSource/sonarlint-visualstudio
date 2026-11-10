@@ -25,7 +25,8 @@ published package or rebuild the extension.
 
 There is one installation and one test execution, with no repetition loop or
 version matrix. CI requires a TRX containing exactly one executed, passed test
-and a completed harness result; zero selected or skipped tests fail. The five-second absence check is part of that single execution.
+and a completed harness result; zero selected or skipped tests fail. The five-second
+absence check is part of that single execution.
 Compiler unused-variable warnings cannot satisfy the Sonar-message assertion.
 Other unrelated diagnostics may remain. This exercises native IDE/DTE behavior;
 it does not validate foreground/pixel rendering or a connection wizard.
@@ -44,9 +45,6 @@ build supplied by image #513. The DEV runner label is pinned to that candidate;
 when the image is promoted, update the runner label to its stable equivalent.
 The test project targets .NET Framework 4.8; the fixture targets 4.7.2.
 NuGet restoration is locked and IDE interop assemblies come from the target IDE.
-
-Temporarily, PR #6854 also enables this job automatically to validate the revised
-workflow. Remove that PR-specific condition after collecting validation evidence.
 
 ## Run manually on a PR
 
