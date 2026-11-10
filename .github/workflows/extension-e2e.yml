@@ -1,4 +1,4 @@
-name: Installed VSIX smoke tests
+name: Extension E2E test
 
 on:
   workflow_call:
@@ -9,8 +9,8 @@ permissions:
   actions: read
 
 jobs:
-  smoke:
-    name: Smoke (VS 18.11)
+  extension-e2e:
+    name: Extension E2E (VS 18.11)
     runs-on: warp-custom-pr-513-sonarlint-visualstudio-v20261109151945
     timeout-minutes: 20
     steps:
@@ -20,7 +20,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: binaries
-          path: ${{ runner.temp }}/vsix-smoke-package
+          path: ${{ runner.temp }}/extension-e2e-package
 
       - name: Read artifact credentials for NuGet restore
         id: secrets
@@ -30,7 +30,7 @@ jobs:
             development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username | ARTIFACTORY_USER;
             development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_ACCESS_TOKEN;
 
-      - name: Build C# smoke tests
+      - name: Build C# E2E tests
         shell: powershell
         env:
           ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
@@ -39,28 +39,28 @@ jobs:
           $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
           $idePath = & $vswhere -latest -products Microsoft.VisualStudio.Product.Community -version '[18.11,18.12)' -property installationPath
           if ($LASTEXITCODE -ne 0 -or -not $idePath) { throw 'Full Visual Studio not found.' }
-          dotnet build tests/smoke/VsixSmoke.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
-          if ($LASTEXITCODE -ne 0) { throw 'C# smoke-test build failed.' }
+          dotnet build tests/e2e/Extension.E2E.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
+          if ($LASTEXITCODE -ne 0) { throw 'C# E2E test build failed.' }
 
       - name: Exercise one fresh installation
         shell: powershell
         env:
-          SMOKE_EXPECTED_VS_VERSION: '18.11.12328.437'
-          SMOKE_EXPECTED_VS_PRODUCT: Microsoft.VisualStudio.Product.Community
+          E2E_EXPECTED_VS_VERSION: '18.11.12328.437'
+          E2E_EXPECTED_VS_PRODUCT: Microsoft.VisualStudio.Product.Community
         run: |
-          $packages = @(Get-ChildItem -LiteralPath (Join-Path $env:RUNNER_TEMP 'vsix-smoke-package') -Filter 'SonarLint.VSIX-*-2022.vsix' -File)
+          $packages = @(Get-ChildItem -LiteralPath (Join-Path $env:RUNNER_TEMP 'extension-e2e-package') -Filter 'SonarLint.VSIX-*-2022.vsix' -File)
           if ($packages.Count -ne 1) { throw "Expected exactly one VSIX from this build; found $($packages.Count)." }
-          $results = Join-Path $env:RUNNER_TEMP 'vsix-smoke/run-1'
-          $env:SMOKE_VSIX_PATH = $packages[0].FullName
-          $env:SMOKE_RESULTS_DIRECTORY = Join-Path $results 'evidence'
-          dotnet test tests/smoke/VsixSmoke.Tests.csproj -c Release --no-build --no-restore --filter TestCategory=InstalledVsixSmoke --logger 'trx;LogFileName=smoke.trx' --results-directory $results -p:VsTargetVersion=2022
-          if ($LASTEXITCODE -ne 0) { throw 'Installed VSIX smoke test failed.' }
+          $results = Join-Path $env:RUNNER_TEMP 'extension-e2e/run-1'
+          $env:E2E_VSIX_PATH = $packages[0].FullName
+          $env:E2E_RESULTS_DIRECTORY = Join-Path $results 'evidence'
+          dotnet test tests/e2e/Extension.E2E.Tests.csproj -c Release --no-build --no-restore --filter TestCategory=ExtensionE2E --logger 'trx;LogFileName=e2e.trx' --results-directory $results -p:VsTargetVersion=2022
+          if ($LASTEXITCODE -ne 0) { throw 'Extension E2E test failed.' }
 
-      - name: Upload smoke-test evidence
+      - name: Upload E2E test evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vsix-smoke-vs18.11
-          path: ${{ runner.temp }}/vsix-smoke/
+          name: extension-e2e-vs18.11
+          path: ${{ runner.temp }}/extension-e2e/
           if-no-files-found: warn
           retention-days: 7

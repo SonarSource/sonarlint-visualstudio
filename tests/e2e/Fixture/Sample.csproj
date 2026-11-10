@@ -5,6 +5,6 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <OutputPath>bin\</OutputPath>
   </PropertyGroup>
-  <ItemGroup><Compile Include="Smoke.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="Sample.cs" /></ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -9,8 +9,8 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      vsix-smoke:
-        description: Run the installed VSIX smoke test after this build (select the PR branch)
+      extension-e2e:
+        description: Run the extension E2E test after this build (select the PR branch)
         required: false
         default: false
         type: boolean
@@ -25,14 +25,14 @@ permissions:
   checks: write
 
 jobs:
-  vsix-smoke:
+  extension-e2e:
     needs: build
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.vsix-smoke) }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.extension-e2e) }}
     permissions:
       contents: read
       id-token: write
       actions: read
-    uses: ./.github/workflows/vsix-smoke.yml
+    uses: ./.github/workflows/extension-e2e.yml
 
   build:
     runs-on: warp-custom-sonarlint-visualstudio

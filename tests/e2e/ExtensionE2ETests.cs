@@ -21,21 +21,21 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace SonarLint.VisualStudio.Smoke
+namespace SonarLint.VisualStudio.E2E
 {
     [TestClass]
     [DoNotParallelize]
-    public class VsixSmokeTests
+    public class ExtensionE2ETests
     {
         public TestContext TestContext { get; set; }
 
         [STATestMethod]
-        [TestCategory("InstalledVsixSmoke")]
+        [TestCategory("ExtensionE2E")]
         public void InstalledExtension_DetectsIssue_AndClearsItAfterFix()
         {
             using var ide = new VisualStudioSession(
-                Environment.GetEnvironmentVariable("SMOKE_VSIX_PATH"),
-                Environment.GetEnvironmentVariable("SMOKE_RESULTS_DIRECTORY"),
+                Environment.GetEnvironmentVariable("E2E_VSIX_PATH"),
+                Environment.GetEnvironmentVariable("E2E_RESULTS_DIRECTORY"),
                 TestContext);
             try
             {
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Smoke
 
                 var finding = ide.WaitForFinding();
                 Assert.AreEqual(5, finding.Line);
-                Assert.AreEqual("Remove the unused local variable 'smokeUnused'.", finding.Description);
+                Assert.AreEqual("Remove the unused local variable 'e2eUnused'.", finding.Description);
                 ide.SaveErrorList("errors-before-fix.json");
 
                 ide.RemoveUnusedVariableAndSave();

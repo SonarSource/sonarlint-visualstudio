@@ -1,8 +1,8 @@
-public class Smoke
+public class Sample
 {
     public int Run()
     {
-        int smokeUnused = 42;
+        int e2eUnused = 42;
         return 0;
     }
 }

@@ -31,18 +31,18 @@ using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.Smoke
+namespace SonarLint.VisualStudio.E2E
 {
     internal sealed class VisualStudioSession : IDisposable
     {
         private const string ExtensionId = "SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D";
-        private const string FindingMessage = "Remove the unused local variable 'smokeUnused'.";
+        private const string FindingMessage = "Remove the unused local variable 'e2eUnused'.";
         private static readonly TimeSpan PhaseTimeout = TimeSpan.FromSeconds(180);
         private readonly string vsixPath;
         private readonly Version expectedVisualStudioVersion;
         private readonly string resultsDirectory;
         private readonly TestContext context;
-        private readonly string rootSuffix = "VsixSmoke" + Guid.NewGuid().ToString("N").Substring(0, 8);
+        private readonly string rootSuffix = "ExtensionE2E" + Guid.NewGuid().ToString("N").Substring(0, 8);
         private readonly Dictionary<string, object> report = new Dictionary<string, object>
         {
             ["status"] = "failed",
@@ -57,13 +57,13 @@ namespace SonarLint.VisualStudio.Smoke
 
         public VisualStudioSession(string vsixPath, string resultsDirectory, TestContext context)
         {
-            this.vsixPath = Path.GetFullPath(vsixPath ?? throw new ArgumentException("Set SMOKE_VSIX_PATH to a built VSIX."));
-            this.resultsDirectory = Path.GetFullPath(resultsDirectory ?? throw new ArgumentException("Set SMOKE_RESULTS_DIRECTORY to a new directory."));
+            this.vsixPath = Path.GetFullPath(vsixPath ?? throw new ArgumentException("Set E2E_VSIX_PATH to a built VSIX."));
+            this.resultsDirectory = Path.GetFullPath(resultsDirectory ?? throw new ArgumentException("Set E2E_RESULTS_DIRECTORY to a new directory."));
             this.context = context;
-            var expectedVersion = Environment.GetEnvironmentVariable("SMOKE_EXPECTED_VS_VERSION");
+            var expectedVersion = Environment.GetEnvironmentVariable("E2E_EXPECTED_VS_VERSION");
             if (!Version.TryParse(expectedVersion, out expectedVisualStudioVersion))
             {
-                throw new ArgumentException("Set SMOKE_EXPECTED_VS_VERSION to the pinned Visual Studio build for this target.");
+                throw new ArgumentException("Set E2E_EXPECTED_VS_VERSION to the pinned Visual Studio build for this target.");
             }
             if (Directory.Exists(this.resultsDirectory))
             {
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Smoke
             }
             var instance = instances[0];
             report["visualStudioProductId"] = instance.ProductId;
-            var expectedProduct = Environment.GetEnvironmentVariable("SMOKE_EXPECTED_VS_PRODUCT");
+            var expectedProduct = Environment.GetEnvironmentVariable("E2E_EXPECTED_VS_PRODUCT");
             if (!string.IsNullOrEmpty(expectedProduct) && instance.ProductId != expectedProduct)
             {
                 throw new InvalidOperationException($"Expected IDE product {expectedProduct}; found {instance.ProductId}.");
@@ -204,10 +204,10 @@ namespace SonarLint.VisualStudio.Smoke
             {
                 File.Copy(file, Path.Combine(fixtureDirectory, Path.GetFileName(file).Replace(".txt", "")));
             }
-            sourcePath = Path.Combine(fixtureDirectory, "Smoke.cs");
+            sourcePath = Path.Combine(fixtureDirectory, "Sample.cs");
             WaitUntil("the solution to open", () =>
             {
-                if (!dte.Solution.IsOpen) { dte.Solution.Open(Path.Combine(fixtureDirectory, "Smoke.sln")); }
+                if (!dte.Solution.IsOpen) { dte.Solution.Open(Path.Combine(fixtureDirectory, "Sample.sln")); }
                 return dte.Solution.IsOpen;
             });
             WaitUntil("the sample file to open", () =>
@@ -239,9 +239,9 @@ namespace SonarLint.VisualStudio.Smoke
             Phase("fix-file");
             var selection = (EnvDTE.TextSelection)dte.ActiveDocument.Selection;
             selection.SelectAll();
-            selection.Insert(File.ReadAllText(sourcePath).Replace("        int smokeUnused = 42;", ""));
+            selection.Insert(File.ReadAllText(sourcePath).Replace("        int e2eUnused = 42;", ""));
             dte.ActiveDocument.Save();
-            Assert.IsFalse(File.ReadAllText(sourcePath).Contains("int smokeUnused = 42;"), "The editor must save the fixed sample to disk.");
+            Assert.IsFalse(File.ReadAllText(sourcePath).Contains("int e2eUnused = 42;"), "The editor must save the fixed sample to disk.");
         }
 
         public void WaitForFindingToDisappear(TimeSpan stableFor)
