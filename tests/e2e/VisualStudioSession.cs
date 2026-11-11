@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.E2E
         {
             if (Environment.OSVersion.Platform != PlatformID.Win32NT)
             {
-                throw new PlatformNotSupportedException("Requires Windows and full Visual Studio 18.11.");
+                throw new PlatformNotSupportedException("Requires Windows and a full Visual Studio installation.");
             }
             if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
             {

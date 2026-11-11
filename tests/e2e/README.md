@@ -1,8 +1,8 @@
 # Extension E2E test
 
 This test runs once after every successful push build on `master`, using Visual
-Studio Community 18.11.12328.437 from [image PR #513](https://github.com/SonarSource/ci-ami-images/pull/513)
-on `warp-custom-pr-513-sonarlint-visualstudio-v20261109151945`.
+Studio Community from [image PR #513](https://github.com/SonarSource/ci-ami-images/pull/513)
+on `warp-custom-pr-513-sonarlint-visualstudio-v20261111141005`.
 PR builds do not run it automatically. It can also be enabled explicitly when
 manually dispatching Build on a PR branch. Earliest-supported-version coverage
 is deferred to a separate PR.
@@ -39,9 +39,11 @@ with the `extension-e2e` checkbox enabled. The normal build and its
 publication conditions are unchanged. E2E failures fail the workflow, but the
 E2E job runs after publication and does not gate promotion or dogfood delivery.
 
-The runner requires Visual Studio Community 18.11.12328.437, MSBuild/VSTest,
-the .NET SDK and .NET Framework targeting packs. The harness checks the exact IDE
-build supplied by image #513. The DEV runner label is pinned to that candidate;
+The runner requires the Visual Studio Community build pinned in the E2E workflow, MSBuild/VSTest,
+the .NET SDK and .NET Framework targeting packs. The expected full build is declared once as `E2E_EXPECTED_VS_VERSION` in the
+workflow. Discovery derives its minor-version range from that setting, and the
+harness independently checks the exact installed build. Update it together with
+the image's expected version when changing releases. The DEV runner label is pinned to that candidate;
 when the image is promoted, update the runner label to its stable equivalent.
 The test project targets .NET Framework 4.8; the fixture targets 4.7.2.
 NuGet restoration is locked and IDE interop assemblies come from the target IDE.
@@ -66,7 +68,7 @@ PR branch that can run the normal Build workflow with its signing credentials.
 
 ## Evidence and failures
 
-The `extension-e2e-vs18.11` artifact is retained for seven days and contains a TRX
+The `extension-e2e-vs<expected-IDE-build>` artifact is retained for seven days and contains a TRX
 report plus `run-1/evidence`, including:
 
 - Result/phase, actual and expected IDE versions, product and profile identity.
@@ -87,10 +89,13 @@ need scoped cleanup after investigation.
 On Windows with the prerequisites above and permission to install a VSIX:
 
 ```powershell
-$idePath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products Microsoft.VisualStudio.Product.Community -version '[18.11,18.12)' -property installationPath
+# Copy the intended full build from extension-e2e.yml; do not infer it from the runner.
+$env:E2E_EXPECTED_VS_VERSION = '<expected-four-part-IDE-build>'
+$expectedVersion = [version]$env:E2E_EXPECTED_VS_VERSION
+$versionRange = "[$($expectedVersion.Major).$($expectedVersion.Minor),$($expectedVersion.Major).$($expectedVersion.Minor + 1))"
+$idePath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products Microsoft.VisualStudio.Product.Community -version $versionRange -property installationPath
 dotnet build tests/e2e/Extension.E2E.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
 $env:E2E_VSIX_PATH = 'C:\artifacts\SonarLint.VSIX-<version>-2022.vsix'
-$env:E2E_EXPECTED_VS_VERSION = '18.11.12328.437'
 $env:E2E_EXPECTED_VS_PRODUCT = 'Microsoft.VisualStudio.Product.Community'
 $env:E2E_RESULTS_DIRECTORY = 'C:\temp\extension-e2e\run-1\evidence'
 dotnet test tests/e2e/Extension.E2E.Tests.csproj -c Release --no-build --no-restore --filter TestCategory=ExtensionE2E --logger trx --results-directory C:\temp\extension-e2e\run-1 -p:VsTargetVersion=2022

@@ -10,9 +10,12 @@ permissions:
 
 jobs:
   extension-e2e:
-    name: Extension E2E (VS 18.11)
-    runs-on: warp-custom-pr-513-sonarlint-visualstudio-v20261109151945
+    name: Extension E2E (VS 18)
+    runs-on: warp-custom-pr-513-sonarlint-visualstudio-v20261111141005
     timeout-minutes: 20
+    env:
+      E2E_EXPECTED_VS_VERSION: '18.12.12405.243'
+      E2E_EXPECTED_VS_PRODUCT: Microsoft.VisualStudio.Product.Community
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -37,16 +40,15 @@ jobs:
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
         run: |
           $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
-          $idePath = & $vswhere -latest -products Microsoft.VisualStudio.Product.Community -version '[18.11,18.12)' -property installationPath
+          $expectedVersion = [version]$env:E2E_EXPECTED_VS_VERSION
+          $versionRange = "[$($expectedVersion.Major).$($expectedVersion.Minor),$($expectedVersion.Major).$($expectedVersion.Minor + 1))"
+          $idePath = & $vswhere -latest -products $env:E2E_EXPECTED_VS_PRODUCT -version $versionRange -property installationPath
           if ($LASTEXITCODE -ne 0 -or -not $idePath) { throw 'Full Visual Studio not found.' }
           dotnet build tests/e2e/Extension.E2E.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
           if ($LASTEXITCODE -ne 0) { throw 'C# E2E test build failed.' }
 
       - name: Exercise one fresh installation
         shell: powershell
-        env:
-          E2E_EXPECTED_VS_VERSION: '18.11.12328.437'
-          E2E_EXPECTED_VS_PRODUCT: Microsoft.VisualStudio.Product.Community
         run: |
           $packages = @(Get-ChildItem -LiteralPath (Join-Path $env:RUNNER_TEMP 'extension-e2e-package') -Filter 'SonarLint.VSIX-*-2022.vsix' -File)
           if ($packages.Count -ne 1) { throw "Expected exactly one VSIX from this build; found $($packages.Count)." }
@@ -60,7 +62,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: extension-e2e-vs18.11
+          name: extension-e2e-vs${{ env.E2E_EXPECTED_VS_VERSION }}
           path: ${{ runner.temp }}/extension-e2e/
           if-no-files-found: warn
           retention-days: 7
