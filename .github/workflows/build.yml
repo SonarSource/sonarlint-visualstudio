@@ -27,7 +27,7 @@ permissions:
 jobs:
   extension-e2e:
     needs: build
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.extension-e2e) }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.extension-e2e) || needs.build.outputs.extension-e2e-changed == 'true' }}
     permissions:
       contents: read
       id-token: write
@@ -38,10 +38,24 @@ jobs:
     runs-on: warp-custom-sonarlint-visualstudio
     name: Build
     environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release-ready-build' || '' }}
+    outputs:
+      extension-e2e-changed: ${{ steps.extension-e2e-changes.outputs.changed }}
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: "0"
+
+      - name: Detect extension E2E changes
+        id: extension-e2e-changes
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          # HEAD is the PR merge commit; its first parent is the base branch tip.
+          if git diff --name-only HEAD^1 HEAD | grep -qE '^(\.github/workflows/extension-e2e\.yml$|tests/e2e/)'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Fetch vault secrets
         id: secrets

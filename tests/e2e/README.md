@@ -1,10 +1,12 @@
 # Extension E2E test
 
 This test runs once after every successful push build on `master`, using Visual
-Studio Community from [image PR #513](https://github.com/SonarSource/ci-ami-images/pull/513)
-on `warp-custom-pr-513-sonarlint-visualstudio-v20261111141005`.
-PR builds do not run it automatically. It can also be enabled explicitly when
-manually dispatching Build on a PR branch. Earliest-supported-version coverage
+Studio Community installed by the `sonarlint-visualstudio` image
+([ci-ami-images #513](https://github.com/SonarSource/ci-ami-images/pull/513))
+on the `warp-custom-sonarlint-visualstudio` runner, the same one used by Build.
+PR builds run it automatically only when the PR changes
+`.github/workflows/extension-e2e.yml` or anything under `tests/e2e/`. It can
+also be enabled explicitly when manually dispatching Build on a PR branch. Earliest-supported-version coverage
 is deferred to a separate PR.
 
 ## Scenario
@@ -34,8 +36,9 @@ it does not validate foreground/pixel rendering or a connection wizard.
 ## CI integration
 
 The Build workflow calls the reusable [E2E workflow](../../.github/workflows/extension-e2e.yml)
-after its `build` job succeeds on a push to `master`, or on a manual dispatch
-with the `extension-e2e` checkbox enabled. The normal build and its
+after its `build` job succeeds on a push to `master`, on a pull request that
+changes the E2E workflow or `tests/e2e/`, or on a manual dispatch with the
+`extension-e2e` checkbox enabled. The normal build and its
 publication conditions are unchanged. E2E failures fail the workflow, but the
 E2E job runs after publication and does not gate promotion or dogfood delivery.
 
@@ -43,8 +46,7 @@ The runner requires the Visual Studio Community build pinned in the E2E workflow
 the .NET SDK and .NET Framework targeting packs. The expected full build is declared once as `E2E_EXPECTED_VS_VERSION` in the
 workflow. Discovery derives its minor-version range from that setting, and the
 harness independently checks the exact installed build. Update it together with
-the image's expected version when changing releases. The DEV runner label is pinned to that candidate;
-when the image is promoted, update the runner label to its stable equivalent.
+the image's Visual Studio version when changing releases.
 The test project targets .NET Framework 4.8; the fixture targets 4.7.2.
 NuGet restoration is locked and IDE interop assemblies come from the target IDE.
 
