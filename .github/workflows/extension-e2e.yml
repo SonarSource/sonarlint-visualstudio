@@ -14,11 +14,23 @@ permissions:
 
 jobs:
   extension-e2e:
-    name: Extension E2E (VS 18)
-    runs-on: warp-custom-sonarlint-visualstudio
+    name: Extension E2E (${{ matrix.label }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Latest: promoted master image.
+          - label: VS 18
+            runner: warp-custom-sonarlint-visualstudio
+            vs-version: '18.12.12405.243'
+          # Earliest supported: ci-ami-images #520 PR image (temporary, DO NOT MERGE).
+          - label: VS 17.0
+            runner: warp-custom-pr-520-sonarlint-visualstudio-vs17-0-0-v20261112124916
+            vs-version: '17.0.31903.59'
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     env:
-      E2E_EXPECTED_VS_VERSION: '18.12.12405.243'
+      E2E_EXPECTED_VS_VERSION: ${{ matrix.vs-version }}
       E2E_EXPECTED_VS_PRODUCT: Microsoft.VisualStudio.Product.Community
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -85,12 +97,24 @@ jobs:
           retention-days: 7
 
   connected-mode-e2e:
-    name: Extension E2E connected mode (VS 18)
-    runs-on: warp-custom-sonarlint-visualstudio
+    name: Extension E2E connected mode (${{ matrix.label }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Latest: promoted master image.
+          - label: VS 18
+            runner: warp-custom-sonarlint-visualstudio
+            vs-version: '18.12.12405.243'
+          # Earliest supported: ci-ami-images #520 PR image (temporary, DO NOT MERGE).
+          - label: VS 17.0
+            runner: warp-custom-pr-520-sonarlint-visualstudio-vs17-0-0-v20261112124916
+            vs-version: '17.0.31903.59'
+    runs-on: ${{ matrix.runner }}
     # Includes starting a disposable SonarQube server (bounded to 10 minutes).
     timeout-minutes: 40
     env:
-      E2E_EXPECTED_VS_VERSION: '18.12.12405.243'
+      E2E_EXPECTED_VS_VERSION: ${{ matrix.vs-version }}
       E2E_EXPECTED_VS_PRODUCT: Microsoft.VisualStudio.Product.Community
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
