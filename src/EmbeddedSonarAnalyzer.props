@@ -5,7 +5,7 @@
   <PropertyGroup>
     <!-- Note: Guide on how to update the analyzers is on the xtranet! -->
     <!-- sonar-csharp-enterprise-plugin & sonar-vbnet-enterprise-plugin -->
-    <EmbeddedSonarAnalyzerVersion>10.35.0.4138</EmbeddedSonarAnalyzerVersion>
+    <EmbeddedSonarAnalyzerVersion>10.36.0.15337</EmbeddedSonarAnalyzerVersion>
     <!-- sonar-cfamily-plugin, only used for integration tests -->
     <EmbeddedSonarCFamilyAnalyzerVersion>6.86.0.113840</EmbeddedSonarCFamilyAnalyzerVersion>
     <!-- sonar-javascript-plugin -->
