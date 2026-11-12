@@ -8,6 +8,12 @@ on:
       - branch-*
   pull_request:
   workflow_dispatch:
+    inputs:
+      extension-e2e:
+        description: Run the extension E2E test after this build (select the PR branch)
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -19,14 +25,37 @@ permissions:
   checks: write
 
 jobs:
+  extension-e2e:
+    needs: build
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.extension-e2e) || needs.build.outputs.extension-e2e-changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+      actions: read
+    uses: ./.github/workflows/extension-e2e.yml
+
   build:
     runs-on: warp-custom-sonarlint-visualstudio
     name: Build
     environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release-ready-build' || '' }}
+    outputs:
+      extension-e2e-changed: ${{ steps.extension-e2e-changes.outputs.changed }}
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: "0"
+
+      - name: Detect extension E2E changes
+        id: extension-e2e-changes
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          # HEAD is the PR merge commit; its first parent is the base branch tip.
+          if git diff --name-only HEAD^1 HEAD | grep -qE '^(\.github/workflows/extension-e2e\.yml$|tests/e2e/)'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Fetch vault secrets
         id: secrets
@@ -102,10 +131,10 @@ jobs:
         shell: bash
         id: branch-name
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "BRANCH_NAME=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+          if [ "${GITHUB_EVENT_NAME}" == "pull_request" ]; then
+            echo "BRANCH_NAME=${GITHUB_HEAD_REF}" >> "$GITHUB_OUTPUT"
           else
-            echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+            echo "BRANCH_NAME=${GITHUB_REF##*/}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Prepare Build
