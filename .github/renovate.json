@@ -61,15 +61,6 @@
         "MSTest"
       ],
       "allowedVersions": "<4.5"
-    },
-    {
-      "matchUpdateTypes": [
-        "major",
-        "minor"
-      ],
-      "addLabels": [
-        "renovate-major-minor"
-      ]
     }
   ]
 }
