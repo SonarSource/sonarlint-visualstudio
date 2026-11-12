@@ -2,11 +2,15 @@ name: Extension E2E test
 
 on:
   workflow_call:
+    inputs:
+      project-version:
+        description: Four-part version of the build, as published to repox
+        required: true
+        type: string
 
 permissions:
   contents: read
   id-token: write
-  actions: read
 
 jobs:
   extension-e2e:
@@ -19,19 +23,32 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Download this build's signed binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: binaries
-          path: ${{ runner.temp }}/extension-e2e-package
-
-      - name: Read artifact credentials for NuGet restore
+      - name: Read repox URL and artifact credentials
         id: secrets
         uses: SonarSource/vault-action-wrapper@v3
         with:
           secrets: |
+            development/kv/data/repox url | ARTIFACTORY_URL;
             development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username | ARTIFACTORY_USER;
             development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_ACCESS_TOKEN;
+
+      # The build publishes its signed binaries to repox before this job starts.
+      - name: Download this build's signed VSIX from repox
+        shell: powershell
+        env:
+          PROJECT_VERSION: ${{ inputs.project-version }}
+          ARTIFACTORY_URL: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_URL }}
+          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+          ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+        run: |
+          # Windows PowerShell's progress bar slows large downloads down considerably.
+          $ProgressPreference = 'SilentlyContinue'
+          if ($env:PROJECT_VERSION -notmatch '^\d+\.\d+\.\d+\.\d+$') { throw "Unexpected project version '$env:PROJECT_VERSION'." }
+          $name = "SonarLint.VSIX-$env:PROJECT_VERSION-2022.vsix"
+          $url = "$($env:ARTIFACTORY_URL.TrimEnd('/'))/sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/$env:PROJECT_VERSION/$name"
+          $directory = New-Item -ItemType Directory -Force -Path (Join-Path $env:RUNNER_TEMP 'extension-e2e-package')
+          $authorization = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("${env:ARTIFACTORY_USER}:${env:ARTIFACTORY_ACCESS_TOKEN}"))
+          Invoke-WebRequest -UseBasicParsing -TimeoutSec 600 -Uri $url -Headers @{ Authorization = "Basic $authorization" } -OutFile (Join-Path $directory $name)
 
       - name: Build C# E2E tests
         shell: powershell

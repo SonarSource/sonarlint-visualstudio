@@ -11,9 +11,10 @@ is deferred to a separate PR.
 
 ## Scenario
 
-The test installs the signed VSIX from the same workflow run's `binaries`
-artifact into a unique experimental IDE profile. It does not download an older
-published package or rebuild the extension.
+The test installs the signed VSIX that the same workflow run published to repox
+(`sonarsource-public-qa`, at the run's four-part version) into a unique
+experimental IDE profile. It does not download an older package or rebuild the
+extension.
 
 1. Verify the actual IDE product/version and supplied VSIX identity.
 2. Install the VSIX and verify its installed manifest in the requested profile.
