@@ -40,13 +40,18 @@ namespace SonarLint.VisualStudio.E2E
     {
         private const string ExtensionId = "SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D";
         private const string IdentityXPath = "/*[local-name()='PackageManifest']/*[local-name()='Metadata']/*[local-name()='Identity']";
+        private const string AutomationCommandsVariable = "SONARLINT_INTERNAL_E2E_COMMANDS";
+        private const string TelemetryDisabledVariable = "SONARLINT_INTERNAL_TELEMETRY_DISABLED";
         private const int RpcCallRejected = unchecked((int)0x80010001);
         private const int RpcServerCallRetryLater = unchecked((int)0x8001010A);
         private static readonly TimeSpan PhaseTimeout = TimeSpan.FromSeconds(180);
         private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
+        private static readonly TimeSpan CommandTimeout = TimeSpan.FromMinutes(5);
         private readonly E2ESettings settings;
         private readonly TestContext context;
         private readonly ComMessageFilter messageFilter;
+        // Keep the "ExtensionE2E" prefix: the extension only enables its hidden E2E commands in an
+        // experimental instance whose root suffix starts with it.
         private readonly string rootSuffix = "ExtensionE2E" + Guid.NewGuid().ToString("N").Substring(0, 8);
         private readonly Dictionary<string, object> report = new Dictionary<string, object>
         {
@@ -130,8 +135,13 @@ namespace SonarLint.VisualStudio.E2E
             ResetProfile(devenv, ideDirectory, "post-install-profile.log");
 
             Phase("launch-ide");
-            ideProcess = Process.Start(new ProcessStartInfo(devenv,
-                $"/RootSuffix {rootSuffix} /NoSplash /LCID 1033 /Log {Quote(Path.Combine(settings.ResultsDirectory, "ActivityLog.xml"))}") { UseShellExecute = false });
+            var launch = new ProcessStartInfo(devenv,
+                $"/RootSuffix {rootSuffix} /NoSplash /LCID 1033 /Log {Quote(Path.Combine(settings.ResultsDirectory, "ActivityLog.xml"))}") { UseShellExecute = false };
+            // Makes the extension's hidden E2E commands available in this IDE only (see RunCommand).
+            launch.EnvironmentVariables[AutomationCommandsVariable] = "true";
+            // Test runs must not record telemetry (e.g. the connected-mode test's manual binding).
+            launch.EnvironmentVariables[TelemetryDisabledVariable] = "true";
+            ideProcess = Process.Start(launch);
             WaitUntil("the launched IDE's DTE object", () =>
             {
                 dte = (EnvDTE80.DTE2)VisualStudioAutomation.FindDte(ideProcess.Id, settings.ExpectedVisualStudioVersion.Major);
@@ -203,22 +213,31 @@ namespace SonarLint.VisualStudio.E2E
             manifest.SelectSingleNode(IdentityXPath)?.Attributes?[name]?.Value;
 
         /// <summary>
-        /// Copies the Fixture folder into the results directory (<c>*.txt</c> templates lose that extension),
-        /// then opens <paramref name="solutionFile"/> and <paramref name="documentFile"/> and shows the Error List.
+        /// Copies the files of the Fixture folder into this session's results directory, then the files of
+        /// <c>Fixture/<paramref name="variant"/></c> over them when given. <c>*.txt</c> templates lose that
+        /// extension. Returns the copy's directory.
         /// </summary>
-        public void OpenSolution(string solutionFile, string documentFile)
+        public string CopyFixture(string variant = null)
         {
-            Phase("open-solution");
+            var templates = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixture");
             var fixtureDirectory = Path.Combine(settings.ResultsDirectory, "fixture");
             Directory.CreateDirectory(fixtureDirectory);
-            foreach (var file in Directory.GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixture")))
+            var sources = variant == null ? new[] { templates } : new[] { templates, Path.Combine(templates, variant) };
+            foreach (var file in sources.SelectMany(Directory.GetFiles))
             {
-                File.Copy(file, Path.Combine(fixtureDirectory, Path.GetFileName(file).Replace(".txt", "")));
+                File.Copy(file, Path.Combine(fixtureDirectory, Path.GetFileName(file).Replace(".txt", "")), true);
             }
-            DocumentPath = Path.Combine(fixtureDirectory, documentFile);
+            return fixtureDirectory;
+        }
+
+        /// <summary>Opens <paramref name="solutionPath"/> and <paramref name="documentPath"/> and shows the Error List.</summary>
+        public void OpenSolution(string solutionPath, string documentPath)
+        {
+            Phase("open-solution");
+            DocumentPath = documentPath;
             WaitUntil("the solution to open", () =>
             {
-                if (!dte.Solution.IsOpen) { dte.Solution.Open(Path.Combine(fixtureDirectory, solutionFile)); }
+                if (!dte.Solution.IsOpen) { dte.Solution.Open(solutionPath); }
                 return dte.Solution.IsOpen;
             });
             WaitUntil("the document to open", () =>
@@ -253,6 +272,47 @@ namespace SonarLint.VisualStudio.E2E
             selection.MoveToLineAndOffset(line + 1, 1, true);
             selection.Delete();
             dte.ActiveDocument.Save();
+        }
+
+        /// <summary>
+        /// Waits until Visual Studio reports the command available, then runs it with <paramref name="argument"/>.
+        /// Returns when the command has finished; a failed command, or one still running after
+        /// <see cref="CommandTimeout"/>, throws. The argument is never logged.
+        /// </summary>
+        public void RunCommand(string phase, string commandSetGuid, int commandId, string argument)
+        {
+            Phase(phase);
+            WaitUntil(phase + " to become available", () => dte.Commands.Item(commandSetGuid, commandId).IsAvailable);
+
+            // Raised from a separate STA thread with its own DTE proxy and message filter: the call blocks
+            // until the command returns, so this thread can give up on it instead of hanging the test.
+            Exception failure = null;
+            var worker = new Thread(() =>
+            {
+                try
+                {
+                    using var workerFilter = ComMessageFilter.Register();
+                    var workerDte = (EnvDTE80.DTE2)VisualStudioAutomation.FindDte(ideProcess.Id, settings.ExpectedVisualStudioVersion.Major)
+                        ?? throw new InvalidOperationException("The launched IDE's DTE object is no longer available.");
+                    object customIn = argument;
+                    object customOut = null;
+                    workerDte.Commands.Raise(commandSetGuid, commandId, ref customIn, ref customOut);
+                }
+                catch (Exception exception)
+                {
+                    failure = exception;
+                }
+            }) { IsBackground = true };
+            worker.SetApartmentState(ApartmentState.STA);
+            worker.Start();
+            if (!worker.Join(CommandTimeout))
+            {
+                throw new TimeoutException($"{phase} did not finish within {CommandTimeout.TotalMinutes} minutes.");
+            }
+            if (failure != null)
+            {
+                throw new InvalidOperationException(phase + " failed; the SonarQube output (SonarOutput.txt) has the reason.", failure);
+            }
         }
 
         public void SaveErrorList(string name, ErrorListEntry[] errors) => WriteJson(name, errors);

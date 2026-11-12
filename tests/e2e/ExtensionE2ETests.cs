@@ -39,9 +39,10 @@ namespace SonarLint.VisualStudio.E2E
             try
             {
                 ide.InstallAndLaunch();
-                ide.OpenSolution("Sample.sln", "Sample.cs");
-                var unused = UnusedVariableFinding(ide.DocumentPath, "e2eUnused");
-                var remaining = UnusedVariableFinding(ide.DocumentPath, "e2eRemaining");
+                var fixture = ide.CopyFixture();
+                ide.OpenSolution(Path.Combine(fixture, "Sample.sln"), Path.Combine(fixture, "Sample.cs"));
+                var unused = SampleFindings.UnusedVariable(ide.DocumentPath, "e2eUnused");
+                var remaining = SampleFindings.UnusedVariable(ide.DocumentPath, "e2eRemaining");
 
                 var before = ide.WaitForErrorList("detect-findings", errors => errors.Any(unused) && errors.Any(remaining));
                 ide.SaveErrorList("errors-before-fix.json", before);
@@ -64,9 +65,5 @@ namespace SonarLint.VisualStudio.E2E
                 throw;
             }
         }
-
-        private static Func<ErrorListEntry, bool> UnusedVariableFinding(string documentPath, string variable) =>
-            entry => string.Equals(entry.File, documentPath, StringComparison.OrdinalIgnoreCase)
-                && entry.Description == $"Remove the unused local variable '{variable}'.";
     }
 }

@@ -35,6 +35,51 @@ Compiler unused-variable warnings cannot satisfy the Sonar-message assertion.
 Other unrelated diagnostics may remain. This exercises native IDE/DTE behavior;
 it does not validate foreground/pixel rendering or a connection wizard.
 
+## Connected mode
+
+`ConnectedModeE2ETests` (`TestCategory=ConnectedModeE2E`) runs as its own job with
+the same triggers, in parallel with the standalone test and on the same signed VSIX.
+It checks that the installed extension applies a bound server's quality profile.
+
+The test starts a disposable SonarQube Community Build 25.11 on loopback, using the
+[Orchestrator](server/src/main/java/ConnectedServer.java) launcher (Orchestrator
+6.4.4.4797, JDK 21). `SonarQubeServer` starts the launcher the same way the product
+starts SLCore (`java -classpath … MainClass`) and stops it when the test ends.
+
+1. **Server fixture:** a unique project and C# quality profile that activates only
+   `csharpsquid:S3776` with `threshold=1`. The profile is queried to confirm S1481 is off.
+2. **Before binding:** the `Fixture/ConnectedMode` sample (the standalone sample plus
+   two nested `if`s) shows both S1481 findings and no S3776 finding.
+3. **Binding:** the test runs the extension's hidden E2E commands through DTE. One adds
+   the connection with the server's token, the other binds the open solution. They call
+   the same services as the Connected Mode dialogs, so the extension validates the token
+   and writes the connection, credential and binding itself. The dialogs are not automated.
+4. **Bound analysis:** the sample must then show exactly
+   `Refactor this method to reduce its Cognitive Complexity from 3 to the 1 allowed.`
+   at line 3, and no S1481.
+5. **Edit:** removing the nested `if`s through DTE must clear S3776, and S1481 must
+   stay absent for five continuous seconds, although the unused variables remain.
+
+Server APIs only arrange the fixture; the analysis comes from the installed extension.
+SonarQube Cloud and enterprise/taint rules are not covered.
+
+The E2E commands are hidden and disabled unless `SONARLINT_INTERNAL_E2E_COMMANDS=true`
+is set for the IDE process and it is an experimental instance started with
+`/RootSuffix ExtensionE2E...`, as `VisualStudioSession` does. They drive the dialogs' view models the way the dialogs' buttons
+do. `VisualStudioSession` sets that variable, and `SONARLINT_INTERNAL_TELEMETRY_DISABLED=true`
+so the extension does not enable telemetry in SLCore, for every IDE it launches. A command that has not finished after five minutes fails the test instead of
+hanging it.
+
+The repox credentials are passed only to the launcher and removed from the test
+process before any IDE starts. The token is never written to evidence, and the
+exported launcher and server logs are redacted. The test leaves the connection,
+credential and binding it created in the Windows user's profile, so run it only on an
+ephemeral CI account or a dedicated Windows account.
+
+Ideas for further cases (see the sonarlint-core, -intellij and -eclipse connected
+ITs): rule changes after binding, server exclusions, issue suppression, reconnect
+and invalid tokens, and shared binding.
+
 ## CI integration
 
 The Build workflow calls the reusable [E2E workflow](../../.github/workflows/extension-e2e.yml)
@@ -81,6 +126,10 @@ report plus `run-1/evidence`, including:
 - Before/after Error Lists and the saved sample source.
 - IDE activity, installer, cache/configuration and MEF diagnostic logs.
 
+The connected-mode job uploads `extension-e2e-connected-vs<expected-IDE-build>`, with
+the same session evidence under `evidence`, the server's assigned profile, and redacted
+logs in `evidence/server-diagnostics`.
+
 TRX attachments may duplicate canonical evidence. Installer success alone does
 not prove deployment into the intended profile; manifest verification must pass
 before opening the sample. Each phase has a bounded wait.
@@ -115,9 +164,11 @@ Use a new results directory for every execution.
 - `ExtensionE2ETests.cs`: MSTest scenario, fixture knowledge and assertions on
   an STA thread.
 - `E2ESettings.cs`: reads and validates the `E2E_*` environment variables.
+- `SampleFindings.cs`: Error List predicates for the sample, by file and message.
 - `VisualStudioSession.cs`: scenario-agnostic driver: installation, isolated
-  profile, bounded and stable waits on the Error List, editor edits,
-  configuration preparation and evidence collection.
+  profile, fixture copies (optionally with a source variant), bounded and stable
+  waits on the Error List, editor edits, running extension commands, configuration
+  preparation and evidence collection.
 - `ComMessageFilter.cs`: registered by the session, it retries temporary COM busy
   responses on the STA test thread for up to 30 seconds per call, then restores
   the previous thread filter at cleanup. Permanent rejections and unrelated COM
@@ -126,7 +177,13 @@ Use a new results directory for every execution.
 - `VisualStudioAutomation.cs`: attach to the launched process's DTE2 object and
   read its actual Error List and Sonar output.
 - `Fixture`: sample solution/project and source template, copied to the attempt's
-  isolated directory; `Sample.cs.txt` becomes `Sample.cs`.
+  isolated directory; `Sample.cs.txt` becomes `Sample.cs`. `Fixture/ConnectedMode`
+  holds the connected-mode test's source variant.
+- `ConnectedModeE2ETests.cs`: the connected-mode scenario.
+- `SonarQubeServer.cs`: starts and stops the launcher, and exports redacted server logs.
+- `ConnectedServerFixture.cs`: the server project and quality profile.
+- `server/`: the Orchestrator launcher (`pom.xml`, `ConnectedServer.java`) and the Maven
+  settings, which read the repox credentials from the environment.
 
 The VSIX installer targets the discovered instance and unique profile. No loose
 extension binaries or analysis responses are injected.
