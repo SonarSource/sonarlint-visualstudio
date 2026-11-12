@@ -123,12 +123,14 @@ namespace SonarLint.VisualStudio.E2E
             var vswhere = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft Visual Studio", "Installer", "vswhere.exe");
             var inventory = RunProcess(vswhere, "-all -products * -format json", "vswhere.log");
             File.WriteAllText(Path.Combine(resultsDirectory, "visual-studio-inventory.json"), inventory);
+            // The major version comes from E2E_EXPECTED_VS_VERSION, so one harness serves every supported VS.
+            var expectedMajorPrefix = expectedVisualStudioVersion.Major + ".";
             var instances = JsonConvert.DeserializeObject<Installation[]>(inventory)
-                .Where(x => x.InstallationVersion.StartsWith("18.", StringComparison.Ordinal)
+                .Where(x => x.InstallationVersion.StartsWith(expectedMajorPrefix, StringComparison.Ordinal)
                     && File.Exists(Path.Combine(x.InstallationPath, "Common7", "IDE", "devenv.exe"))).ToArray();
             if (instances.Length != 1)
             {
-                throw new InvalidOperationException($"Expected exactly one full Visual Studio 18 IDE; found {instances.Length}.");
+                throw new InvalidOperationException($"Expected exactly one full Visual Studio {expectedVisualStudioVersion.Major} IDE; found {instances.Length}.");
             }
             var instance = instances[0];
             report["visualStudioProductId"] = instance.ProductId;
@@ -158,7 +160,7 @@ namespace SonarLint.VisualStudio.E2E
             RunProcess(devenv, $"/RootSuffix {rootSuffix} /ResetSettings {Quote(Path.Combine(ideDirectory, "Profiles", "General.vssettings"))} /Command File.Exit /NoSplash /LCID 1033", "initialize-profile.log");
             Phase("install-vsix");
             RunProcess(Path.Combine(ideDirectory, "VSIXInstaller.exe"),
-                $"/quiet /instanceIds:{instance.InstanceId} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(resultsDirectory, "vsix-installer.log"))} {Quote(vsixPath)}", "vsix-process.log");
+                $"/quiet {GetVsixInstallationTarget(instance, devenv)} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(resultsDirectory, "vsix-installer.log"))} {Quote(vsixPath)}", "vsix-process.log");
             Phase("verify-vsix-installation");
             WaitUntil("the signed VSIX in the requested experimental profile", VerifyInstalledExtension);
 
@@ -174,9 +176,27 @@ namespace SonarLint.VisualStudio.E2E
                 $"/RootSuffix {rootSuffix} /NoSplash /LCID 1033 /Log {Quote(Path.Combine(resultsDirectory, "ActivityLog.xml"))}") { UseShellExecute = false });
             WaitUntil("the launched IDE's DTE object", () =>
             {
-                dte = (EnvDTE80.DTE2)VisualStudioAutomation.FindDte(ideProcess.Id);
+                dte = (EnvDTE80.DTE2)VisualStudioAutomation.FindDte(ideProcess.Id, expectedVisualStudioVersion.Major);
                 return dte != null;
             });
+        }
+
+        private string GetVsixInstallationTarget(Installation instance, string devenv)
+        {
+            if (expectedVisualStudioVersion.Major != 17 || expectedVisualStudioVersion.Minor != 0)
+            {
+                return $"/instanceIds:{instance.InstanceId}";
+            }
+            // The VS 17.0 RTM installer sends /instanceIds installs to the normal profile even
+            // when /rootSuffix is given. Its application/SKU route respects the experimental profile.
+            var sku = instance.ProductId switch
+            {
+                "Microsoft.VisualStudio.Product.Community" => "Community",
+                "Microsoft.VisualStudio.Product.Professional" => "Pro",
+                "Microsoft.VisualStudio.Product.Enterprise" => "Enterprise",
+                _ => throw new InvalidOperationException("Unsupported IDE product: " + instance.ProductId)
+            };
+            return $"/appidinstallpath:{Quote(devenv)} /appidname:{Quote(instance.DisplayName)} /skuName:{sku} /skuVersion:{instance.InstallationVersion}";
         }
 
         private bool VerifyInstalledExtension()
