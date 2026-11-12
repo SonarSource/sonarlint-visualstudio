@@ -55,7 +55,10 @@ namespace SonarLint.VisualStudio.E2E
         private EnvDTE80.DTE2 dte;
         private ErrorListEntry[] lastErrors = Array.Empty<ErrorListEntry>();
         private string sourcePath;
+        private string solutionPath;
         private string profileDirectory;
+
+        public string SourcePath => sourcePath;
 
         public VisualStudioSession(string vsixPath, string resultsDirectory, TestContext context, ComMessageFilter messageFilter)
         {
@@ -198,19 +201,38 @@ namespace SonarLint.VisualStudio.E2E
             return false;
         }
 
-        public void OpenSample()
+        /// <summary>
+        /// Copies the sample into this session's results directory. A source variant
+        /// (a subfolder of Fixture) replaces Sample.cs; a custom solution name gives
+        /// connected-mode tests a unique binding directory.
+        /// </summary>
+        public string PrepareSample(string solutionName = "Sample", string sourceVariant = null)
         {
-            Phase("open-sample");
+            if (sourcePath != null) { throw new InvalidOperationException("The sample has already been prepared."); }
+            var templates = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixture");
             var fixtureDirectory = Path.Combine(resultsDirectory, "fixture");
             Directory.CreateDirectory(fixtureDirectory);
-            foreach (var file in Directory.GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixture")))
+            foreach (var file in Directory.GetFiles(templates))
             {
                 File.Copy(file, Path.Combine(fixtureDirectory, Path.GetFileName(file).Replace(".txt", "")));
             }
             sourcePath = Path.Combine(fixtureDirectory, "Sample.cs");
+            if (sourceVariant != null)
+            {
+                File.Copy(Path.Combine(templates, sourceVariant, "Sample.cs.txt"), sourcePath, true);
+            }
+            solutionPath = Path.Combine(fixtureDirectory, solutionName + ".sln");
+            if (solutionName != "Sample") { File.Move(Path.Combine(fixtureDirectory, "Sample.sln"), solutionPath); }
+            return solutionPath;
+        }
+
+        public void OpenSample()
+        {
+            Phase("open-sample");
+            if (sourcePath == null) { PrepareSample(); }
             WaitUntil("the solution to open", () =>
             {
-                if (!dte.Solution.IsOpen) { dte.Solution.Open(Path.Combine(fixtureDirectory, "Sample.sln")); }
+                if (!dte.Solution.IsOpen) { dte.Solution.Open(solutionPath); }
                 return dte.Solution.IsOpen;
             });
             WaitUntil("the sample file to open", () =>
@@ -244,7 +266,10 @@ namespace SonarLint.VisualStudio.E2E
 
         private bool IsRemainingFinding(ErrorListEntry entry) => IsSampleFinding(entry, 6, RemainingFindingMessage);
 
-        private bool IsSampleFinding(ErrorListEntry entry, int line, string message) =>
+        /// <summary>Either of the sample's standalone S1481 findings.</summary>
+        public bool IsUnusedVariableFinding(ErrorListEntry entry) => IsTargetFinding(entry) || IsRemainingFinding(entry);
+
+        public bool IsSampleFinding(ErrorListEntry entry, int line, string message) =>
             string.Equals(entry.File, sourcePath, StringComparison.OrdinalIgnoreCase)
             && entry.Line == line && entry.Description == message;
 
@@ -261,8 +286,26 @@ namespace SonarLint.VisualStudio.E2E
         public void WaitForFindingToDisappear(TimeSpan stableFor)
         {
             Phase("clear-finding");
-            var clearSince = new Stopwatch();
-            WaitUntil("the finding to remain absent after saving", () =>
+            WaitForStableErrors("the finding to remain absent after saving",
+                errors => !errors.Any(IsTargetFinding) && errors.Any(IsRemainingFinding), stableFor);
+        }
+
+        /// <summary>
+        /// Waits until the Error List satisfies <paramref name="condition"/> continuously for
+        /// <paramref name="stableFor"/>, then saves that snapshot as <paramref name="phase"/>.json.
+        /// </summary>
+        public ErrorListEntry[] WaitForErrors(string phase, Func<ErrorListEntry[], bool> condition, TimeSpan stableFor)
+        {
+            Phase(phase);
+            WaitForStableErrors(phase, condition, stableFor);
+            WriteJson(phase + ".json", lastErrors);
+            return lastErrors;
+        }
+
+        private void WaitForStableErrors(string description, Func<ErrorListEntry[], bool> condition, TimeSpan stableFor)
+        {
+            var stableSince = new Stopwatch();
+            WaitUntil(description, () =>
             {
                 try
                 {
@@ -271,23 +314,33 @@ namespace SonarLint.VisualStudio.E2E
                     if (messageFilter.BusyCallCount != busyCallsBeforeRead)
                     {
                         // The filter can hide a busy response by retrying the COM call.
-                        clearSince.Reset();
+                        stableSince.Reset();
                     }
-                    if (errors.Any(IsTargetFinding) || !errors.Any(IsRemainingFinding))
+                    if (!condition(errors))
                     {
-                        clearSince.Reset();
+                        stableSince.Reset();
                         return false;
                     }
-                    clearSince.Start();
-                    return clearSince.Elapsed >= stableFor;
+                    stableSince.Start();
+                    return stableSince.Elapsed >= stableFor;
                 }
                 catch (COMException)
                 {
-                    // An unreadable Error List cannot establish continuous absence.
-                    clearSince.Reset();
+                    // An unreadable Error List cannot establish a continuous state.
+                    stableSince.Reset();
                     throw;
                 }
             });
+        }
+
+        public void ReplaceSampleSourceAndSave(string text)
+        {
+            Phase("edit-file");
+            var selection = (EnvDTE.TextSelection)dte.ActiveDocument.Selection;
+            selection.SelectAll();
+            selection.Insert(text);
+            dte.ActiveDocument.Save();
+            Assert.AreEqual(text, File.ReadAllText(sourcePath), "The IDE must save the exact edit.");
         }
 
         public void SaveErrorList(string name)
