@@ -25,9 +25,13 @@
       },
       "System.IO.Abstractions": {
         "type": "Direct",
-        "requested": "[9.0.6, )",
-        "resolved": "9.0.6",
-        "contentHash": "FytuUXz0BsK81ChtExUanYIzk9Zh6R9Pdu9b3jPg3R14uvyGmQNiX0mKgqVBBYhHHx7sIyTdLwYOnXbfpEGySA=="
+        "requested": "[23.0.0, )",
+        "resolved": "23.0.0",
+        "contentHash": "lMBdXRPdCL95QKrmhK7hthyF3CZblVcU1JBGjZyYpkGlw/Mnrw4GZeP6S4rzkm4oKpa4lUecNInKCLs8+6HI5Q==",
+        "dependencies": {
+          "TestableIO.System.IO.Abstractions": "23.0.0",
+          "TestableIO.System.IO.Abstractions.Wrappers": "23.0.0"
+        }
       },
       "System.Buffers": {
         "type": "Transitive",
@@ -53,6 +57,27 @@
         "type": "Transitive",
         "resolved": "4.5.3",
         "contentHash": "3TIsJhD1EiiT0w2CcDMN/iSSwnNnsrnbzeVHSKkaEgV85txMprmuO+Yq2AdSbeVGcg28pdNDTPK87tJhX7VFHw=="
+      },
+      "TestableIO.System.IO.Abstractions": {
+        "type": "Transitive",
+        "resolved": "23.0.0",
+        "contentHash": "xodhCNREe8aUgwqeN372r/CF6uOowyHfC5hgBIvs7Taax9p5v/z6PC8fA/weEDxZyJzzjxcpT8vf4xQdcq+2ug==",
+        "dependencies": {
+          "Testably.Abstractions.FileSystem.Interface": "11.0.0"
+        }
+      },
+      "TestableIO.System.IO.Abstractions.Wrappers": {
+        "type": "Transitive",
+        "resolved": "23.0.0",
+        "contentHash": "WfbIVmdi/Yh3eKLDzprsctUXziXVP60lPfPRrAFxR+YPT++yGpsgBsen0vC5N3HeXANCHP7xRukgn/kZcUqusg==",
+        "dependencies": {
+          "Testably.Abstractions.FileSystem.Interface": "11.0.0"
+        }
+      },
+      "Testably.Abstractions.FileSystem.Interface": {
+        "type": "Transitive",
+        "resolved": "11.0.0",
+        "contentHash": "bHE3UgieMizRsrzHYsWOLGMVjDmy0yx1PTv4QMgoAi3GU+vw2tJZ/jR5woIZ6Et6H0Hvhwriv6XSgwoZV9bU0A=="
       }
     }
   }

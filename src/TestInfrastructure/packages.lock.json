@@ -1096,8 +1096,12 @@
       },
       "System.IO.Abstractions": {
         "type": "Transitive",
-        "resolved": "9.0.6",
-        "contentHash": "FytuUXz0BsK81ChtExUanYIzk9Zh6R9Pdu9b3jPg3R14uvyGmQNiX0mKgqVBBYhHHx7sIyTdLwYOnXbfpEGySA=="
+        "resolved": "23.0.0",
+        "contentHash": "lMBdXRPdCL95QKrmhK7hthyF3CZblVcU1JBGjZyYpkGlw/Mnrw4GZeP6S4rzkm4oKpa4lUecNInKCLs8+6HI5Q==",
+        "dependencies": {
+          "TestableIO.System.IO.Abstractions": "23.0.0",
+          "TestableIO.System.IO.Abstractions.Wrappers": "23.0.0"
+        }
       },
       "System.IO.Pipelines": {
         "type": "Transitive",
@@ -1280,6 +1284,27 @@
         "resolved": "4.6.2",
         "contentHash": "yQgmjfFximrNm9LIV3mL6T5MzjeC+epeE5rl4hXxAlYmxby7RM1dPSkIKXk9HNkl6G54h2JHOmLD46+Pey+IRg=="
       },
+      "TestableIO.System.IO.Abstractions": {
+        "type": "Transitive",
+        "resolved": "23.0.0",
+        "contentHash": "xodhCNREe8aUgwqeN372r/CF6uOowyHfC5hgBIvs7Taax9p5v/z6PC8fA/weEDxZyJzzjxcpT8vf4xQdcq+2ug==",
+        "dependencies": {
+          "Testably.Abstractions.FileSystem.Interface": "11.0.0"
+        }
+      },
+      "TestableIO.System.IO.Abstractions.Wrappers": {
+        "type": "Transitive",
+        "resolved": "23.0.0",
+        "contentHash": "WfbIVmdi/Yh3eKLDzprsctUXziXVP60lPfPRrAFxR+YPT++yGpsgBsen0vC5N3HeXANCHP7xRukgn/kZcUqusg==",
+        "dependencies": {
+          "Testably.Abstractions.FileSystem.Interface": "11.0.0"
+        }
+      },
+      "Testably.Abstractions.FileSystem.Interface": {
+        "type": "Transitive",
+        "resolved": "11.0.0",
+        "contentHash": "bHE3UgieMizRsrzHYsWOLGMVjDmy0yx1PTv4QMgoAi3GU+vw2tJZ/jR5woIZ6Et6H0Hvhwriv6XSgwoZV9bU0A=="
+      },
       "VSLangProj": {
         "type": "Transitive",
         "resolved": "17.0.31902.203",
@@ -1387,7 +1412,7 @@
           "BouncyCastle.Cryptography": "[2.7.0, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "System.Collections.Immutable": "[5.0.0, )",
-          "System.IO.Abstractions": "[9.0.6, )"
+          "System.IO.Abstractions": "[23.0.0, )"
         }
       },
       "SonarLint.VisualStudio.Infrastructure.VS": {
@@ -1410,7 +1435,7 @@
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "StreamJsonRpc": "[2.8.28, )",
           "StrongNamer": "[0.2.5, )",
-          "System.IO.Abstractions": "[9.0.6, )"
+          "System.IO.Abstractions": "[23.0.0, )"
         }
       },
       "SonarLint.VisualStudio.IssueVisualization": {

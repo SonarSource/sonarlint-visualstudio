@@ -44,7 +44,7 @@
   <!-- ******************************************************************************* -->
   <ItemGroup Label="NuGet packages">
     <PackageReference Include="Newtonsoft.Json" Condition=" $(RequiresNewtonsoft)=='true'" Version="13.0.3" />
-    <PackageReference Include="System.IO.Abstractions" Condition=" $(RequiresSystemIOAbstractions)=='true'" Version="9.0.6" />
+    <PackageReference Include="System.IO.Abstractions" Condition=" $(RequiresSystemIOAbstractions)=='true'" Version="23.0.0" />
     <PackageReference Include="LibGit2Sharp" Version="0.32.0" Condition="$(RequiresLibGit)=='true'" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
 
