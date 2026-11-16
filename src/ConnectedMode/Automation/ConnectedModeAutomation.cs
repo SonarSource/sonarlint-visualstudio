@@ -54,13 +54,13 @@ internal class ConnectedModeAutomation(
     IConnectedModeUIManager connectedModeUiManager)
     : IConnectedModeAutomation
 {
-    internal const string InvalidServerUrlText = "The server URL must be an absolute URL.";
+    internal const string InvalidServerUrlText = "The server URL must be an absolute http or https URL.";
     internal const string MissingArgumentText = "A non-empty value is required.";
     internal const string SaveConnectionFailedText = "The connection could not be saved.";
 
     public async Task<ResponseStatus> AddSonarQubeConnectionAsync(string serverUrl, string token)
     {
-        if (!IsAbsoluteUrl(serverUrl))
+        if (!IsHttpUrl(serverUrl))
         {
             return new ResponseStatus(false, InvalidServerUrlText);
         }
@@ -90,7 +90,7 @@ internal class ConnectedModeAutomation(
 
     public async Task<ResponseStatus> BindOpenSolutionAsync(string serverUrl, string projectKey)
     {
-        if (!IsAbsoluteUrl(serverUrl))
+        if (!IsHttpUrl(serverUrl))
         {
             return new ResponseStatus(false, InvalidServerUrlText);
         }
@@ -107,5 +107,7 @@ internal class ConnectedModeAutomation(
         return new ResponseStatus(result.IsSuccessful, result.ProblemDescription);
     }
 
-    private static bool IsAbsoluteUrl(string url) => Uri.TryCreate(url, UriKind.Absolute, out _);
+    // An absolute URI alone is not enough: "localhost:9000" parses as one, with "localhost" as its scheme.
+    private static bool IsHttpUrl(string url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 }

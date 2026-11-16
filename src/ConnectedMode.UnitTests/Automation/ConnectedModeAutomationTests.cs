@@ -70,7 +70,8 @@ public class ConnectedModeAutomationTests
     [DataRow(null)]
     [DataRow("")]
     [DataRow("not a url")]
-    [DataRow("localhost:9000/relative")]
+    [DataRow("localhost:9000")]
+    [DataRow("ftp://localhost:9000")]
     public async Task AddSonarQubeConnectionAsync_InvalidUrl_FailsWithoutCallingServices(string serverUrl)
     {
         var result = await testSubject.AddSonarQubeConnectionAsync(serverUrl, Token);
@@ -157,6 +158,7 @@ public class ConnectedModeAutomationTests
     [TestMethod]
     [DataRow(null)]
     [DataRow("not a url")]
+    [DataRow("localhost:9000")]
     public async Task BindOpenSolutionAsync_InvalidUrl_FailsWithoutBinding(string serverUrl)
     {
         var result = await testSubject.BindOpenSolutionAsync(serverUrl, ProjectKey);
