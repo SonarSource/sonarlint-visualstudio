@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         private ConnectionInfo sonarCloudEuConnectionInfo;
         private ConnectionInfo sonarCloudUsConnectionInfo;
         private ISlCoreConnectionAdapter slCoreConnectionAdapter;
+        private IServerConnectionCreator serverConnectionCreator;
         private IProgressReporterViewModel progressReporterViewModel;
 
         [TestInitialize]
@@ -44,9 +45,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
             sonarCloudEuConnectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
             sonarCloudUsConnectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, CloudServerRegion.Us);
             slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
+            serverConnectionCreator = Substitute.For<IServerConnectionCreator>();
             progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
 
-            testSubject = new CredentialsViewModel(sonarQubeConnectionInfo, slCoreConnectionAdapter, progressReporterViewModel);
+            testSubject = new CredentialsViewModel(sonarQubeConnectionInfo, slCoreConnectionAdapter, serverConnectionCreator, progressReporterViewModel);
         }
 
         [TestMethod]
@@ -100,7 +102,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void AccountSecurityUrl_ConnectionIsSonarCloudForEu_ReturnsExpectedSonarCloudUrl()
         {
-            var viewModel = new CredentialsViewModel(sonarCloudEuConnectionInfo, slCoreConnectionAdapter, progressReporterViewModel);
+            var viewModel = new CredentialsViewModel(sonarCloudEuConnectionInfo, slCoreConnectionAdapter, serverConnectionCreator, progressReporterViewModel);
 
             viewModel.AccountSecurityUrl.Should().Be("https://sonarcloud.io/account/security");
         }
@@ -108,7 +110,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void AccountSecurityUrl_ConnectionIsSonarCloudForUs_ReturnsExpectedSonarCloudUrl()
         {
-            var viewModel = new CredentialsViewModel(sonarCloudUsConnectionInfo, slCoreConnectionAdapter, progressReporterViewModel);
+            var viewModel = new CredentialsViewModel(sonarCloudUsConnectionInfo, slCoreConnectionAdapter, serverConnectionCreator, progressReporterViewModel);
 
             viewModel.AccountSecurityUrl.Should().Be("https://sonarqube.us/account/security");
         }
@@ -117,7 +119,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         public void AccountSecurityUrl_ConnectionIsSonarQube_ReturnsSonarQubeUrl()
         {
             var qubeUrl = "http://localhost:9000/";
-            var viewModel = new CredentialsViewModel(new ConnectionInfo(qubeUrl, ConnectionServerType.SonarQube), slCoreConnectionAdapter, progressReporterViewModel);
+            var viewModel = new CredentialsViewModel(new ConnectionInfo(qubeUrl, ConnectionServerType.SonarQube), slCoreConnectionAdapter, serverConnectionCreator, progressReporterViewModel);
             var expectedUrl = Path.Combine(qubeUrl, CredentialsViewModel.SecurityPageUrl);
 
             viewModel.AccountSecurityUrl.Should().Be(expectedUrl);
@@ -131,7 +133,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
 
             await testSubject.AdapterValidateConnectionAsync();
 
-            await slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(testSubject.ConnectionInfo,
+            await serverConnectionCreator.Received(1).ValidateAsync(testSubject.ConnectionInfo,
                 Arg.Is<TokenCredentialsModel>(x => x.Token == testSubject.Token));
         }
 
@@ -255,7 +257,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         }
 
         private void MockAdapterValidateConnectionAsync(bool success = true) =>
-            slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>())
+            serverConnectionCreator.ValidateAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>())
                 .Returns(new ResponseStatus(success));
     }
 }

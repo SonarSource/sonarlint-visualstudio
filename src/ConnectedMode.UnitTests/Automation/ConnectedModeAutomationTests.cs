@@ -21,8 +21,6 @@
 using SonarLint.VisualStudio.ConnectedMode.Automation;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -34,9 +32,9 @@ public class ConnectedModeAutomationTests
     private const string ServerUrl = "http://localhost:9000";
     private const string Token = "a-token";
     private const string ProjectKey = "a-project";
+    private static readonly ConnectionInfo ExpectedConnectionInfo = new(ServerUrl, ConnectionServerType.SonarQube);
 
-    private IServerConnectionsRepositoryAdapter repository;
-    private ISlCoreConnectionAdapter slCoreConnectionAdapter;
+    private IServerConnectionCreator serverConnectionCreator;
     private IBindingControllerAdapter bindingControllerAdapter;
     private IConnectedModeUIManager uiManager;
     private ConnectedModeAutomation testSubject;
@@ -44,13 +42,11 @@ public class ConnectedModeAutomationTests
     [TestInitialize]
     public void TestInitialize()
     {
-        repository = Substitute.For<IServerConnectionsRepositoryAdapter>();
-        slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
+        serverConnectionCreator = Substitute.For<IServerConnectionCreator>();
         bindingControllerAdapter = Substitute.For<IBindingControllerAdapter>();
         uiManager = Substitute.For<IConnectedModeUIManager>();
         var connectedModeServices = Substitute.For<IConnectedModeServices>();
-        connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(repository);
-        connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
+        connectedModeServices.ServerConnectionCreator.Returns(serverConnectionCreator);
         var bindingServices = Substitute.For<IConnectedModeBindingServices>();
         bindingServices.BindingControllerAdapter.Returns(bindingControllerAdapter);
         testSubject = new ConnectedModeAutomation(connectedModeServices, bindingServices, uiManager);
@@ -67,117 +63,32 @@ public class ConnectedModeAutomationTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ConnectedModeAutomation>();
 
     [TestMethod]
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow("not a url")]
-    [DataRow("localhost:9000")]
-    [DataRow("ftp://localhost:9000")]
-    public async Task AddSonarQubeConnectionAsync_InvalidUrl_FailsWithoutCallingServices(string serverUrl)
-    {
-        var result = await testSubject.AddSonarQubeConnectionAsync(serverUrl, Token);
-
-        result.Success.Should().BeFalse();
-        result.WarningText.Should().Be(ConnectedModeAutomation.InvalidServerUrlText);
-        await slCoreConnectionAdapter.DidNotReceiveWithAnyArgs().ValidateConnectionAsync(default, default);
-        repository.DidNotReceiveWithAnyArgs().TryAddConnection(default, default);
-    }
-
-    [TestMethod]
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow(" ")]
-    public async Task AddSonarQubeConnectionAsync_NoToken_FailsWithoutCallingServices(string token)
-    {
-        var result = await testSubject.AddSonarQubeConnectionAsync(ServerUrl, token);
-
-        result.Success.Should().BeFalse();
-        result.WarningText.Should().Be(ConnectedModeAutomation.MissingArgumentText);
-        await slCoreConnectionAdapter.DidNotReceiveWithAnyArgs().ValidateConnectionAsync(default, default);
-        repository.DidNotReceiveWithAnyArgs().TryAddConnection(default, default);
-    }
-
-    [TestMethod]
-    public async Task AddSonarQubeConnectionAsync_ConnectionExists_FailsWithoutValidating()
-    {
-        repository.TryGet(Arg.Any<ConnectionInfo>(), out Arg.Any<ServerConnection>())
-            .Returns(call =>
-            {
-                call[1] = new ServerConnection.SonarQube(new Uri(ServerUrl));
-                return true;
-            });
-
-        var result = await testSubject.AddSonarQubeConnectionAsync(ServerUrl, Token);
-
-        result.Success.Should().BeFalse();
-        result.WarningText.Should().Be(UiResources.ConnectionAlreadyExistsText);
-        await slCoreConnectionAdapter.DidNotReceiveWithAnyArgs().ValidateConnectionAsync(default, default);
-        repository.DidNotReceiveWithAnyArgs().TryAddConnection(default, default);
-    }
-
-    [TestMethod]
-    public async Task AddSonarQubeConnectionAsync_ValidationFails_ReturnsValidationResultWithoutSaving()
+    public async Task AddSonarQubeConnectionAsync_ValidationFails_ReturnsItWithoutAdding()
     {
         var validation = new ResponseStatus(false, "invalid token");
-        slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>()).Returns(validation);
+        serverConnectionCreator.ValidateAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>()).Returns(validation);
 
         var result = await testSubject.AddSonarQubeConnectionAsync(ServerUrl, Token);
 
         result.Should().BeSameAs(validation);
-        repository.DidNotReceiveWithAnyArgs().TryAddConnection(default, default);
+        serverConnectionCreator.DidNotReceiveWithAnyArgs().Add(default, default);
     }
 
     [TestMethod]
-    public async Task AddSonarQubeConnectionAsync_Valid_ValidatesThenSavesTheConnectionAndToken()
+    public async Task AddSonarQubeConnectionAsync_Valid_ValidatesThenAddsWithTheSameToken()
     {
-        slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>()).Returns(new ResponseStatus(true));
-        repository.TryAddConnection(Arg.Any<Connection>(), Arg.Any<ICredentialsModel>()).Returns(true);
+        var added = new ResponseStatus(true);
+        serverConnectionCreator.ValidateAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>()).Returns(new ResponseStatus(true));
+        serverConnectionCreator.Add(Arg.Any<Connection>(), Arg.Any<ICredentialsModel>()).Returns(added);
 
         var result = await testSubject.AddSonarQubeConnectionAsync(ServerUrl, Token);
 
-        result.Success.Should().BeTrue();
-        var expectedInfo = new ConnectionInfo(ServerUrl, ConnectionServerType.SonarQube);
+        result.Should().BeSameAs(added);
         Received.InOrder(() =>
         {
-            slCoreConnectionAdapter.ValidateConnectionAsync(expectedInfo, Arg.Is<ICredentialsModel>(x => HasToken(x, Token)));
-            repository.TryAddConnection(Arg.Is<Connection>(x => x.Info == expectedInfo), Arg.Is<ICredentialsModel>(x => HasToken(x, Token)));
+            serverConnectionCreator.ValidateAsync(ExpectedConnectionInfo, Arg.Is<ICredentialsModel>(x => HasToken(x, Token)));
+            serverConnectionCreator.Add(Arg.Is<Connection>(x => x.Info == ExpectedConnectionInfo), Arg.Is<ICredentialsModel>(x => HasToken(x, Token)));
         });
-    }
-
-    [TestMethod]
-    public async Task AddSonarQubeConnectionAsync_SaveFails_Fails()
-    {
-        slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>()).Returns(new ResponseStatus(true));
-        repository.TryAddConnection(Arg.Any<Connection>(), Arg.Any<ICredentialsModel>()).Returns(false);
-
-        var result = await testSubject.AddSonarQubeConnectionAsync(ServerUrl, Token);
-
-        result.Success.Should().BeFalse();
-        result.WarningText.Should().Be(ConnectedModeAutomation.SaveConnectionFailedText);
-    }
-
-    [TestMethod]
-    [DataRow(null)]
-    [DataRow("not a url")]
-    [DataRow("localhost:9000")]
-    public async Task BindOpenSolutionAsync_InvalidUrl_FailsWithoutBinding(string serverUrl)
-    {
-        var result = await testSubject.BindOpenSolutionAsync(serverUrl, ProjectKey);
-
-        result.Success.Should().BeFalse();
-        result.WarningText.Should().Be(ConnectedModeAutomation.InvalidServerUrlText);
-        await bindingControllerAdapter.DidNotReceiveWithAnyArgs().ValidateAndBindAsync(default, default, default);
-    }
-
-    [TestMethod]
-    [DataRow(null)]
-    [DataRow(" ")]
-    public async Task BindOpenSolutionAsync_NoProjectKey_FailsWithoutBinding(string projectKey)
-    {
-        var result = await testSubject.BindOpenSolutionAsync(ServerUrl, projectKey);
-
-        result.Success.Should().BeFalse();
-        result.WarningText.Should().Be(ConnectedModeAutomation.MissingArgumentText);
-        await bindingControllerAdapter.DidNotReceiveWithAnyArgs().ValidateAndBindAsync(default, default, default);
     }
 
     [TestMethod]
@@ -189,9 +100,8 @@ public class ConnectedModeAutomationTests
         var result = await testSubject.BindOpenSolutionAsync(ServerUrl, ProjectKey);
 
         result.Success.Should().BeTrue();
-        var expectedConnectionId = new ConnectionInfo(ServerUrl, ConnectionServerType.SonarQube).GetServerIdFromConnectionInfo();
         await bindingControllerAdapter.Received(1).ValidateAndBindAsync(
-            new BindingRequest.Manual(ProjectKey, expectedConnectionId),
+            new BindingRequest.Manual(ProjectKey, ExpectedConnectionInfo.GetServerIdFromConnectionInfo()),
             uiManager,
             Arg.Any<CancellationToken>());
     }
