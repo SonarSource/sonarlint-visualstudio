@@ -34,6 +34,7 @@ internal abstract class ConnectedModeAutomationCommandBase(IEnvironmentSettings 
     : VsCommandBase
 {
     internal const string DisabledText = "Connected Mode automation commands are disabled.";
+    internal const string NoReasonText = "no reason given, see the SonarQube output pane";
 
     /// <summary>Used in log and error messages; never includes argument values.</summary>
     protected abstract string Name { get; }
@@ -69,8 +70,10 @@ internal abstract class ConnectedModeAutomationCommandBase(IEnvironmentSettings 
         var result = threadHandling.Run(() => ExecuteAsync(arguments[0], arguments[1]));
         if (!result.Success)
         {
-            logger.WriteLine("[E2E] {0} failed: {1}", Name, result.WarningText);
-            throw new InvalidOperationException($"{Name} failed: {result.WarningText}");
+            // The product logs the details itself when it has no message for the user (e.g. a failed save).
+            var reason = string.IsNullOrEmpty(result.WarningText) ? NoReasonText : result.WarningText;
+            logger.WriteLine("[E2E] {0} failed: {1}", Name, reason);
+            throw new InvalidOperationException($"{Name} failed: {reason}");
         }
         logger.WriteLine("[E2E] {0} succeeded", Name);
     }

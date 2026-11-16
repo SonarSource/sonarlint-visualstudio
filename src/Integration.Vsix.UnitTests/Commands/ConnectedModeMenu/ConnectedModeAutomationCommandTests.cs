@@ -114,6 +114,19 @@ public class ConnectedModeAutomationCommandTests
     }
 
     [TestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    public void AddConnection_FailsWithoutReason_ThrowsWithAFallbackReason(string warningText)
+    {
+        automation.AddSonarQubeConnectionAsync(ServerUrl, "token").Returns(new ResponseStatus(false, warningText));
+
+        var act = () => Invoke(addConnection, $"{ServerUrl} token");
+
+        act.Should().Throw<InvalidOperationException>().WithMessage($"AddConnection failed: {ConnectedModeAutomationCommandBase.NoReasonText}");
+        logger.AssertPartialOutputStringExists($"[E2E] AddConnection failed: {ConnectedModeAutomationCommandBase.NoReasonText}");
+    }
+
+    [TestMethod]
     public void Bind_Succeeds_CallsAutomationWithServerAndProjectKey()
     {
         automation.BindOpenSolutionAsync(ServerUrl, "project").Returns(new ResponseStatus(true));

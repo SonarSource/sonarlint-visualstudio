@@ -26,7 +26,8 @@ using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 namespace SonarLint.VisualStudio.ConnectedMode;
 
 /// <summary>
-/// The steps of creating a server connection, shared by the Connected Mode dialogs and the hidden E2E commands.
+/// The steps of creating a server connection, shared by the New Connection and Edit Credentials dialogs
+/// and the hidden E2E commands.
 /// </summary>
 public interface IServerConnectionCreator
 {
