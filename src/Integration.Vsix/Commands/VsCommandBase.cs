@@ -32,6 +32,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         protected abstract void InvokeInternal();
 
+        /// <summary>
+        /// Called with the command's argument (<see cref="OleMenuCmdEventArgs.InValue"/>), if it is text.
+        /// Only commands that take an argument need to override this.
+        /// </summary>
+        protected virtual void InvokeInternal(string argument) => InvokeInternal();
+
         public void Invoke(object sender, EventArgs args)
         {
             var command = sender as OleMenuCommand;
@@ -39,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Debug.Assert(command.Enabled, "Tried to invoke command without it being enabled");
             if (command.Enabled)
             {
-                this.InvokeInternal();
+                this.InvokeInternal((args as OleMenuCmdEventArgs)?.InValue as string);
             }
         }
 

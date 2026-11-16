@@ -48,6 +48,22 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         }
 
         [TestMethod]
+        [DataRow(null, false)]
+        [DataRow("true", true)]
+        [DataRow("TRUE", true)]
+        [DataRow("false", false)]
+        [DataRow("1", false)]
+        [DataRow("not a boolean", false)]
+        public void AreConnectedModeAutomationCommandsEnabled_CorrectlyMapped(string envVarValue, bool expected)
+        {
+            using (var scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable(EnvironmentSettings.ConnectedModeAutomationCommandsEnvVar, envVarValue);
+                new EnvironmentSettings().AreConnectedModeAutomationCommandsEnabled().Should().Be(expected);
+            }
+        }
+
+        [TestMethod]
         [DataRow(null, 0)]
         [DataRow("", 0)]
         [DataRow(" ", 0)]

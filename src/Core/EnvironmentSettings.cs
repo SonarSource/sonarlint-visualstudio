@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.Core
         internal const string TreatBlockerAsErrorEnvVar = "SONAR_INTERNAL_TREAT_BLOCKER_AS_ERROR";
         internal const string AnalysisTimeoutEnvVar = "SONARLINT_INTERNAL_ANALYSIS_TIMEOUT_MS";
         internal const string PchGenerationTimeoutEnvVar = "SONARLINT_INTERNAL_PCH_GENERATION_TIMEOUT_MS";
+        internal const string ConnectedModeAutomationCommandsEnvVar = "SONARLINT_INTERNAL_E2E_COMMANDS";
 
         public bool TreatBlockerSeverityAsError()
             => ParseBool(TreatBlockerAsErrorEnvVar);
@@ -40,6 +41,9 @@ namespace SonarLint.VisualStudio.Core
 
             return userValue > 0 ? userValue : defaultValue;
         }
+
+        public bool AreConnectedModeAutomationCommandsEnabled()
+            => ParseBool(ConnectedModeAutomationCommandsEnvVar);
 
         private static int ParseInt(string setting)
         {

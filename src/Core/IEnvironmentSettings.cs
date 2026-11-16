@@ -40,5 +40,11 @@ namespace SonarLint.VisualStudio.Core
         /// Returns the user-specific timeout for PCH file generation, or the given default value if one has not been specified
         /// </summary>
         int PCHGenerationTimeoutInMs(int defaultValue);
+
+        /// <summary>
+        /// Returns true if the hidden Connected Mode automation commands used by the end-to-end tests
+        /// are enabled for this process, otherwise false
+        /// </summary>
+        bool AreConnectedModeAutomationCommandsEnabled();
     }
 }
