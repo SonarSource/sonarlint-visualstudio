@@ -1198,10 +1198,10 @@
       },
       "System.IO.Abstractions.TestingHelpers": {
         "type": "Transitive",
-        "resolved": "9.0.6",
-        "contentHash": "Laj1/4LPOtiNqOEZk+1kNkBreVfizUYI01wThEbAY7ecZvlEMOnQr/jHr8sdLDaSQ2XjrWkWT7gyclWTI2uRjQ==",
+        "resolved": "23.0.0",
+        "contentHash": "aT0WLnyILjtULMS5tubS3pwKfTYu/70ytV1rfYhKEjOJZLoRjFXcvrGo9PIcm9l5N4xhvQeaEkcpQ0Ts24XbLQ==",
         "dependencies": {
-          "System.IO.Abstractions": "9.0.6"
+          "TestableIO.System.IO.Abstractions.TestingHelpers": "23.0.0"
         }
       },
       "System.IO.Pipelines": {
@@ -1393,6 +1393,28 @@
         "resolved": "4.6.2",
         "contentHash": "yQgmjfFximrNm9LIV3mL6T5MzjeC+epeE5rl4hXxAlYmxby7RM1dPSkIKXk9HNkl6G54h2JHOmLD46+Pey+IRg=="
       },
+      "TestableIO.System.IO.Abstractions.TestingHelpers": {
+        "type": "Transitive",
+        "resolved": "23.0.0",
+        "contentHash": "8ezFNBOIkdenxLd1C8tgoZPDEgqJ1rC3PRgaMdRnfoOGP2dcvTAM9vs94UW/b6KBAdoEtJMRN8A82/MtLCIruw==",
+        "dependencies": {
+          "TestableIO.System.IO.Abstractions.Wrappers": "23.0.0",
+          "Testably.Abstractions.FileSystem.Interface": "11.0.0"
+        }
+      },
+      "TestableIO.System.IO.Abstractions.Wrappers": {
+        "type": "Transitive",
+        "resolved": "23.0.0",
+        "contentHash": "WfbIVmdi/Yh3eKLDzprsctUXziXVP60lPfPRrAFxR+YPT++yGpsgBsen0vC5N3HeXANCHP7xRukgn/kZcUqusg==",
+        "dependencies": {
+          "Testably.Abstractions.FileSystem.Interface": "11.0.0"
+        }
+      },
+      "Testably.Abstractions.FileSystem.Interface": {
+        "type": "Transitive",
+        "resolved": "11.0.0",
+        "contentHash": "bHE3UgieMizRsrzHYsWOLGMVjDmy0yx1PTv4QMgoAi3GU+vw2tJZ/jR5woIZ6Et6H0Hvhwriv6XSgwoZV9bU0A=="
+      },
       "VSLangProj": {
         "type": "Transitive",
         "resolved": "17.0.31902.203",
@@ -1579,7 +1601,7 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarLint.VisualStudio.Integration": "[1.0.0, )",
           "StrongNamer": "[0.2.5, )",
-          "System.IO.Abstractions.TestingHelpers": "[9.0.6, )"
+          "System.IO.Abstractions.TestingHelpers": "[23.0.0, )"
         }
       },
       "SonarLint.VisualStudio.IssueVisualization": {
