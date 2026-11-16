@@ -165,7 +165,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.14" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.15" />
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
