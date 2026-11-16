@@ -38,5 +38,6 @@ internal class AddConnectionAutomationCommand(
 
     protected override string ArgumentsDescription => "<serverUrl> <token>";
 
-    protected override Task<ResponseStatus> ExecuteAsync(string serverUrl, string token) => automation.AddSonarQubeConnectionAsync(serverUrl, token);
+    protected override Task<ResponseStatus> ExecuteAsync(string firstArgument, string secondArgument) =>
+        automation.AddSonarQubeConnectionAsync(serverUrl: firstArgument, token: secondArgument);
 }

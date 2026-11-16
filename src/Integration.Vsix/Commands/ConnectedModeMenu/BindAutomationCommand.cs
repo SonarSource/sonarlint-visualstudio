@@ -38,5 +38,6 @@ internal class BindAutomationCommand(
 
     protected override string ArgumentsDescription => "<serverUrl> <projectKey>";
 
-    protected override Task<ResponseStatus> ExecuteAsync(string serverUrl, string projectKey) => automation.BindOpenSolutionAsync(serverUrl, projectKey);
+    protected override Task<ResponseStatus> ExecuteAsync(string firstArgument, string secondArgument) =>
+        automation.BindOpenSolutionAsync(serverUrl: firstArgument, projectKey: secondArgument);
 }
