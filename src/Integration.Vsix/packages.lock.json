@@ -105,12 +105,13 @@
       },
       "Microsoft.VSSDK.BuildTools": {
         "type": "Direct",
-        "requested": "[18.5.40034, )",
-        "resolved": "18.5.40034",
-        "contentHash": "5g0HSWvzIunNqTlaHPRBnKo/zix5omWXBrJzLyrbJS9c7Xkpd34QMqVOk6WTqgt7yHqpGj4ajnBx82zGABdSew==",
+        "requested": "[18.12.1606, )",
+        "resolved": "18.12.1606",
+        "contentHash": "omsTevTdKYqkCnm9uVu5axAoli1eHy056Bgxgw8o+V55E7iCcBurxjh/Cg0LX8BgGuApIX5vfJLBJjrqVKBxKQ==",
         "dependencies": {
-          "Microsoft.VisualStudio.SDK.Analyzers": "17.7.105",
-          "Microsoft.VsSDK.CompatibilityAnalyzer": "18.3.1108"
+          "Microsoft.CodeAnalysis.BannedApiAnalyzers": "5.6.0",
+          "Microsoft.VisualStudio.SDK.Analyzers": "17.7.179",
+          "Microsoft.VsSDK.CompatibilityAnalyzer": "18.12.1583"
         }
       },
       "Microsoft.VSSDK.VsixSignTool": {
@@ -246,6 +247,11 @@
         "type": "Transitive",
         "resolved": "3.3.0",
         "contentHash": "gyQ70pJ4T7hu/s0+QnEaXtYfeG/JrttGnxHJlrhpxsQjRIUGuRhVwNBtkHHYOrUAZ/l47L98/NiJX6QmTwAyrg=="
+      },
+      "Microsoft.CodeAnalysis.BannedApiAnalyzers": {
+        "type": "Transitive",
+        "resolved": "5.6.0",
+        "contentHash": "Kcobt3pnOdO0A+6CKiMHZdTEluJpsfxiV20axtZdmfBQnDmiWTKPJADlgAfdTuKNAnVarrkJa0UEGwuOo91muw=="
       },
       "Microsoft.CodeAnalysis.Common": {
         "type": "Transitive",
@@ -677,8 +683,11 @@
       },
       "Microsoft.VisualStudio.SDK.Analyzers": {
         "type": "Transitive",
-        "resolved": "17.7.105",
-        "contentHash": "pQK/THPoNjzmfVGnjdP/13nR3bZViUwu4CsjPAFFvg2xMc6xhVcgprgKwrSDakTkd92n57iCy+AC58ZKKuoaKw=="
+        "resolved": "17.7.179",
+        "contentHash": "sBLqLoF6d8WqJeWR1JsHvunxSo6eQDqZ8k5iAttvGKBTvfJq0YiQsfETx4x/eUM8AIVmjfX2XWgJT65ptwH+tg==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.BannedApiAnalyzers": "5.6.0"
+        }
       },
       "Microsoft.VisualStudio.Setup.Configuration.Interop": {
         "type": "Transitive",
@@ -1002,8 +1011,8 @@
       },
       "Microsoft.VsSDK.CompatibilityAnalyzer": {
         "type": "Transitive",
-        "resolved": "18.3.1108",
-        "contentHash": "ol/XAbRAkpZmpswNL1pV+Ey2dqcEZNe1tYT74lkD/+ow5r0rqC0XLq72rVyiz4w/oCIN+480PO1xO+7/4hrqKw=="
+        "resolved": "18.12.1583",
+        "contentHash": "k2jb2VQv7UHgETDlcT2cBL6Glu+5taYgzJckAU271wVStXWED9mhnOQ20hanb6AwMqHDOXpn7MGRIsA82uTVHg=="
       },
       "Microsoft.Win32.Primitives": {
         "type": "Transitive",
