@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.E2E
             return result.ToString();
         }
 
-        public static object FindDte(int processId)
+        public static object FindDte(int processId, int visualStudioMajorVersion)
         {
             IRunningObjectTable table = null;
             IBindCtx context = null;
@@ -76,6 +76,7 @@ namespace SonarLint.VisualStudio.E2E
                 Marshal.ThrowExceptionForHR(GetRunningObjectTable(0, out table));
                 Marshal.ThrowExceptionForHR(CreateBindCtx(0, out context));
                 table.EnumRunning(out enumerator);
+                var monikerPrefix = $"!VisualStudio.DTE.{visualStudioMajorVersion}.0:";
                 var monikers = new IMoniker[1];
                 while (enumerator.Next(1, monikers, IntPtr.Zero) == 0)
                 {
@@ -83,7 +84,7 @@ namespace SonarLint.VisualStudio.E2E
                     {
                         string name;
                         monikers[0].GetDisplayName(context, null, out name);
-                        if (name.StartsWith("!VisualStudio.DTE.18.0:", StringComparison.Ordinal)
+                        if (name.StartsWith(monikerPrefix, StringComparison.Ordinal)
                             && name.EndsWith(":" + processId, StringComparison.Ordinal))
                         {
                             object dte;

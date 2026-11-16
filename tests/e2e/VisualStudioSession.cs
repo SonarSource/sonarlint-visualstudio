@@ -33,15 +33,18 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.E2E
 {
+    /// <summary>
+    /// Scenario-agnostic driver for one isolated Visual Studio instance with the VSIX installed.
+    /// </summary>
     internal sealed class VisualStudioSession : IDisposable
     {
         private const string ExtensionId = "SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D";
-        private const string RemainingFindingMessage = "Remove the unused local variable 'e2eRemaining'.";
-        private const string FindingMessage = "Remove the unused local variable 'e2eUnused'.";
+        private const string IdentityXPath = "/*[local-name()='PackageManifest']/*[local-name()='Metadata']/*[local-name()='Identity']";
+        private const int RpcCallRejected = unchecked((int)0x80010001);
+        private const int RpcServerCallRetryLater = unchecked((int)0x8001010A);
         private static readonly TimeSpan PhaseTimeout = TimeSpan.FromSeconds(180);
-        private readonly string vsixPath;
-        private readonly Version expectedVisualStudioVersion;
-        private readonly string resultsDirectory;
+        private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
+        private readonly E2ESettings settings;
         private readonly TestContext context;
         private readonly ComMessageFilter messageFilter;
         private readonly string rootSuffix = "ExtensionE2E" + Guid.NewGuid().ToString("N").Substring(0, 8);
@@ -54,25 +57,19 @@ namespace SonarLint.VisualStudio.E2E
         private Process ideProcess;
         private EnvDTE80.DTE2 dte;
         private ErrorListEntry[] lastErrors = Array.Empty<ErrorListEntry>();
-        private string sourcePath;
         private string profileDirectory;
 
-        public VisualStudioSession(string vsixPath, string resultsDirectory, TestContext context, ComMessageFilter messageFilter)
+        public VisualStudioSession(E2ESettings settings, TestContext context)
         {
-            this.vsixPath = Path.GetFullPath(vsixPath ?? throw new ArgumentException("Set E2E_VSIX_PATH to a built VSIX."));
-            this.resultsDirectory = Path.GetFullPath(resultsDirectory ?? throw new ArgumentException("Set E2E_RESULTS_DIRECTORY to a new directory."));
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            {
+                throw new PlatformNotSupportedException("Requires Windows and a full Visual Studio installation.");
+            }
+            this.settings = settings;
             this.context = context;
-            this.messageFilter = messageFilter;
-            var expectedVersion = Environment.GetEnvironmentVariable("E2E_EXPECTED_VS_VERSION");
-            if (!Version.TryParse(expectedVersion, out expectedVisualStudioVersion))
-            {
-                throw new ArgumentException("Set E2E_EXPECTED_VS_VERSION to the pinned Visual Studio build for this target.");
-            }
-            if (Directory.Exists(this.resultsDirectory))
-            {
-                throw new ArgumentException("Use a new results directory for each run.");
-            }
-            Directory.CreateDirectory(this.resultsDirectory);
+            // Registers on the current thread and fails unless it is the STA thread DTE automation requires.
+            messageFilter = ComMessageFilter.Register();
+            Directory.CreateDirectory(settings.ResultsDirectory);
             report["rootSuffix"] = rootSuffix;
             using (var currentProcess = Process.GetCurrentProcess())
             {
@@ -82,80 +79,46 @@ namespace SonarLint.VisualStudio.E2E
             report["sessionName"] = Environment.GetEnvironmentVariable("SESSIONNAME");
         }
 
+        /// <summary>Full path of the document opened by <see cref="OpenSolution"/>.</summary>
+        public string DocumentPath { get; private set; }
+
         public void InstallAndLaunch()
         {
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-            {
-                throw new PlatformNotSupportedException("Requires Windows and a full Visual Studio installation.");
-            }
-            if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
-            {
-                throw new InvalidOperationException("DTE automation requires an STA test thread.");
-            }
-            if (!string.Equals(Path.GetExtension(vsixPath), ".vsix", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new ArgumentException("The input must be a built .vsix package.");
-            }
-            using (var stream = File.OpenRead(vsixPath))
+            using (var stream = File.OpenRead(settings.VsixPath))
             using (var sha = SHA256.Create())
             {
                 report["vsixSha256"] = BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "");
             }
-            using (var archive = ZipFile.OpenRead(vsixPath))
+            using (var archive = ZipFile.OpenRead(settings.VsixPath))
             using (var stream = archive.GetEntry("extension.vsixmanifest")?.Open()
                 ?? throw new InvalidDataException("Missing extension.vsixmanifest."))
             {
-                var manifest = new XmlDocument { XmlResolver = null };
-                using var reader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null });
-                manifest.Load(reader);
-                var identity = manifest.SelectSingleNode("/*[local-name()='PackageManifest']/*[local-name()='Metadata']/*[local-name()='Identity']");
-                if (identity?.Attributes?["Id"]?.Value != ExtensionId)
+                var manifest = LoadManifest(stream);
+                if (IdentityAttribute(manifest, "Id") != ExtensionId)
                 {
                     throw new InvalidDataException("The VSIX is not SonarQube for Visual Studio.");
                 }
-                report["vsixVersion"] = identity.Attributes["Version"].Value;
-                File.WriteAllText(Path.Combine(resultsDirectory, "extension.vsixmanifest"), manifest.OuterXml);
+                report["vsixVersion"] = IdentityAttribute(manifest, "Version");
+                File.WriteAllText(Path.Combine(settings.ResultsDirectory, "extension.vsixmanifest"), manifest.OuterXml);
             }
 
-            var vswhere = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft Visual Studio", "Installer", "vswhere.exe");
-            var inventory = RunProcess(vswhere, "-all -products * -format json", "vswhere.log");
-            File.WriteAllText(Path.Combine(resultsDirectory, "visual-studio-inventory.json"), inventory);
-            var instances = JsonConvert.DeserializeObject<Installation[]>(inventory)
-                .Where(x => x.InstallationVersion.StartsWith("18.", StringComparison.Ordinal)
-                    && File.Exists(Path.Combine(x.InstallationPath, "Common7", "IDE", "devenv.exe"))).ToArray();
-            if (instances.Length != 1)
-            {
-                throw new InvalidOperationException($"Expected exactly one full Visual Studio 18 IDE; found {instances.Length}.");
-            }
-            var instance = instances[0];
-            report["visualStudioProductId"] = instance.ProductId;
-            var expectedProduct = Environment.GetEnvironmentVariable("E2E_EXPECTED_VS_PRODUCT");
-            if (!string.IsNullOrEmpty(expectedProduct) && instance.ProductId != expectedProduct)
-            {
-                throw new InvalidOperationException($"Expected IDE product {expectedProduct}; found {instance.ProductId}.");
-            }
+            var instance = DescribeInstallation();
             var ideDirectory = Path.Combine(instance.InstallationPath, "Common7", "IDE");
+            var devenv = Path.Combine(ideDirectory, "devenv.exe");
             var targetingPack = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework", ".NETFramework", "v4.7.2");
             if (!Directory.Exists(targetingPack))
             {
                 throw new DirectoryNotFoundException("Missing .NET Framework 4.7.2 targeting pack.");
             }
-            report["expectedVisualStudioVersion"] = expectedVisualStudioVersion.ToString();
-            report["visualStudioVersion"] = instance.InstallationVersion;
-            if (Version.Parse(instance.InstallationVersion) != expectedVisualStudioVersion)
-            {
-                throw new InvalidOperationException($"Expected VS {expectedVisualStudioVersion}; discovered {instance.InstallationVersion}.");
-            }
-            report["instanceId"] = instance.InstanceId;
             profileDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Microsoft", "VisualStudio", $"{expectedVisualStudioVersion.Major}.0_{instance.InstanceId}{rootSuffix}");
+                "Microsoft", "VisualStudio", $"{settings.ExpectedVisualStudioVersion.Major}.0_{instance.InstanceId}{rootSuffix}");
             report["profileDirectory"] = profileDirectory;
-            var devenv = Path.Combine(ideDirectory, "devenv.exe");
+
             Phase("initialize-profile");
-            RunProcess(devenv, $"/RootSuffix {rootSuffix} /ResetSettings {Quote(Path.Combine(ideDirectory, "Profiles", "General.vssettings"))} /Command File.Exit /NoSplash /LCID 1033", "initialize-profile.log");
+            ResetProfile(devenv, ideDirectory, "initialize-profile.log");
             Phase("install-vsix");
             RunProcess(Path.Combine(ideDirectory, "VSIXInstaller.exe"),
-                $"/quiet /instanceIds:{instance.InstanceId} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(resultsDirectory, "vsix-installer.log"))} {Quote(vsixPath)}", "vsix-process.log");
+                $"/quiet /instanceIds:{instance.InstanceId} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(settings.ResultsDirectory, "vsix-installer.log"))} {Quote(settings.VsixPath)}", "vsix-process.log");
             Phase("verify-vsix-installation");
             WaitUntil("the signed VSIX in the requested experimental profile", VerifyInstalledExtension);
 
@@ -164,17 +127,47 @@ namespace SonarLint.VisualStudio.E2E
             Phase("configure-vsix");
             RunProcess(devenv, $"/ClearCache /RootSuffix {rootSuffix}", "clear-cache.log");
             RunProcess(devenv, $"/UpdateConfiguration /RootSuffix {rootSuffix}", "update-configuration.log");
-            RunProcess(devenv, $"/RootSuffix {rootSuffix} /ResetSettings {Quote(Path.Combine(ideDirectory, "Profiles", "General.vssettings"))} /Command File.Exit /NoSplash /LCID 1033", "post-install-profile.log");
+            ResetProfile(devenv, ideDirectory, "post-install-profile.log");
 
             Phase("launch-ide");
             ideProcess = Process.Start(new ProcessStartInfo(devenv,
-                $"/RootSuffix {rootSuffix} /NoSplash /LCID 1033 /Log {Quote(Path.Combine(resultsDirectory, "ActivityLog.xml"))}") { UseShellExecute = false });
+                $"/RootSuffix {rootSuffix} /NoSplash /LCID 1033 /Log {Quote(Path.Combine(settings.ResultsDirectory, "ActivityLog.xml"))}") { UseShellExecute = false });
             WaitUntil("the launched IDE's DTE object", () =>
             {
-                dte = (EnvDTE80.DTE2)VisualStudioAutomation.FindDte(ideProcess.Id);
+                dte = (EnvDTE80.DTE2)VisualStudioAutomation.FindDte(ideProcess.Id, settings.ExpectedVisualStudioVersion.Major);
                 return dte != null;
             });
         }
+
+        private Installation DescribeInstallation()
+        {
+            // The workflow discovers the IDE once; here we only verify that installation independently of the runner.
+            var vswhere = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft Visual Studio", "Installer", "vswhere.exe");
+            var description = RunProcess(vswhere, $"-path {Quote(settings.VisualStudioInstallPath)} -format json", "vswhere.log");
+            File.WriteAllText(Path.Combine(settings.ResultsDirectory, "visual-studio-instance.json"), description);
+            var instance = JsonConvert.DeserializeObject<Installation[]>(description).SingleOrDefault()
+                ?? throw new InvalidOperationException($"No Visual Studio instance found at {settings.VisualStudioInstallPath}.");
+            report["instanceId"] = instance.InstanceId;
+            report["visualStudioProductId"] = instance.ProductId;
+            report["expectedVisualStudioVersion"] = settings.ExpectedVisualStudioVersion.ToString();
+            report["visualStudioVersion"] = instance.InstallationVersion;
+            if (instance.ProductId != settings.ExpectedVisualStudioProduct)
+            {
+                throw new InvalidOperationException($"Expected IDE product {settings.ExpectedVisualStudioProduct}; found {instance.ProductId}.");
+            }
+            if (Version.Parse(instance.InstallationVersion) != settings.ExpectedVisualStudioVersion)
+            {
+                throw new InvalidOperationException($"Expected VS {settings.ExpectedVisualStudioVersion}; discovered {instance.InstallationVersion}.");
+            }
+            if (!File.Exists(Path.Combine(instance.InstallationPath, "Common7", "IDE", "devenv.exe")))
+            {
+                throw new InvalidOperationException($"{instance.InstallationPath} is not a full Visual Studio IDE.");
+            }
+            return instance;
+        }
+
+        private void ResetProfile(string devenv, string ideDirectory, string logName) =>
+            RunProcess(devenv, $"/RootSuffix {rootSuffix} /ResetSettings {Quote(Path.Combine(ideDirectory, "Profiles", "General.vssettings"))} /Command File.Exit /NoSplash /LCID 1033", logName);
 
         private bool VerifyInstalledExtension()
         {
@@ -182,15 +175,15 @@ namespace SonarLint.VisualStudio.E2E
             if (!Directory.Exists(extensions)) { return false; }
             foreach (var manifestPath in Directory.GetFiles(extensions, "extension.vsixmanifest", SearchOption.AllDirectories))
             {
-                var document = new XmlDocument { XmlResolver = null };
-                using var reader = XmlReader.Create(manifestPath,
-                    new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null });
-                document.Load(reader);
-                var identity = document.SelectSingleNode("/*[local-name()='PackageManifest']/*[local-name()='Metadata']/*[local-name()='Identity']");
-                if (identity?.Attributes?["Id"]?.Value == ExtensionId
-                    && identity.Attributes["Version"]?.Value == (string)report["vsixVersion"])
+                XmlDocument manifest;
+                using (var stream = File.OpenRead(manifestPath))
                 {
-                    File.Copy(manifestPath, Path.Combine(resultsDirectory, "installed-extension.vsixmanifest"), true);
+                    manifest = LoadManifest(stream);
+                }
+                if (IdentityAttribute(manifest, "Id") == ExtensionId
+                    && IdentityAttribute(manifest, "Version") == (string)report["vsixVersion"])
+                {
+                    File.Copy(manifestPath, Path.Combine(settings.ResultsDirectory, "installed-extension.vsixmanifest"), true);
                     report["installedExtensionDirectory"] = Path.GetDirectoryName(manifestPath);
                     return true;
                 }
@@ -198,103 +191,71 @@ namespace SonarLint.VisualStudio.E2E
             return false;
         }
 
-        public void OpenSample()
+        private static XmlDocument LoadManifest(Stream stream)
         {
-            Phase("open-sample");
-            var fixtureDirectory = Path.Combine(resultsDirectory, "fixture");
+            var document = new XmlDocument { XmlResolver = null };
+            using var reader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null });
+            document.Load(reader);
+            return document;
+        }
+
+        private static string IdentityAttribute(XmlDocument manifest, string name) =>
+            manifest.SelectSingleNode(IdentityXPath)?.Attributes?[name]?.Value;
+
+        /// <summary>
+        /// Copies the Fixture folder into the results directory (<c>*.txt</c> templates lose that extension),
+        /// then opens <paramref name="solutionFile"/> and <paramref name="documentFile"/> and shows the Error List.
+        /// </summary>
+        public void OpenSolution(string solutionFile, string documentFile)
+        {
+            Phase("open-solution");
+            var fixtureDirectory = Path.Combine(settings.ResultsDirectory, "fixture");
             Directory.CreateDirectory(fixtureDirectory);
             foreach (var file in Directory.GetFiles(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixture")))
             {
                 File.Copy(file, Path.Combine(fixtureDirectory, Path.GetFileName(file).Replace(".txt", "")));
             }
-            sourcePath = Path.Combine(fixtureDirectory, "Sample.cs");
+            DocumentPath = Path.Combine(fixtureDirectory, documentFile);
             WaitUntil("the solution to open", () =>
             {
-                if (!dte.Solution.IsOpen) { dte.Solution.Open(Path.Combine(fixtureDirectory, "Sample.sln")); }
+                if (!dte.Solution.IsOpen) { dte.Solution.Open(Path.Combine(fixtureDirectory, solutionFile)); }
                 return dte.Solution.IsOpen;
             });
-            WaitUntil("the sample file to open", () =>
+            WaitUntil("the document to open", () =>
             {
-                dte.ItemOperations.OpenFile(sourcePath);
-                return dte.ActiveDocument?.FullName == sourcePath;
+                dte.ItemOperations.OpenFile(DocumentPath);
+                return dte.ActiveDocument?.FullName == DocumentPath;
             });
             dte.ExecuteCommand("View.ErrorList");
         }
 
-        public ErrorListEntry WaitForFinding()
+        /// <summary>Waits until a snapshot of the real Error List satisfies <paramref name="condition"/> and returns it.</summary>
+        public ErrorListEntry[] WaitForErrorList(string phase, Func<ErrorListEntry[], bool> condition) =>
+            WaitForErrorListStable(phase, condition, TimeSpan.Zero);
+
+        /// <summary>
+        /// Waits until every Error List snapshot satisfies <paramref name="condition"/> for <paramref name="stableFor"/>
+        /// and returns the last snapshot.
+        /// </summary>
+        public ErrorListEntry[] WaitForErrorListStable(string phase, Func<ErrorListEntry[], bool> condition, TimeSpan stableFor)
         {
-            Phase("detect-finding");
-            WaitUntil("both Sonar S1481 findings in the real Error List", () =>
-            {
-                var errors = ReadErrors();
-                return errors.Any(IsTargetFinding) && errors.Any(IsRemainingFinding);
-            });
-            var findings = MatchingFindings();
-            report["finding"] = findings;
-            return findings[0];
+            Phase(phase);
+            WaitUntil(phase, () => condition(lastErrors = VisualStudioAutomation.ReadErrorList(dte)), stableFor);
+            return lastErrors;
         }
 
-        public ErrorListEntry[] MatchingFindings() => ReadErrors().Where(IsTargetFinding).ToArray();
-
-        public ErrorListEntry[] RemainingFindings() => ReadErrors().Where(IsRemainingFinding).ToArray();
-
-        private ErrorListEntry[] ReadErrors() => lastErrors = VisualStudioAutomation.ReadErrorList(dte);
-
-        private bool IsTargetFinding(ErrorListEntry entry) => IsSampleFinding(entry, 5, FindingMessage);
-
-        private bool IsRemainingFinding(ErrorListEntry entry) => IsSampleFinding(entry, 6, RemainingFindingMessage);
-
-        private bool IsSampleFinding(ErrorListEntry entry, int line, string message) =>
-            string.Equals(entry.File, sourcePath, StringComparison.OrdinalIgnoreCase)
-            && entry.Line == line && entry.Description == message;
-
-        public void RemoveUnusedVariableAndSave()
+        /// <summary>Deletes a whole line (1-based) of the active document through the editor and saves it.</summary>
+        public void DeleteLineAndSave(int line)
         {
-            Phase("fix-file");
+            Phase("edit-document");
             var selection = (EnvDTE.TextSelection)dte.ActiveDocument.Selection;
-            selection.SelectAll();
-            selection.Insert(File.ReadAllText(sourcePath).Replace("        int e2eUnused = 42;", ""));
+            selection.MoveToLineAndOffset(line, 1);
+            selection.MoveToLineAndOffset(line + 1, 1, true);
+            selection.Delete();
             dte.ActiveDocument.Save();
-            Assert.IsFalse(File.ReadAllText(sourcePath).Contains("int e2eUnused = 42;"), "The editor must save the fixed sample to disk.");
         }
 
-        public void WaitForFindingToDisappear(TimeSpan stableFor)
-        {
-            Phase("clear-finding");
-            var clearSince = new Stopwatch();
-            WaitUntil("the finding to remain absent after saving", () =>
-            {
-                try
-                {
-                    var busyCallsBeforeRead = messageFilter.BusyCallCount;
-                    var errors = ReadErrors();
-                    if (messageFilter.BusyCallCount != busyCallsBeforeRead)
-                    {
-                        // The filter can hide a busy response by retrying the COM call.
-                        clearSince.Reset();
-                    }
-                    if (errors.Any(IsTargetFinding) || !errors.Any(IsRemainingFinding))
-                    {
-                        clearSince.Reset();
-                        return false;
-                    }
-                    clearSince.Start();
-                    return clearSince.Elapsed >= stableFor;
-                }
-                catch (COMException)
-                {
-                    // An unreadable Error List cannot establish continuous absence.
-                    clearSince.Reset();
-                    throw;
-                }
-            });
-        }
-
-        public void SaveErrorList(string name)
-        {
-            lastErrors = VisualStudioAutomation.ReadErrorList(dte);
-            WriteJson(name, lastErrors);
-        }
+        public void SaveErrorList(string name, ErrorListEntry[] errors) => WriteJson(name, errors);
 
         public void MarkPassed()
         {
@@ -310,20 +271,35 @@ namespace SonarLint.VisualStudio.E2E
             context.WriteLine($"{DateTime.UtcNow:o} {phase}");
         }
 
-        private void WaitUntil(string description, Func<bool> condition)
+        /// <summary>
+        /// Polls <paramref name="condition"/> until it has held on every poll for <paramref name="stableFor"/>.
+        /// A false result or a rejected COM call restarts that window. The message filter already retries
+        /// busy calls for 30 s; calls still rejected after that are polled again here until the phase times out.
+        /// </summary>
+        private void WaitUntil(string description, Func<bool> condition, TimeSpan stableFor = default)
         {
             var watch = Stopwatch.StartNew();
+            TimeSpan? satisfiedSince = null;
             COMException lastComError = null;
             while (watch.Elapsed < PhaseTimeout)
             {
                 if (ideProcess != null && ideProcess.HasExited) { throw new InvalidOperationException("Visual Studio exited during " + description); }
-                try { if (condition()) { return; } }
-                catch (COMException exception) when (exception.HResult == unchecked((int)0x8001010A)
-                    || exception.HResult == unchecked((int)0x80010001))
+                var satisfied = false;
+                try { satisfied = condition(); }
+                catch (COMException exception) when (exception.HResult == RpcCallRejected || exception.HResult == RpcServerCallRetryLater)
                 {
                     lastComError = exception;
                 }
-                Thread.Sleep(500);
+                if (!satisfied)
+                {
+                    satisfiedSince = null;
+                }
+                else
+                {
+                    satisfiedSince ??= watch.Elapsed;
+                    if (watch.Elapsed - satisfiedSince.Value >= stableFor) { return; }
+                }
+                Thread.Sleep(PollInterval);
             }
             throw new TimeoutException("Timed out waiting for " + description, lastComError);
         }
@@ -347,7 +323,7 @@ namespace SonarLint.VisualStudio.E2E
                 process.Kill();
                 throw new TimeoutException("Process timed out: " + path);
             }
-            File.WriteAllText(Path.Combine(resultsDirectory, logName), output.GetAwaiter().GetResult() + error.GetAwaiter().GetResult());
+            File.WriteAllText(Path.Combine(settings.ResultsDirectory, logName), output.GetAwaiter().GetResult() + error.GetAwaiter().GetResult());
             if (process.ExitCode != 0) { throw new InvalidOperationException($"Process failed ({process.ExitCode}): {path}"); }
             return output.GetAwaiter().GetResult();
         }
@@ -358,11 +334,11 @@ namespace SonarLint.VisualStudio.E2E
             return "\"" + path + "\"";
         }
 
-        private void WriteJson(string name, object value) => File.WriteAllText(Path.Combine(resultsDirectory, name), JsonConvert.SerializeObject(value, Newtonsoft.Json.Formatting.Indented));
+        private void WriteJson(string name, object value) => File.WriteAllText(Path.Combine(settings.ResultsDirectory, name), JsonConvert.SerializeObject(value, Newtonsoft.Json.Formatting.Indented));
 
         private void CaptureProfileDiagnostics()
         {
-            var diagnostics = Path.Combine(resultsDirectory, "profile-diagnostics");
+            var diagnostics = Path.Combine(settings.ResultsDirectory, "profile-diagnostics");
             Directory.CreateDirectory(diagnostics);
             if (profileDirectory != null && Directory.Exists(profileDirectory))
             {
@@ -396,7 +372,7 @@ namespace SonarLint.VisualStudio.E2E
             {
                 if (dte != null)
                 {
-                    try { File.WriteAllText(Path.Combine(resultsDirectory, "SonarOutput.txt"), VisualStudioAutomation.ReadSonarOutput(dte)); }
+                    try { File.WriteAllText(Path.Combine(settings.ResultsDirectory, "SonarOutput.txt"), VisualStudioAutomation.ReadSonarOutput(dte)); }
                     catch (COMException exception) { context.WriteLine("Could not capture Sonar output: " + exception.Message); }
                 }
                 try { CaptureProfileDiagnostics(); }
@@ -408,7 +384,7 @@ namespace SonarLint.VisualStudio.E2E
                 report["finishedAt"] = DateTime.UtcNow.ToString("o");
                 WriteJson("result.json", report);
                 WriteJson("last-error-list.json", lastErrors);
-                foreach (var file in Directory.GetFiles(resultsDirectory)) { context.AddResultFile(file); }
+                foreach (var file in Directory.GetFiles(settings.ResultsDirectory)) { context.AddResultFile(file); }
             }
             finally
             {
@@ -417,6 +393,7 @@ namespace SonarLint.VisualStudio.E2E
                     if (!ideProcess.HasExited) { ideProcess.Kill(); }
                     ideProcess.Dispose();
                 }
+                messageFilter.Dispose();
             }
         }
 
@@ -430,8 +407,6 @@ namespace SonarLint.VisualStudio.E2E
             public string InstanceId { get; set; }
             [JsonProperty("productId")]
             public string ProductId { get; set; }
-            [JsonProperty("displayName")]
-            public string DisplayName { get; set; }
         }
     }
 }

@@ -44,6 +44,8 @@ jobs:
           $versionRange = "[$($expectedVersion.Major).$($expectedVersion.Minor),$($expectedVersion.Major).$($expectedVersion.Minor + 1))"
           $idePath = & $vswhere -latest -products $env:E2E_EXPECTED_VS_PRODUCT -version $versionRange -property installationPath
           if ($LASTEXITCODE -ne 0 -or -not $idePath) { throw 'Full Visual Studio not found.' }
+          # The test verifies this installation's exact build and product independently.
+          "E2E_VS_INSTALL_PATH=$idePath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           dotnet build tests/e2e/Extension.E2E.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
           if ($LASTEXITCODE -ne 0) { throw 'C# E2E test build failed.' }
 

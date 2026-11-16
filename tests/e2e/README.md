@@ -17,13 +17,13 @@ published package or rebuild the extension.
 
 1. Verify the actual IDE product/version and supplied VSIX identity.
 2. Install the VSIX and verify its installed manifest in the requested profile.
-3. Open the C# fixture through DTE and require the Sonar S1481 message at the
-   exact sample path and line 5: `Remove the unused local variable 'e2eUnused'.`
-4. Require a second S1481 finding for `e2eRemaining` at line 6.
-5. Remove only `e2eUnused` through the IDE editor and save the document.
-6. Check that its declaration is gone from disk and its finding remains absent
-   for five continuous seconds while the unedited `e2eRemaining` finding stays
-   visible. Unreadable Error List snapshots and COM busy retries reset that
+3. Open the C# fixture through DTE and wait for the Sonar S1481 messages for
+   both `e2eUnused` and `e2eRemaining` in the sample file, then check they are
+   reported on lines 5 and 6.
+4. Delete line 5 (`e2eUnused`) through the IDE editor and save the document.
+5. Check that its declaration is gone from disk and its finding stays absent
+   for five continuous seconds while exactly one `e2eRemaining` finding stays
+   visible, now on line 5. A failed or rejected Error List read restarts that
    stability window.
 
 There is one installation and one test execution, with no repetition loop or
@@ -44,8 +44,9 @@ E2E job runs after publication and does not gate promotion or dogfood delivery.
 
 The runner requires the Visual Studio Community build pinned in the E2E workflow, MSBuild/VSTest,
 the .NET SDK and .NET Framework targeting packs. The expected full build is declared once as `E2E_EXPECTED_VS_VERSION` in the
-workflow. Discovery derives its minor-version range from that setting, and the
-harness independently checks the exact installed build. Update it together with
+workflow. The workflow discovers the IDE once, using a minor-version range derived
+from that setting, and passes its path to the test as `E2E_VS_INSTALL_PATH`.
+The harness independently checks that installation's exact build and product. Update it together with
 the image's Visual Studio version when changing releases.
 The test project targets .NET Framework 4.8; the fixture targets 4.7.2.
 NuGet restoration is locked and IDE interop assemblies come from the target IDE.
@@ -97,23 +98,29 @@ $expectedVersion = [version]$env:E2E_EXPECTED_VS_VERSION
 $versionRange = "[$($expectedVersion.Major).$($expectedVersion.Minor),$($expectedVersion.Major).$($expectedVersion.Minor + 1))"
 $idePath = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -products Microsoft.VisualStudio.Product.Community -version $versionRange -property installationPath
 dotnet build tests/e2e/Extension.E2E.Tests.csproj -c Release -p:VsTargetVersion=2022 "-p:VisualStudioInstallPath=$idePath" -p:RestoreLockedMode=true
+$env:E2E_VS_INSTALL_PATH = $idePath
 $env:E2E_VSIX_PATH = 'C:\artifacts\SonarLint.VSIX-<version>-2022.vsix'
 $env:E2E_EXPECTED_VS_PRODUCT = 'Microsoft.VisualStudio.Product.Community'
 $env:E2E_RESULTS_DIRECTORY = 'C:\temp\extension-e2e\run-1\evidence'
 dotnet test tests/e2e/Extension.E2E.Tests.csproj -c Release --no-build --no-restore --filter TestCategory=ExtensionE2E --logger trx --results-directory C:\temp\extension-e2e\run-1 -p:VsTargetVersion=2022
 ```
 
+All five `E2E_*` variables are required and validated before the run starts.
 Use a new results directory for every execution.
 
 ## Implementation
 
-- `ExtensionE2ETests.cs`: MSTest scenario and assertions on an STA thread.
-- `VisualStudioSession.cs`: installation, isolated profile, bounded waits,
-  sample edits, configuration preparation and evidence collection.
-- `ComMessageFilter.cs`: retries temporary COM busy responses on the STA test
-  thread for up to 30 seconds per call, then restores the previous thread filter
-  at cleanup. Permanent rejections and unrelated COM errors are not retried by
-  the filter. The harness records the busy-response count in `result.json`.
+- `ExtensionE2ETests.cs`: MSTest scenario, fixture knowledge and assertions on
+  an STA thread.
+- `E2ESettings.cs`: reads and validates the `E2E_*` environment variables.
+- `VisualStudioSession.cs`: scenario-agnostic driver: installation, isolated
+  profile, bounded and stable waits on the Error List, editor edits,
+  configuration preparation and evidence collection.
+- `ComMessageFilter.cs`: registered by the session, it retries temporary COM busy
+  responses on the STA test thread for up to 30 seconds per call, then restores
+  the previous thread filter at cleanup. Permanent rejections and unrelated COM
+  errors are not retried by the filter; waits poll again after a rejected call.
+  The harness records the busy-response count in `result.json`.
 - `VisualStudioAutomation.cs`: attach to the launched process's DTE2 object and
   read its actual Error List and Sonar output.
 - `Fixture`: sample solution/project and source template, copied to the attempt's

@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.IO;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.E2E
@@ -33,28 +35,27 @@ namespace SonarLint.VisualStudio.E2E
         [TestCategory("ExtensionE2E")]
         public void InstalledExtension_DetectsIssue_AndClearsItAfterFix()
         {
-            using var messageFilter = ComMessageFilter.Register();
-            using var ide = new VisualStudioSession(
-                Environment.GetEnvironmentVariable("E2E_VSIX_PATH"),
-                Environment.GetEnvironmentVariable("E2E_RESULTS_DIRECTORY"),
-                TestContext,
-                messageFilter);
+            using var ide = new VisualStudioSession(E2ESettings.FromEnvironment(), TestContext);
             try
             {
                 ide.InstallAndLaunch();
-                ide.OpenSample();
+                ide.OpenSolution("Sample.sln", "Sample.cs");
+                var unused = UnusedVariableFinding(ide.DocumentPath, "e2eUnused");
+                var remaining = UnusedVariableFinding(ide.DocumentPath, "e2eRemaining");
 
-                var finding = ide.WaitForFinding();
-                Assert.AreEqual(5, finding.Line);
-                Assert.AreEqual("Remove the unused local variable 'e2eUnused'.", finding.Description);
-                ide.SaveErrorList("errors-before-fix.json");
+                var before = ide.WaitForErrorList("detect-findings", errors => errors.Any(unused) && errors.Any(remaining));
+                ide.SaveErrorList("errors-before-fix.json", before);
+                Assert.AreEqual(5, before.Single(unused).Line, "Sonar must report e2eUnused on its declaration line.");
+                Assert.AreEqual(6, before.Single(remaining).Line, "Sonar must report e2eRemaining on its declaration line.");
 
-                ide.RemoveUnusedVariableAndSave();
+                ide.DeleteLineAndSave(5);
+                Assert.IsFalse(File.ReadAllText(ide.DocumentPath).Contains("e2eUnused"), "The editor must save the fixed sample to disk.");
 
-                ide.WaitForFindingToDisappear(TimeSpan.FromSeconds(5));
-                Assert.AreEqual(0, ide.MatchingFindings().Length);
-                Assert.AreEqual(1, ide.RemainingFindings().Length, "The unedited Sonar finding must remain visible.");
-                ide.SaveErrorList("errors-after-fix.json");
+                var after = ide.WaitForErrorListStable("clear-finding",
+                    errors => !errors.Any(unused) && errors.Count(remaining) == 1,
+                    TimeSpan.FromSeconds(5));
+                ide.SaveErrorList("errors-after-fix.json", after);
+                Assert.AreEqual(5, after.Single(remaining).Line, "The unedited finding must follow its declaration up one line.");
                 ide.MarkPassed();
             }
             catch (Exception exception)
@@ -63,5 +64,9 @@ namespace SonarLint.VisualStudio.E2E
                 throw;
             }
         }
+
+        private static Func<ErrorListEntry, bool> UnusedVariableFinding(string documentPath, string variable) =>
+            entry => string.Equals(entry.File, documentPath, StringComparison.OrdinalIgnoreCase)
+                && entry.Description == $"Remove the unused local variable '{variable}'.";
     }
 }
