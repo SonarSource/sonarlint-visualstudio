@@ -27,11 +27,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
-public class CredentialsViewModel(
-    ConnectionInfo connectionInfo,
-    ISlCoreConnectionAdapter slCoreConnectionAdapter,
-    IServerConnectionCreator serverConnectionCreator,
-    IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
+public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnectionAdapter slCoreConnectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
     public const string SecurityPageUrl = "account/security";
     private SecureString token = new();
@@ -84,7 +80,7 @@ public class CredentialsViewModel(
         return adapterResponse.Success;
     }
 
-    internal async Task<ResponseStatus> AdapterValidateConnectionAsync() => await serverConnectionCreator.ValidateAsync(ConnectionInfo, GetCredentialsModel());
+    internal async Task<ResponseStatus> AdapterValidateConnectionAsync() => await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, GetCredentialsModel());
 
     internal async Task<ResponseStatusWithData<string>> GenerateTokenWithProgressAsync()
     {

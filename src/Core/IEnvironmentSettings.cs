@@ -46,5 +46,11 @@ namespace SonarLint.VisualStudio.Core
         /// are enabled for this process, otherwise false
         /// </summary>
         bool AreConnectedModeAutomationCommandsEnabled();
+
+        /// <summary>
+        /// Returns true if telemetry must not be enabled in SLCore for this process (e.g. in end-to-end tests),
+        /// otherwise false
+        /// </summary>
+        bool IsTelemetryDisabled();
     }
 }

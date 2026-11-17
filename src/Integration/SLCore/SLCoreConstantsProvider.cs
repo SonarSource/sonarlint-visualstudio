@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Telemetry;
@@ -29,23 +30,52 @@ namespace SonarLint.VisualStudio.Integration.SLCore;
 
 [Export(typeof(ISLCoreConstantsProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-public class SLCoreConstantsProvider(IUserAgentProvider userAgentProvider, IVsInfoProvider vsInfoProvider) : ISLCoreConstantsProvider
+public class SLCoreConstantsProvider : ISLCoreConstantsProvider
 {
+    private readonly IUserAgentProvider userAgentProvider;
+    private readonly IVsInfoProvider vsInfoProvider;
+    private readonly IEnvironmentSettings environmentSettings;
+
+    [ImportingConstructor]
+    public SLCoreConstantsProvider(IUserAgentProvider userAgentProvider, IVsInfoProvider vsInfoProvider)
+        : this(userAgentProvider, vsInfoProvider, new EnvironmentSettings())
+    {
+    }
+
+    internal /* for testing */ SLCoreConstantsProvider(IUserAgentProvider userAgentProvider, IVsInfoProvider vsInfoProvider, IEnvironmentSettings environmentSettings)
+    {
+        this.userAgentProvider = userAgentProvider;
+        this.vsInfoProvider = vsInfoProvider;
+        this.environmentSettings = environmentSettings;
+    }
+
     public ClientConstantInfoDto ClientConstants => new(vsInfoProvider.Name, userAgentProvider.UserAgent);
-    public HashSet<BackendCapability> BackendCapabilities =>
-    [
-        BackendCapability.PROJECT_SYNCHRONIZATION,
-        BackendCapability.EMBEDDED_SERVER,
-        BackendCapability.SECURITY_HOTSPOTS,
-        BackendCapability.SERVER_SENT_EVENTS,
-        BackendCapability.FULL_SYNCHRONIZATION,
-        BackendCapability.TELEMETRY,
-        BackendCapability.MONITORING,
-        BackendCapability.ISSUE_STREAMING,
-        BackendCapability.SCA_SYNCHRONIZATION,
-        BackendCapability.PROMOTIONAL_CAMPAIGNS
-    ];
+
+    public HashSet<BackendCapability> BackendCapabilities
+    {
+        get
+        {
+            HashSet<BackendCapability> capabilities =
+            [
+                BackendCapability.PROJECT_SYNCHRONIZATION,
+                BackendCapability.EMBEDDED_SERVER,
+                BackendCapability.SECURITY_HOTSPOTS,
+                BackendCapability.SERVER_SENT_EVENTS,
+                BackendCapability.FULL_SYNCHRONIZATION,
+                BackendCapability.TELEMETRY,
+                BackendCapability.MONITORING,
+                BackendCapability.ISSUE_STREAMING,
+                BackendCapability.SCA_SYNCHRONIZATION,
+                BackendCapability.PROMOTIONAL_CAMPAIGNS
+            ];
+            if (environmentSettings.IsTelemetryDisabled())
+            {
+                // As sonarlint-intellij does for its tests: SLCore only collects telemetry when the client declares it.
+                capabilities.Remove(BackendCapability.TELEMETRY);
+            }
+            return capabilities;
+        }
+    }
 
     public TelemetryClientConstantAttributesDto TelemetryConstants =>
         new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion,

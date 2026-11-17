@@ -21,11 +21,15 @@
 using SonarLint.VisualStudio.ConnectedMode.Automation;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Automation;
 
+/// <summary>Uses the real dialog view models over substituted services.</summary>
 [TestClass]
 public class ConnectedModeAutomationTests
 {
@@ -34,19 +38,27 @@ public class ConnectedModeAutomationTests
     private const string ProjectKey = "a-project";
     private static readonly ConnectionInfo ExpectedConnectionInfo = new(ServerUrl, ConnectionServerType.SonarQube);
 
-    private IServerConnectionCreator serverConnectionCreator;
+    private ISlCoreConnectionAdapter slCoreConnectionAdapter;
+    private IServerConnectionsRepositoryAdapter repository;
     private IBindingControllerAdapter bindingControllerAdapter;
+    private ITelemetryManager telemetryManager;
     private IConnectedModeUIManager uiManager;
     private ConnectedModeAutomation testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        serverConnectionCreator = Substitute.For<IServerConnectionCreator>();
+        slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
+        repository = Substitute.For<IServerConnectionsRepositoryAdapter>();
         bindingControllerAdapter = Substitute.For<IBindingControllerAdapter>();
+        telemetryManager = Substitute.For<ITelemetryManager>();
         uiManager = Substitute.For<IConnectedModeUIManager>();
         var connectedModeServices = Substitute.For<IConnectedModeServices>();
-        connectedModeServices.ServerConnectionCreator.Returns(serverConnectionCreator);
+        connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
+        connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(repository);
+        connectedModeServices.TelemetryManager.Returns(telemetryManager);
+        connectedModeServices.ThreadHandling.Returns(new NoOpThreadHandler());
+        connectedModeServices.Logger.Returns(new TestLogger());
         var bindingServices = Substitute.For<IConnectedModeBindingServices>();
         bindingServices.BindingControllerAdapter.Returns(bindingControllerAdapter);
         testSubject = new ConnectedModeAutomation(connectedModeServices, bindingServices, uiManager);
@@ -63,39 +75,66 @@ public class ConnectedModeAutomationTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ConnectedModeAutomation>();
 
     [TestMethod]
-    public async Task AddSonarQubeConnectionAsync_ValidationFails_ReturnsItWithoutAdding()
+    public async Task AddSonarQubeConnectionAsync_ValidationFails_ReturnsItsReasonWithoutSaving()
     {
-        var validation = new ResponseStatus(false, "invalid token");
-        serverConnectionCreator.ValidateAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>()).Returns(validation);
+        MockValidation(new ResponseStatus(false, "invalid token"));
 
         var result = await testSubject.AddSonarQubeConnectionAsync(ServerUrl, Token);
 
-        result.Should().BeSameAs(validation);
-        serverConnectionCreator.DidNotReceiveWithAnyArgs().Add(default, default);
+        result.Success.Should().BeFalse();
+        result.WarningText.Should().Be("invalid token");
+        repository.DidNotReceiveWithAnyArgs().TryAddConnection(default, default);
     }
 
     [TestMethod]
-    public async Task AddSonarQubeConnectionAsync_Valid_ValidatesThenAddsWithTheSameToken()
+    public async Task AddSonarQubeConnectionAsync_Valid_ValidatesThenSavesWithTheSameToken()
     {
-        var added = new ResponseStatus(true);
-        serverConnectionCreator.ValidateAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>()).Returns(new ResponseStatus(true));
-        serverConnectionCreator.Add(Arg.Any<Connection>(), Arg.Any<ICredentialsModel>()).Returns(added);
+        MockValidation(new ResponseStatus(true));
+        repository.TryAddConnection(Arg.Any<Connection>(), Arg.Any<ICredentialsModel>()).Returns(true);
 
         var result = await testSubject.AddSonarQubeConnectionAsync(ServerUrl, Token);
 
-        result.Should().BeSameAs(added);
+        result.Success.Should().BeTrue();
         Received.InOrder(() =>
         {
-            serverConnectionCreator.ValidateAsync(ExpectedConnectionInfo, Arg.Is<ICredentialsModel>(x => HasToken(x, Token)));
-            serverConnectionCreator.Add(Arg.Is<Connection>(x => x.Info == ExpectedConnectionInfo), Arg.Is<ICredentialsModel>(x => HasToken(x, Token)));
+            slCoreConnectionAdapter.ValidateConnectionAsync(ExpectedConnectionInfo, Arg.Is<ICredentialsModel>(x => HasToken(x)));
+            repository.TryAddConnection(Arg.Is<Connection>(x => x.Info == ExpectedConnectionInfo), Arg.Is<ICredentialsModel>(x => HasToken(x)));
         });
+    }
+
+    [TestMethod]
+    public async Task AddSonarQubeConnectionAsync_ConnectionExists_ReturnsTheDialogsWarning()
+    {
+        MockValidation(new ResponseStatus(true));
+        repository.TryGet(ExpectedConnectionInfo, out _).Returns(call =>
+        {
+            call[1] = new ServerConnection.SonarQube(new Uri(ServerUrl));
+            return true;
+        });
+
+        var result = await testSubject.AddSonarQubeConnectionAsync(ServerUrl, Token);
+
+        result.Success.Should().BeFalse();
+        result.WarningText.Should().Be(UiResources.ConnectionAlreadyExistsText);
+        repository.DidNotReceiveWithAnyArgs().TryAddConnection(default, default);
+    }
+
+    [TestMethod]
+    public async Task AddSonarQubeConnectionAsync_SaveFails_ReturnsTheDialogsWarning()
+    {
+        MockValidation(new ResponseStatus(true));
+        repository.TryAddConnection(Arg.Any<Connection>(), Arg.Any<ICredentialsModel>()).Returns(false);
+
+        var result = await testSubject.AddSonarQubeConnectionAsync(ServerUrl, Token);
+
+        result.Success.Should().BeFalse();
+        result.WarningText.Should().Be(UiResources.CreatingConnectionFailedText);
     }
 
     [TestMethod]
     public async Task BindOpenSolutionAsync_SendsTheManualRequestOfTheBindButton()
     {
-        bindingControllerAdapter.ValidateAndBindAsync(Arg.Any<BindingRequest>(), Arg.Any<IConnectedModeUIManager>(), Arg.Any<CancellationToken>())
-            .Returns(BindingResult.Success);
+        MockBinding(BindingResult.Success);
 
         var result = await testSubject.BindOpenSolutionAsync(ServerUrl, ProjectKey);
 
@@ -104,13 +143,13 @@ public class ConnectedModeAutomationTests
             new BindingRequest.Manual(ProjectKey, ExpectedConnectionInfo.GetServerIdFromConnectionInfo()),
             uiManager,
             Arg.Any<CancellationToken>());
+        telemetryManager.Received(1).AddedManualBindings();
     }
 
     [TestMethod]
     public async Task BindOpenSolutionAsync_BindingFails_ReturnsItsProblem()
     {
-        bindingControllerAdapter.ValidateAndBindAsync(Arg.Any<BindingRequest>(), Arg.Any<IConnectedModeUIManager>(), Arg.Any<CancellationToken>())
-            .Returns(BindingResult.ConnectionNotFound);
+        MockBinding(BindingResult.ConnectionNotFound);
 
         var result = await testSubject.BindOpenSolutionAsync(ServerUrl, ProjectKey);
 
@@ -118,6 +157,13 @@ public class ConnectedModeAutomationTests
         result.WarningText.Should().Be(BindingResult.ConnectionNotFound.ProblemDescription);
     }
 
-    private static bool HasToken(ICredentialsModel credentials, string token) =>
-        credentials is TokenCredentialsModel tokenCredentials && tokenCredentials.Token.ToUnsecureString() == token;
+    private void MockValidation(ResponseStatus response) =>
+        slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>()).Returns(response);
+
+    private void MockBinding(BindingResult result) =>
+        bindingControllerAdapter.ValidateAndBindAsync(Arg.Any<BindingRequest>(), Arg.Any<IConnectedModeUIManager>(), Arg.Any<CancellationToken>())
+            .Returns(result);
+
+    private static bool HasToken(ICredentialsModel credentials) =>
+        credentials is TokenCredentialsModel tokenCredentials && tokenCredentials.Token.ToUnsecureString() == Token;
 }

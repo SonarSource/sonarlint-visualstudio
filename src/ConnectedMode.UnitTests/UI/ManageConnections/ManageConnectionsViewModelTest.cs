@@ -41,7 +41,6 @@ public class ManageConnectionsViewModelTest
     private ILogger logger;
     private IProgressReporterViewModel progressReporterViewModel;
     private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
-    private IServerConnectionCreator serverConnectionCreator;
     private ISolutionBindingRepository solutionBindingRepository;
     private ISolutionInfoProvider solutionInfoProvider;
     private ManageConnectionsViewModel testSubject;
@@ -313,31 +312,49 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public async Task CreateNewConnectionAsync_ConnectionWasAdded_AddsProvidedConnection()
+    public async Task CreateConnectionsWithProgressAsync_FailsWithMessageForDuplicateConnection()
+    {
+        var connectionToAdd = CreateSonarCloudConnection();
+        connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connectionToAdd.Info, out _).Returns(info =>
+        {
+            info[1] = new SonarCloud(connectionToAdd.Info.Id);
+            return true;
+        });
+        Task<ResponseStatus> taskResponse = null;
+        await progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Do<TaskToPerformParams<ResponseStatus>>(x => taskResponse = x.TaskToPerform()));
+
+        await testSubject.CreateConnectionsWithProgressAsync(connectionToAdd, Substitute.For<ICredentialsModel>());
+
+        var actualResponseStatus = await taskResponse;
+        actualResponseStatus.Success.Should().BeFalse();
+        actualResponseStatus.WarningText.Should().Be(UiResources.ConnectionAlreadyExistsText);
+    }
+
+    [TestMethod]
+    public async Task CreateNewConnectionAsync_ConnectionWasAddedToRepository_AddsProvidedConnection()
     {
         var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
-        var credentials = Substitute.For<ICredentialsModel>();
-        serverConnectionCreator.Add(connectionToAdd, credentials).Returns(new ResponseStatus(true));
+        serverConnectionsRepositoryAdapter.TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>()).Returns(true);
 
-        var response = await testSubject.CreateNewConnectionAsync(connectionToAdd, credentials);
+        var response = await testSubject.CreateNewConnectionAsync(connectionToAdd, Substitute.For<ICredentialsModel>());
 
         response.Success.Should().BeTrue();
         testSubject.ConnectionViewModels.Count.Should().Be(1);
         testSubject.ConnectionViewModels[0].Connection.Should().Be(connectionToAdd);
-        serverConnectionCreator.Received(1).Add(connectionToAdd, credentials);
+        serverConnectionsRepositoryAdapter.Received(1).TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>());
     }
 
     [TestMethod]
-    public async Task CreateNewConnectionAsync_ConnectionWasNotAdded_ReturnsTheFailureAndDoesNotAddConnection()
+    public async Task CreateNewConnectionAsync_ConnectionWasNotAddedToRepository_DoesNotAddConnection()
     {
         var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
-        var failure = new ResponseStatus(false, UiResources.ConnectionAlreadyExistsText);
-        serverConnectionCreator.Add(connectionToAdd, Arg.Any<ICredentialsModel>()).Returns(failure);
+        serverConnectionsRepositoryAdapter.TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>()).Returns(false);
 
         var response = await testSubject.CreateNewConnectionAsync(connectionToAdd, Substitute.For<ICredentialsModel>());
 
-        response.Should().BeSameAs(failure);
+        response.Success.Should().BeFalse();
         testSubject.ConnectionViewModels.Should().BeEmpty();
+        serverConnectionsRepositoryAdapter.Received(1).TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>());
     }
 
     [TestMethod]
@@ -546,12 +563,10 @@ public class ManageConnectionsViewModelTest
     private void MockServices()
     {
         serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
-        serverConnectionCreator = Substitute.For<IServerConnectionCreator>();
         threadHandling = Substitute.For<IThreadHandling>();
         logger = Substitute.For<ILogger>();
 
         connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
-        connectedModeServices.ServerConnectionCreator.Returns(serverConnectionCreator);
         connectedModeServices.ThreadHandling.Returns(threadHandling);
         connectedModeServices.Logger.Returns(logger);
         MockTryGetConnections(twoConnections);

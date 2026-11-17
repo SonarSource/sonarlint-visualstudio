@@ -20,6 +20,7 @@
 
 using System.Reflection;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
@@ -34,6 +35,7 @@ public class SLCoreConstantsProviderTests
 {
     private IVsInfoProvider infoProvider;
     private IUserAgentProvider userAgentProvider;
+    private IEnvironmentSettings environmentSettings;
     private SLCoreConstantsProvider testSubject;
 
     [TestInitialize]
@@ -42,7 +44,9 @@ public class SLCoreConstantsProviderTests
         userAgentProvider = Substitute.For<IUserAgentProvider>();
         infoProvider = Substitute.For<IVsInfoProvider>();
 
-        testSubject = new SLCoreConstantsProvider(userAgentProvider, infoProvider);
+        environmentSettings = Substitute.For<IEnvironmentSettings>();
+
+        testSubject = new SLCoreConstantsProvider(userAgentProvider, infoProvider, environmentSettings);
     }
 
     [TestMethod]
@@ -86,6 +90,18 @@ public class SLCoreConstantsProviderTests
         var actual = testSubject.BackendCapabilities;
 
         actual.Should().BeEquivalentTo(expectedBackendCapabilities);
+    }
+
+    [TestMethod]
+    public void BackendCapabilities_TelemetryDisabled_OmitsOnlyTelemetry()
+    {
+        environmentSettings.IsTelemetryDisabled().Returns(true);
+        var enabled = new SLCoreConstantsProvider(userAgentProvider, infoProvider, Substitute.For<IEnvironmentSettings>()).BackendCapabilities;
+
+        var actual = testSubject.BackendCapabilities;
+
+        actual.Should().NotContain(BackendCapability.TELEMETRY);
+        actual.Should().BeEquivalentTo(enabled.Where(x => x != BackendCapability.TELEMETRY));
     }
 
     [TestMethod]

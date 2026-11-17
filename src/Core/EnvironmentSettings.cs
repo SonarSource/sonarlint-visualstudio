@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.Core
         internal const string AnalysisTimeoutEnvVar = "SONARLINT_INTERNAL_ANALYSIS_TIMEOUT_MS";
         internal const string PchGenerationTimeoutEnvVar = "SONARLINT_INTERNAL_PCH_GENERATION_TIMEOUT_MS";
         internal const string ConnectedModeAutomationCommandsEnvVar = "SONARLINT_INTERNAL_E2E_COMMANDS";
+        internal const string TelemetryDisabledEnvVar = "SONARLINT_INTERNAL_TELEMETRY_DISABLED";
 
         public bool TreatBlockerSeverityAsError()
             => ParseBool(TreatBlockerAsErrorEnvVar);
@@ -44,6 +45,9 @@ namespace SonarLint.VisualStudio.Core
 
         public bool AreConnectedModeAutomationCommandsEnabled()
             => ParseBool(ConnectedModeAutomationCommandsEnvVar);
+
+        public bool IsTelemetryDisabled()
+            => ParseBool(TelemetryDisabledEnvVar);
 
         private static int ParseInt(string setting)
         {

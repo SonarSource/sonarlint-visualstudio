@@ -21,20 +21,22 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Automation;
 
 /// <summary>
-/// Creates a SonarQube Server connection and binds the open solution without UI, by calling the same
-/// production code as the Connected Mode dialogs. Only meant for the hidden E2E test commands.
+/// Creates a SonarQube Server connection and binds the open solution without showing any dialog, by driving the
+/// view models of the Connected Mode dialogs the way their buttons do. Only meant for the hidden E2E test commands.
 /// </summary>
 public interface IConnectedModeAutomation
 {
-    /// <summary>Validates the token, then saves the connection, as the New Connection dialogs do.</summary>
+    /// <summary>What the New Connection dialogs do: validate the token, then save the connection.</summary>
     Task<ResponseStatus> AddSonarQubeConnectionAsync(string serverUrl, string token);
 
-    /// <summary>Binds the open solution through the connection to <paramref name="serverUrl"/>, as the Bind button does.</summary>
+    /// <summary>What the Bind button does, with the connection to <paramref name="serverUrl"/> and <paramref name="projectKey"/> selected.</summary>
     Task<ResponseStatus> BindOpenSolutionAsync(string serverUrl, string projectKey);
 }
 
@@ -49,21 +51,37 @@ internal class ConnectedModeAutomation(
 {
     public async Task<ResponseStatus> AddSonarQubeConnectionAsync(string serverUrl, string token)
     {
-        var connection = new Connection(new ConnectionInfo(serverUrl, ConnectionServerType.SonarQube));
-        var credentials = new TokenCredentialsModel(token.ToSecureString());
-        var creator = connectedModeServices.ServerConnectionCreator;
+        var connectionInfo = new ConnectionInfo(serverUrl, ConnectionServerType.SonarQube);
 
-        var validation = await creator.ValidateAsync(connection.Info, credentials);
-        return validation.Success ? creator.Add(connection, credentials) : validation;
+        // The Credentials dialog's OK button.
+        var credentials = new CredentialsViewModel(connectionInfo, connectedModeServices.SlCoreConnectionAdapter, CreateProgressReporter())
+        {
+            Token = token.ToSecureString()
+        };
+        if (!await credentials.ValidateConnectionAsync())
+        {
+            return Outcome(credentials.ProgressReporterViewModel);
+        }
+
+        // What the Manage Connections dialog does once the Credentials dialog closes.
+        var manageConnections = new ManageConnectionsViewModel(connectedModeUiManager, connectedModeServices, connectedModeBindingServices, CreateProgressReporter());
+        await manageConnections.CreateConnectionsWithProgressAsync(new Connection(connectionInfo), credentials.GetCredentialsModel());
+        return Outcome(manageConnections.ProgressReporterViewModel);
     }
 
     public async Task<ResponseStatus> BindOpenSolutionAsync(string serverUrl, string projectKey)
     {
         var connectionId = new ConnectionInfo(serverUrl, ConnectionServerType.SonarQube).GetServerIdFromConnectionInfo();
-        var result = await connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(
-            new BindingRequest.Manual(projectKey, connectionId),
-            connectedModeUiManager,
-            CancellationToken.None);
-        return new ResponseStatus(result.IsSuccessful, result.ProblemDescription);
+
+        // The Manage Binding dialog's Bind button.
+        using var manageBinding = new ManageBindingViewModel(connectedModeServices, connectedModeBindingServices, connectedModeUiManager, CreateProgressReporter());
+        await manageBinding.PerformBindingWithProgressAsync(new BindingRequest.Manual(projectKey, connectionId));
+        return Outcome(manageBinding.ProgressReporter);
     }
+
+    private ProgressReporterViewModel CreateProgressReporter() => new(connectedModeServices.Logger);
+
+    // The view models report the result where the dialogs show it: a failure always sets a warning.
+    private static ResponseStatus Outcome(IProgressReporterViewModel progressReporter) =>
+        progressReporter.HasWarning ? new ResponseStatus(false, progressReporter.Warning) : new ResponseStatus(true);
 }

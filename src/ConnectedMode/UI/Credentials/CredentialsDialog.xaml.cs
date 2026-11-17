@@ -42,8 +42,7 @@ public partial class CredentialsDialog : Window
         bool withNextButton) :
         this(connectedModeServices,
             connectedModeUiServices,
-            new CredentialsViewModel(connectionInfo, connectedModeServices.SlCoreConnectionAdapter, connectedModeServices.ServerConnectionCreator,
-                new ProgressReporterViewModel(connectedModeServices.Logger)),
+            new CredentialsViewModel(connectionInfo, connectedModeServices.SlCoreConnectionAdapter, new ProgressReporterViewModel(connectedModeServices.Logger)),
             withNextButton)
     {
     }

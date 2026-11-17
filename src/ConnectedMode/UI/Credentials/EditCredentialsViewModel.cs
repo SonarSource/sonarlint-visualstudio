@@ -28,7 +28,7 @@ internal class EditCredentialsViewModel(
     IConnectedModeServices connectedModeServices,
     IConnectedModeBindingServices connectedModeBindingServices,
     IProgressReporterViewModel progressReporterViewModel)
-    : CredentialsViewModel(connection.Info, connectedModeServices.SlCoreConnectionAdapter, connectedModeServices.ServerConnectionCreator, progressReporterViewModel)
+    : CredentialsViewModel(connection.Info, connectedModeServices.SlCoreConnectionAdapter, progressReporterViewModel)
 {
     internal async Task<ResponseStatus> UpdateConnectionCredentialsWithProgressAsync()
     {
