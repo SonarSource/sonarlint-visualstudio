@@ -1024,8 +1024,8 @@
       },
       "Sentry": {
         "type": "Transitive",
-        "resolved": "6.12.0",
-        "contentHash": "7IRSoMWSxzjD204mFrQs0+kU7/ZAQRcqNdiFB8tN9R8CxgwZvP/rrD2nuWmQnFleQwA3yZYcpR8m3EtGfP5x5w==",
+        "resolved": "6.13.0",
+        "contentHash": "TwgXw4BwBa6gYKJxTEBJWZ0y+MyBDTMzCq8ywYWUEzG9srNmKui4AMcz6vZ9BEsaZYVJxni0EIDHGho+PQXDVA==",
         "dependencies": {
           "System.Reflection.Metadata": "5.0.0",
           "System.Runtime.InteropServices.RuntimeInformation": "4.3.0",
@@ -1403,7 +1403,7 @@
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "Newtonsoft.Json": "[13.0.3, )",
-          "Sentry": "[6.12.0, )",
+          "Sentry": "[6.13.0, )",
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
