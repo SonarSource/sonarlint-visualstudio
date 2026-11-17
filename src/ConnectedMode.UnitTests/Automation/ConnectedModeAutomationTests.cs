@@ -21,7 +21,9 @@
 using SonarLint.VisualStudio.ConnectedMode.Automation;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Telemetry;
@@ -37,10 +39,13 @@ public class ConnectedModeAutomationTests
     private const string Token = "a-token";
     private const string ProjectKey = "a-project";
     private static readonly ConnectionInfo ExpectedConnectionInfo = new(ServerUrl, ConnectionServerType.SonarQube);
+    private static readonly ServerConnection.SonarQube SonarQubeConnection = new(new Uri(ServerUrl));
+    private static readonly ServerProject Project = new(ProjectKey, "A project");
 
     private ISlCoreConnectionAdapter slCoreConnectionAdapter;
     private IServerConnectionsRepositoryAdapter repository;
     private IBindingControllerAdapter bindingControllerAdapter;
+    private ISolutionInfoProvider solutionInfoProvider;
     private ITelemetryManager telemetryManager;
     private IConnectedModeUIManager uiManager;
     private ConnectedModeAutomation testSubject;
@@ -51,16 +56,22 @@ public class ConnectedModeAutomationTests
         slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
         repository = Substitute.For<IServerConnectionsRepositoryAdapter>();
         bindingControllerAdapter = Substitute.For<IBindingControllerAdapter>();
+        solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         uiManager = Substitute.For<IConnectedModeUIManager>();
+        var configurationProvider = Substitute.For<IConfigurationProvider>();
+        configurationProvider.GetConfiguration().Returns(BindingConfiguration.Standalone);
         var connectedModeServices = Substitute.For<IConnectedModeServices>();
         connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
         connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(repository);
+        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
         connectedModeServices.TelemetryManager.Returns(telemetryManager);
         connectedModeServices.ThreadHandling.Returns(new NoOpThreadHandler());
         connectedModeServices.Logger.Returns(new TestLogger());
         var bindingServices = Substitute.For<IConnectedModeBindingServices>();
         bindingServices.BindingControllerAdapter.Returns(bindingControllerAdapter);
+        bindingServices.SolutionInfoProvider.Returns(solutionInfoProvider);
+        solutionInfoProvider.GetSolutionNameAsync().Returns("Solution");
         testSubject = new ConnectedModeAutomation(connectedModeServices, bindingServices, uiManager);
     }
 
@@ -103,14 +114,20 @@ public class ConnectedModeAutomationTests
     }
 
     [TestMethod]
+    public async Task AddSonarQubeConnectionAsync_UsesTheServerSelectionDialogsUrlHandling()
+    {
+        MockValidation(new ResponseStatus(false, "stop here"));
+
+        await testSubject.AddSonarQubeConnectionAsync("http://local host:9000", Token);
+
+        await slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(ExpectedConnectionInfo, Arg.Any<ICredentialsModel>());
+    }
+
+    [TestMethod]
     public async Task AddSonarQubeConnectionAsync_ConnectionExists_ReturnsTheDialogsWarning()
     {
         MockValidation(new ResponseStatus(true));
-        repository.TryGet(ExpectedConnectionInfo, out _).Returns(call =>
-        {
-            call[1] = new ServerConnection.SonarQube(new Uri(ServerUrl));
-            return true;
-        });
+        MockExistingConnection();
 
         var result = await testSubject.AddSonarQubeConnectionAsync(ServerUrl, Token);
 
@@ -132,8 +149,9 @@ public class ConnectedModeAutomationTests
     }
 
     [TestMethod]
-    public async Task BindOpenSolutionAsync_SendsTheManualRequestOfTheBindButton()
+    public async Task BindOpenSolutionAsync_SelectsTheListedConnectionAndProject_ThenBinds()
     {
+        MockBindableSetup(listedProjects: [new ServerProject("other", "Other"), Project]);
         MockBinding(BindingResult.Success);
 
         var result = await testSubject.BindOpenSolutionAsync(ServerUrl, ProjectKey);
@@ -143,12 +161,68 @@ public class ConnectedModeAutomationTests
             new BindingRequest.Manual(ProjectKey, ExpectedConnectionInfo.GetServerIdFromConnectionInfo()),
             uiManager,
             Arg.Any<CancellationToken>());
+        await slCoreConnectionAdapter.DidNotReceiveWithAnyArgs().GetServerProjectByKeyAsync(default, default);
         telemetryManager.Received(1).AddedManualBindings();
+    }
+
+    [TestMethod]
+    public async Task BindOpenSolutionAsync_ProjectNotListed_ChoosesItByKey()
+    {
+        MockBindableSetup(listedProjects: []);
+        slCoreConnectionAdapter.GetServerProjectByKeyAsync(SonarQubeConnection, ProjectKey).Returns(new ResponseStatusWithData<ServerProject>(true, Project));
+        MockBinding(BindingResult.Success);
+
+        var result = await testSubject.BindOpenSolutionAsync(ServerUrl, ProjectKey);
+
+        result.Success.Should().BeTrue();
+        await bindingControllerAdapter.Received(1).ValidateAndBindAsync(
+            new BindingRequest.Manual(ProjectKey, ExpectedConnectionInfo.GetServerIdFromConnectionInfo()),
+            uiManager,
+            Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task BindOpenSolutionAsync_ProjectNotFound_FailsWithoutBinding()
+    {
+        MockBindableSetup(listedProjects: []);
+        slCoreConnectionAdapter.GetServerProjectByKeyAsync(SonarQubeConnection, ProjectKey).Returns(new ResponseStatusWithData<ServerProject>(false, null));
+
+        var result = await testSubject.BindOpenSolutionAsync(ServerUrl, ProjectKey);
+
+        result.Success.Should().BeFalse();
+        result.WarningText.Should().Be(UiResources.FetchingProjectInfoFailedText);
+        await bindingControllerAdapter.DidNotReceiveWithAnyArgs().ValidateAndBindAsync(default, default, default);
+    }
+
+    [TestMethod]
+    public async Task BindOpenSolutionAsync_NoConnectionToTheServer_FailsWithoutBinding()
+    {
+        MockConnections();
+
+        var result = await testSubject.BindOpenSolutionAsync(ServerUrl, ProjectKey);
+
+        result.Success.Should().BeFalse();
+        result.WarningText.Should().Be(ConnectedModeAutomation.ConnectionNotListedText);
+        await bindingControllerAdapter.DidNotReceiveWithAnyArgs().ValidateAndBindAsync(default, default, default);
+    }
+
+    [TestMethod]
+    public async Task BindOpenSolutionAsync_NoSolutionOpen_FailsLikeTheDisabledButton()
+    {
+        MockBindableSetup(listedProjects: [Project]);
+        solutionInfoProvider.GetSolutionNameAsync().Returns((string)null);
+
+        var result = await testSubject.BindOpenSolutionAsync(ServerUrl, ProjectKey);
+
+        result.Success.Should().BeFalse();
+        result.WarningText.Should().Be(ConnectedModeAutomation.SelectProjectButtonDisabledText);
+        await bindingControllerAdapter.DidNotReceiveWithAnyArgs().ValidateAndBindAsync(default, default, default);
     }
 
     [TestMethod]
     public async Task BindOpenSolutionAsync_BindingFails_ReturnsItsProblem()
     {
+        MockBindableSetup(listedProjects: [Project]);
         MockBinding(BindingResult.ConnectionNotFound);
 
         var result = await testSubject.BindOpenSolutionAsync(ServerUrl, ProjectKey);
@@ -159,6 +233,27 @@ public class ConnectedModeAutomationTests
 
     private void MockValidation(ResponseStatus response) =>
         slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>()).Returns(response);
+
+    private void MockExistingConnection() =>
+        repository.TryGet(Arg.Is<ConnectionInfo>(x => x == ExpectedConnectionInfo), out _).Returns(call =>
+        {
+            call[1] = SonarQubeConnection;
+            return true;
+        });
+
+    private void MockConnections(params ConnectionInfo[] connections) =>
+        repository.TryGetAllConnectionsInfo(out _).Returns(call =>
+        {
+            call[0] = connections.ToList();
+            return true;
+        });
+
+    private void MockBindableSetup(List<ServerProject> listedProjects)
+    {
+        MockConnections(ExpectedConnectionInfo);
+        MockExistingConnection();
+        slCoreConnectionAdapter.GetAllProjectsAsync(SonarQubeConnection).Returns(new ResponseStatusWithData<List<ServerProject>>(true, listedProjects));
+    }
 
     private void MockBinding(BindingResult result) =>
         bindingControllerAdapter.ValidateAndBindAsync(Arg.Any<BindingRequest>(), Arg.Any<IConnectedModeUIManager>(), Arg.Any<CancellationToken>())

@@ -23,20 +23,22 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
+using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
+using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Automation;
 
 /// <summary>
 /// Creates a SonarQube Server connection and binds the open solution without showing any dialog, by driving the
-/// view models of the Connected Mode dialogs the way their buttons do. Only meant for the hidden E2E test commands.
+/// view models of the Connected Mode dialogs the way a user does. Only meant for the hidden E2E test commands.
 /// </summary>
 public interface IConnectedModeAutomation
 {
-    /// <summary>What the New Connection dialogs do: validate the token, then save the connection.</summary>
+    /// <summary>New Connection: select SonarQube Server and enter its URL, enter the token, then save.</summary>
     Task<ResponseStatus> AddSonarQubeConnectionAsync(string serverUrl, string token);
 
-    /// <summary>What the Bind button does, with the connection to <paramref name="serverUrl"/> and <paramref name="projectKey"/> selected.</summary>
+    /// <summary>Manage Binding: select the connection to <paramref name="serverUrl"/>, select the project, then Bind.</summary>
     Task<ResponseStatus> BindOpenSolutionAsync(string serverUrl, string projectKey);
 }
 
@@ -49,11 +51,23 @@ internal class ConnectedModeAutomation(
     IConnectedModeUIManager connectedModeUiManager)
     : IConnectedModeAutomation
 {
+    internal const string NextButtonDisabledText = "The Server Selection dialog would not allow Next with this URL.";
+    internal const string ConnectionNotListedText = "The Manage Binding dialog does not list a connection to this server.";
+    internal const string SelectProjectButtonDisabledText = "The Manage Binding dialog would not allow selecting a project.";
+    internal const string ProjectNotSelectedText = "The Project Selection dialog did not select the project.";
+    internal const string BindButtonDisabledText = "The Manage Binding dialog would not allow Bind.";
+
     public async Task<ResponseStatus> AddSonarQubeConnectionAsync(string serverUrl, string token)
     {
-        var connectionInfo = new ConnectionInfo(serverUrl, ConnectionServerType.SonarQube);
+        // Server Selection dialog: choose SonarQube Server, type the URL, Next.
+        var serverSelection = SelectSonarQubeServer(serverUrl);
+        if (!serverSelection.IsNextButtonEnabled)
+        {
+            return new ResponseStatus(false, NextButtonDisabledText);
+        }
+        var connectionInfo = serverSelection.CreateTransientConnectionInfo();
 
-        // The Credentials dialog's OK button.
+        // Credentials dialog: type the token, OK.
         var credentials = new CredentialsViewModel(connectionInfo, connectedModeServices.SlCoreConnectionAdapter, CreateProgressReporter())
         {
             Token = token.ToSecureString()
@@ -71,12 +85,60 @@ internal class ConnectedModeAutomation(
 
     public async Task<ResponseStatus> BindOpenSolutionAsync(string serverUrl, string projectKey)
     {
-        var connectionId = new ConnectionInfo(serverUrl, ConnectionServerType.SonarQube).GetServerIdFromConnectionInfo();
-
-        // The Manage Binding dialog's Bind button.
+        // Manage Binding dialog: what it loads when it opens.
         using var manageBinding = new ManageBindingViewModel(connectedModeServices, connectedModeBindingServices, connectedModeUiManager, CreateProgressReporter());
-        await manageBinding.PerformBindingWithProgressAsync(new BindingRequest.Manual(projectKey, connectionId));
+        await manageBinding.InitializeDataAsync();
+        if (manageBinding.ProgressReporter.HasWarning)
+        {
+            return Outcome(manageBinding.ProgressReporter);
+        }
+
+        // The connections combo box.
+        var serverId = SelectSonarQubeServer(serverUrl).CreateTransientConnectionInfo().GetServerIdFromConnectionInfo();
+        manageBinding.SelectedConnectionInfo = manageBinding.Connections.FirstOrDefault(x => x.GetServerIdFromConnectionInfo() == serverId);
+        if (manageBinding.SelectedConnectionInfo == null)
+        {
+            return new ResponseStatus(false, ConnectionNotListedText);
+        }
+        if (!manageBinding.IsSelectProjectButtonEnabled)
+        {
+            return new ResponseStatus(false, SelectProjectButtonDisabledText);
+        }
+
+        // Select Project: the Project Selection dialog.
+        var projectSelection = await SelectProjectAsync(manageBinding.SelectedConnectionInfo, projectKey);
+        if (projectSelection.SelectedProject?.Key != projectKey)
+        {
+            return projectSelection.ProgressReporterViewModel.HasWarning ? Outcome(projectSelection.ProgressReporterViewModel) : new ResponseStatus(false, ProjectNotSelectedText);
+        }
+        manageBinding.SelectedProject = projectSelection.SelectedProject;
+
+        // The Bind button.
+        if (!manageBinding.IsBindButtonEnabled)
+        {
+            return new ResponseStatus(false, BindButtonDisabledText);
+        }
+        await manageBinding.PerformManualBindingWithProgressAsync();
         return Outcome(manageBinding.ProgressReporter);
+    }
+
+    private static ServerSelectionViewModel SelectSonarQubeServer(string serverUrl) =>
+        new() { IsSonarCloudSelected = false, IsSonarQubeSelected = true, SonarQubeUrl = serverUrl };
+
+    /// <summary>
+    /// Picks the project from the list the dialog loads when it opens. If it is not listed, uses
+    /// "Choose another project" and types the key, as a user would.
+    /// </summary>
+    private async Task<ProjectSelectionViewModel> SelectProjectAsync(ConnectionInfo connectionInfo, string projectKey)
+    {
+        var projectSelection = new ProjectSelectionViewModel(connectionInfo, connectedModeServices, CreateProgressReporter());
+        await projectSelection.InitializeProjectWithProgressAsync();
+        projectSelection.SelectedProject = projectSelection.ProjectResults.FirstOrDefault(x => x.Key == projectKey);
+        if (projectSelection.SelectedProject == null)
+        {
+            await projectSelection.AddManualProjectWithProgressAsync(projectKey);
+        }
+        return projectSelection;
     }
 
     private ProgressReporterViewModel CreateProgressReporter() => new(connectedModeServices.Logger);
