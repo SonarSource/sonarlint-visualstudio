@@ -67,14 +67,28 @@ internal abstract class ConnectedModeAutomationCommandBase(IEnvironmentSettings 
             throw new ArgumentException($"{Name} expects the arguments: {ArgumentsDescription}");
         }
 
-        var result = threadHandling.Run(() => ExecuteAsync(arguments[0], arguments[1]));
+        ResponseStatus result;
+        try
+        {
+            result = threadHandling.Run(() => ExecuteAsync(arguments[0], arguments[1]));
+        }
+        catch (Exception exception) when (!ErrorHandler.IsCriticalException(exception))
+        {
+            // For example a server URL that is not a valid URI: report it like any other failure.
+            Fail(exception.Message, exception);
+            return;
+        }
         if (!result.Success)
         {
             // The product logs the details itself when it has no message for the user (e.g. a failed save).
-            var reason = string.IsNullOrEmpty(result.WarningText) ? NoReasonText : result.WarningText;
-            logger.WriteLine("[E2E] {0} failed: {1}", Name, reason);
-            throw new InvalidOperationException($"{Name} failed: {reason}");
+            Fail(string.IsNullOrEmpty(result.WarningText) ? NoReasonText : result.WarningText);
         }
         logger.WriteLine("[E2E] {0} succeeded", Name);
+    }
+
+    private void Fail(string reason, Exception innerException = null)
+    {
+        logger.WriteLine("[E2E] {0} failed: {1}", Name, reason);
+        throw new InvalidOperationException($"{Name} failed: {reason}", innerException);
     }
 }

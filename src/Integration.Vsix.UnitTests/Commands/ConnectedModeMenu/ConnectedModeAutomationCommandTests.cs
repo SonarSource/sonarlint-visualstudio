@@ -127,6 +127,18 @@ public class ConnectedModeAutomationCommandTests
     }
 
     [TestMethod]
+    public void Bind_AutomationThrows_ReportsItAsAFailure()
+    {
+        var error = new UriFormatException("Invalid URI: The format of the URI could not be determined.");
+        automation.BindOpenSolutionAsync("not-a-url", "project").Returns<Task<ResponseStatus>>(_ => throw error);
+
+        var act = () => Invoke(bind, "not-a-url project");
+
+        act.Should().Throw<InvalidOperationException>().WithMessage($"Bind failed: {error.Message}").WithInnerException<UriFormatException>();
+        logger.AssertPartialOutputStringExists($"[E2E] Bind failed: {error.Message}");
+    }
+
+    [TestMethod]
     public void Bind_Succeeds_CallsAutomationWithServerAndProjectKey()
     {
         automation.BindOpenSolutionAsync(ServerUrl, "project").Returns(new ResponseStatus(true));
