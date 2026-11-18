@@ -36,4 +36,9 @@ internal class RoslynSolutionWrapper : IRoslynSolutionWrapper
     public Solution RoslynSolution { get; }
 
     public IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree) => RoslynSolution.GetDocument(tree) is { } roslynDocument ? new RoslynDocumentWrapper(roslynDocument) : null;
+
+    public bool ContainsCompilableDocument(string filePath) =>
+        RoslynSolution.GetDocumentIdsWithFilePath(filePath)
+            .Select(RoslynSolution.GetDocument)
+            .Any(document => document?.FilePath != null && document.FilePath.Equals(filePath) && document.Project.SupportsCompilation);
 }

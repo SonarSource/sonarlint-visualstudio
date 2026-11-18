@@ -29,6 +29,12 @@ internal interface IRoslynSolutionWrapper
     Solution RoslynSolution { get; }
 
     IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree);
+
+    /// <summary>
+    /// Indexed lookup: whether a project that supports compilation contains a document with exactly this path
+    /// (the same comparison as <see cref="IRoslynProjectWrapper.ContainsDocument"/>).
+    /// </summary>
+    bool ContainsCompilableDocument(string filePath);
 }
 
 internal static class SolutionWrapperExtensions

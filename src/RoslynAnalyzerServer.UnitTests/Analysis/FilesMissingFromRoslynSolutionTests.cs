@@ -72,15 +72,14 @@ public class FilesMissingFromRoslynSolutionTests
     }
 
     [TestMethod]
-    public void RemoveFilesContainedIn_FileNowInAProject_RemovesOnlyThatFile()
+    public void RemoveFilesContainedIn_FileNowInTheSolution_RemovesOnlyThatFile()
     {
         testSubject.Add([File1, File2]);
-        var solution = CreateSolution(CreateProject(containing: File1));
 
-        testSubject.RemoveFilesContainedIn(solution).Should().BeTrue();
+        testSubject.RemoveFilesContainedIn(CreateSolution(containing: File1)).Should().BeTrue();
 
         testSubject.HasAny.Should().BeTrue();
-        testSubject.RemoveFilesContainedIn(CreateSolution(CreateProject(containing: File2))).Should().BeTrue();
+        testSubject.RemoveFilesContainedIn(CreateSolution(containing: File2)).Should().BeTrue();
         testSubject.HasAny.Should().BeFalse();
     }
 
@@ -89,48 +88,52 @@ public class FilesMissingFromRoslynSolutionTests
     {
         testSubject.Add([File1]);
 
-        testSubject.RemoveFilesContainedIn(CreateSolution(CreateProject(containing: File2))).Should().BeFalse();
+        testSubject.RemoveFilesContainedIn(CreateSolution(containing: File2)).Should().BeFalse();
 
         testSubject.HasAny.Should().BeTrue();
     }
 
     [TestMethod]
-    public void RemoveFilesContainedIn_FileOnlyInAProjectWithoutCompilation_KeepsIt()
+    public void Add_FileRetriedTheMaximumNumberOfTimes_IsNoLongerRecorded()
     {
+        var solution = CreateSolution(containing: File1);
+        for (var i = 0; i < FilesMissingFromRoslynSolution.MaxRetriesPerFile; i++)
+        {
+            testSubject.Add([File1]);
+            testSubject.RemoveFilesContainedIn(solution).Should().BeTrue();
+        }
+        var raised = 0;
+        testSubject.FilesAdded += (_, _) => raised++;
+
         testSubject.Add([File1]);
 
-        testSubject.RemoveFilesContainedIn(CreateSolution(CreateProject(containing: File1, supportsCompilation: false))).Should().BeFalse();
-
-        testSubject.HasAny.Should().BeTrue();
+        testSubject.HasAny.Should().BeFalse();
+        raised.Should().Be(0);
     }
 
     [TestMethod]
-    public void Clear_ForgetsAllFiles()
+    public void Clear_ForgetsFilesAndRetries()
     {
-        testSubject.Add([File1, File2]);
+        var solution = CreateSolution(containing: File1);
+        for (var i = 0; i < FilesMissingFromRoslynSolution.MaxRetriesPerFile; i++)
+        {
+            testSubject.Add([File1]);
+            testSubject.RemoveFilesContainedIn(solution);
+        }
+        testSubject.Add([File2]);
 
         testSubject.Clear();
 
         testSubject.HasAny.Should().BeFalse();
+        testSubject.Add([File1]);
+        testSubject.HasAny.Should().BeTrue();
     }
 
-    private static IRoslynSolutionWrapper CreateSolution(params IRoslynProjectWrapper[] projects)
+    private static IRoslynSolutionWrapper CreateSolution(string containing)
     {
         var solution = Substitute.For<IRoslynSolutionWrapper>();
-        solution.Projects.Returns(projects);
+        solution.ContainsCompilableDocument(Arg.Any<string>()).Returns(false);
+        solution.ContainsCompilableDocument(containing).Returns(true);
         return solution;
-    }
-
-    private static IRoslynProjectWrapper CreateProject(string containing, bool supportsCompilation = true)
-    {
-        var project = Substitute.For<IRoslynProjectWrapper>();
-        project.SupportsCompilation.Returns(supportsCompilation);
-        project.ContainsDocument(Arg.Any<string>(), out Arg.Any<IRoslynDocumentWrapper?>()).Returns(false);
-        project.ContainsDocument(containing, out Arg.Any<IRoslynDocumentWrapper?>()).Returns(x =>
-        {
-            x[1] = Substitute.For<IRoslynDocumentWrapper>();
-            return true;
-        });
-        return project;
     }
 }

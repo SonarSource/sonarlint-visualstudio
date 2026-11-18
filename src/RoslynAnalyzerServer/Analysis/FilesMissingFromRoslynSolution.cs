@@ -41,6 +41,7 @@ internal interface IFilesMissingFromRoslynSolution
     void Add(IEnumerable<string> filePaths);
 
     /// <summary>Forgets the files that <paramref name="solution"/> now contains, and returns whether there were any.</summary>
+    /// <remarks>Each file is retried at most a few times per solution, so a file that keeps being missed can't loop.</remarks>
     bool RemoveFilesContainedIn(IRoslynSolutionWrapper solution);
 
     void Clear();
@@ -50,7 +51,9 @@ internal interface IFilesMissingFromRoslynSolution
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class FilesMissingFromRoslynSolution : IFilesMissingFromRoslynSolution
 {
+    internal const int MaxRetriesPerFile = 3;
     private readonly ConcurrentDictionary<string, byte> filePaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, int> retries = new(StringComparer.OrdinalIgnoreCase);
 
     public event EventHandler? FilesAdded;
 
@@ -61,6 +64,10 @@ internal class FilesMissingFromRoslynSolution : IFilesMissingFromRoslynSolution
         var addedAny = false;
         foreach (var filePath in filePaths)
         {
+            if (retries.TryGetValue(filePath, out var count) && count >= MaxRetriesPerFile)
+            {
+                continue;
+            }
             addedAny |= this.filePaths.TryAdd(filePath, 0);
         }
         if (addedAny)
@@ -74,15 +81,18 @@ internal class FilesMissingFromRoslynSolution : IFilesMissingFromRoslynSolution
         var removedAny = false;
         foreach (var filePath in filePaths.Keys)
         {
-            // The same condition as the analysis uses to pick the file's projects.
-            if (solution.Projects.Any(project => project.SupportsCompilation && project.ContainsDocument(filePath, out _))
-                && filePaths.TryRemove(filePath, out _))
+            if (solution.ContainsCompilableDocument(filePath) && filePaths.TryRemove(filePath, out _))
             {
+                retries.AddOrUpdate(filePath, 1, (_, count) => count + 1);
                 removedAny = true;
             }
         }
         return removedAny;
     }
 
-    public void Clear() => filePaths.Clear();
+    public void Clear()
+    {
+        filePaths.Clear();
+        retries.Clear();
+    }
 }

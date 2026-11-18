@@ -36,6 +36,19 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
 {
+    // The changes through which a document can join a project, and so a file analyzed before its project loaded.
+    // Edits (DocumentChanged) are not among them.
+    private static readonly HashSet<WorkspaceChangeKind> ChangesThatCanAddDocuments =
+    [
+        WorkspaceChangeKind.DocumentAdded,
+        WorkspaceChangeKind.ProjectAdded,
+        WorkspaceChangeKind.ProjectChanged,
+        WorkspaceChangeKind.ProjectReloaded,
+        WorkspaceChangeKind.SolutionAdded,
+        WorkspaceChangeKind.SolutionChanged,
+        WorkspaceChangeKind.SolutionReloaded
+    ];
+
     private readonly ILogger quickFixApplicationLogger;
     private readonly ILogger analysisLogger;
     private readonly IFilesMissingFromRoslynSolution filesMissingFromSolution;
@@ -93,16 +106,16 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         }
 
         var isTrivial = workspaceChangeIndicator.IsChangeKindTrivial(e.Kind);
-        // A file analyzed before its project loaded can join the solution through any change, including a trivial
-        // DocumentAdded, so those are checked too while such files exist.
-        if (isTrivial && !filesMissingFromSolution.HasAny)
+        // A file analyzed before its project loaded can join through a trivial DocumentAdded too.
+        var checkMissingFiles = filesMissingFromSolution.HasAny && ChangesThatCanAddDocuments.Contains(e.Kind);
+        if (isTrivial && !checkMissingFiles)
         {
             return;
         }
 
         threadHandling.RunOnBackgroundThread(() =>
         {
-            if (RemoveMissingFilesContainedIn(e.NewSolution) || (!isTrivial && ChangedCritically(e)))
+            if ((checkMissingFiles && RemoveMissingFilesContainedIn(e.NewSolution)) || (!isTrivial && ChangedCritically(e)))
             {
                 analysisRequester.QueueAnalyzeOpenFiles();
             }
