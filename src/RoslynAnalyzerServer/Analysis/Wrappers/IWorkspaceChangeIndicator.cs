@@ -41,4 +41,19 @@ internal interface IWorkspaceChangeIndicator
     /// Checks if project changes are critical and require reanalysis
     /// </summary>
     bool ProjectChangedCritically(ProjectChanges changedProject);
+
+    /// <summary>
+    /// Checks if a change of this kind can add a file that an earlier analysis could not find in any project
+    /// (see <see cref="IFilesMissingFromRoslynSolution"/>). Edits never can.
+    /// </summary>
+    bool MayAddMissingFiles(WorkspaceChangeKind kind);
+
+    /// <summary>
+    /// Checks if files that an earlier analysis could not find are now in <paramref name="solution"/>, which
+    /// requires reanalysis. Those files are then no longer considered missing.
+    /// </summary>
+    bool MissingFilesJoined(IRoslynSolutionWrapper solution);
+
+    /// <summary>Called when the solution closes: files missing from it are no longer of interest.</summary>
+    void ForgetMissingFiles();
 }

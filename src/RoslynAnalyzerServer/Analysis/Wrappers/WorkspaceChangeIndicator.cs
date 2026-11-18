@@ -28,8 +28,21 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 [ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
 [Export(typeof(IWorkspaceChangeIndicator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class WorkspaceChangeIndicator : IWorkspaceChangeIndicator
+[method: ImportingConstructor]
+internal class WorkspaceChangeIndicator(IFilesMissingFromRoslynSolution filesMissingFromSolution) : IWorkspaceChangeIndicator
 {
+    // The changes through which a document can join a project. Edits (DocumentChanged) are not among them.
+    private static readonly HashSet<WorkspaceChangeKind> ChangesThatCanAddDocuments =
+    [
+        WorkspaceChangeKind.DocumentAdded,
+        WorkspaceChangeKind.ProjectAdded,
+        WorkspaceChangeKind.ProjectChanged,
+        WorkspaceChangeKind.ProjectReloaded,
+        WorkspaceChangeKind.SolutionAdded,
+        WorkspaceChangeKind.SolutionChanged,
+        WorkspaceChangeKind.SolutionReloaded
+    ];
+
     private readonly HashSet<WorkspaceChangeKind> trivialChanges =
     [
         // Currently changes in other files should not affect too many quickfixes
@@ -55,6 +68,12 @@ internal class WorkspaceChangeIndicator : IWorkspaceChangeIndicator
     ];
 
     public bool IsChangeKindTrivial(WorkspaceChangeKind kind) => trivialChanges.Contains(kind);
+
+    public bool MayAddMissingFiles(WorkspaceChangeKind kind) => filesMissingFromSolution.HasAny && ChangesThatCanAddDocuments.Contains(kind);
+
+    public bool MissingFilesJoined(IRoslynSolutionWrapper solution) => filesMissingFromSolution.HasAny && filesMissingFromSolution.RemoveFilesContainedIn(solution);
+
+    public void ForgetMissingFiles() => filesMissingFromSolution.Clear();
 
     public bool SolutionChangedCritically(SolutionChanges solutionChanges) =>
         solutionChanges.GetAddedProjects().Any() ||

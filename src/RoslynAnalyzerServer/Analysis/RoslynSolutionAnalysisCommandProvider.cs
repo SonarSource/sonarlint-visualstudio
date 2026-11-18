@@ -21,6 +21,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
@@ -31,6 +32,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 internal class RoslynSolutionAnalysisCommandProvider(
     IRoslynWorkspaceWrapper roslynWorkspaceWrapper,
     IFilesMissingFromRoslynSolution filesMissingFromSolution,
+    IAnalysisRequester analysisRequester,
     ILogger logger) : IRoslynSolutionAnalysisCommandProvider
 {
     private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
@@ -67,6 +69,13 @@ internal class RoslynSolutionAnalysisCommandProvider(
 
         // These files get no issues from this analysis; they are analyzed again once their project loads.
         filesMissingFromSolution.Add(missingFilePaths);
+        // Their project may have loaded after this analysis took its snapshot, in which case the workspace change
+        // came before the files were recorded and found nothing to check.
+        if (missingFilePaths.Count > 0 && filesMissingFromSolution.RemoveFilesContainedIn(roslynWorkspaceWrapper.GetCurrentSolution()))
+        {
+            logger.WriteLine(Resources.MissingFilesNowInSolution);
+            analysisRequester.QueueAnalyzeOpenFiles();
+        }
 
         return result;
     }

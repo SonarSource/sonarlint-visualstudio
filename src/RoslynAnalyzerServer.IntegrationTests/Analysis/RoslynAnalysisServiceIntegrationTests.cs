@@ -56,7 +56,7 @@ public class RoslynAnalysisServiceIntegrationTests
         sonarLintSettings.PragmaRuleSeverity.Returns(PragmaRuleSeverity.None);
 
         var pragmaSuppressionAnalysisConfigurationFactory = new PragmaSuppressionAnalysisConfigurationFactory(sonarLintSettings);
-        var analysisCommandProvider = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, new FilesMissingFromRoslynSolution(), logger);
+        var analysisCommandProvider = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, new FilesMissingFromRoslynSolution(), Substitute.For<IAnalysisRequester>(), logger);
 
         var quickFixFactory = Substitute.For<IRoslynQuickFixFactory>();
         quickFixFactory.CreateQuickFixesAsync(

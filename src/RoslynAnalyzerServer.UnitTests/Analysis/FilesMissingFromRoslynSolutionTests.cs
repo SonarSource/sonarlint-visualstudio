@@ -47,28 +47,20 @@ public class FilesMissingFromRoslynSolutionTests
     public void HasAny_Initially_IsFalse() => testSubject.HasAny.Should().BeFalse();
 
     [TestMethod]
-    public void Add_NewFiles_RecordsThemAndRaisesFilesAdded()
+    public void Add_NewFiles_RecordsThem()
     {
-        var raised = 0;
-        testSubject.FilesAdded += (_, _) => raised++;
-
         testSubject.Add([File1]);
 
         testSubject.HasAny.Should().BeTrue();
-        raised.Should().Be(1);
     }
 
     [TestMethod]
-    public void Add_NoFilesOrOnlyKnownFiles_DoesNotRaiseFilesAdded()
+    public void Add_SameFileWithDifferentCase_IsRecordedOnce()
     {
-        testSubject.Add([File1]);
-        var raised = 0;
-        testSubject.FilesAdded += (_, _) => raised++;
+        testSubject.Add([File1, File1.ToUpperInvariant()]);
 
-        testSubject.Add([]);
-        testSubject.Add([File1.ToUpperInvariant()]);
-
-        raised.Should().Be(0);
+        testSubject.RemoveFilesContainedIn(CreateSolution(containing: File1)).Should().BeTrue();
+        testSubject.HasAny.Should().BeFalse();
     }
 
     [TestMethod]
@@ -102,13 +94,10 @@ public class FilesMissingFromRoslynSolutionTests
             testSubject.Add([File1]);
             testSubject.RemoveFilesContainedIn(solution).Should().BeTrue();
         }
-        var raised = 0;
-        testSubject.FilesAdded += (_, _) => raised++;
 
         testSubject.Add([File1]);
 
         testSubject.HasAny.Should().BeFalse();
-        raised.Should().Be(0);
     }
 
     [TestMethod]

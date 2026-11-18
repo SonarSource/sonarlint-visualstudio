@@ -30,12 +30,6 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 /// </summary>
 internal interface IFilesMissingFromRoslynSolution
 {
-    /// <summary>
-    /// Raised after <see cref="Add"/> records new files. Their project may have loaded while they were being
-    /// analyzed, so listeners should check them against the current solution.
-    /// </summary>
-    event EventHandler? FilesAdded;
-
     bool HasAny { get; }
 
     void Add(IEnumerable<string> filePaths);
@@ -55,24 +49,16 @@ internal class FilesMissingFromRoslynSolution : IFilesMissingFromRoslynSolution
     private readonly ConcurrentDictionary<string, byte> filePaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, int> retries = new(StringComparer.OrdinalIgnoreCase);
 
-    public event EventHandler? FilesAdded;
-
     public bool HasAny => !filePaths.IsEmpty;
 
     public void Add(IEnumerable<string> filePaths)
     {
-        var addedAny = false;
         foreach (var filePath in filePaths)
         {
-            if (retries.TryGetValue(filePath, out var count) && count >= MaxRetriesPerFile)
+            if (!retries.TryGetValue(filePath, out var count) || count < MaxRetriesPerFile)
             {
-                continue;
+                this.filePaths.TryAdd(filePath, 0);
             }
-            addedAny |= this.filePaths.TryAdd(filePath, 0);
-        }
-        if (addedAny)
-        {
-            FilesAdded?.Invoke(this, EventArgs.Empty);
         }
     }
 

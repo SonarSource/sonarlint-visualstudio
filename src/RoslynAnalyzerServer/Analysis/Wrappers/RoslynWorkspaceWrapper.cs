@@ -36,22 +36,8 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
 {
-    // The changes through which a document can join a project, and so a file analyzed before its project loaded.
-    // Edits (DocumentChanged) are not among them.
-    private static readonly HashSet<WorkspaceChangeKind> ChangesThatCanAddDocuments =
-    [
-        WorkspaceChangeKind.DocumentAdded,
-        WorkspaceChangeKind.ProjectAdded,
-        WorkspaceChangeKind.ProjectChanged,
-        WorkspaceChangeKind.ProjectReloaded,
-        WorkspaceChangeKind.SolutionAdded,
-        WorkspaceChangeKind.SolutionChanged,
-        WorkspaceChangeKind.SolutionReloaded
-    ];
-
     private readonly ILogger quickFixApplicationLogger;
     private readonly ILogger analysisLogger;
-    private readonly IFilesMissingFromRoslynSolution filesMissingFromSolution;
     private readonly Workspace workspace;
     private readonly IAnalysisRequester analysisRequester;
     private readonly IThreadHandling threadHandling;
@@ -67,7 +53,6 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         IWorkspaceChangeIndicator workspaceChangeIndicator,
         ITreatWarningsAsErrorsCacheUpdater treatWarningsAsErrorsCacheUpdater,
         ITreatWarningsAsErrorsChangeIndicator treatWarningsAsErrorsChangeIndicator,
-        IFilesMissingFromRoslynSolution filesMissingFromSolution,
         IAnalysisRequester analysisRequester,
         ILogger logger,
         IThreadHandling threadHandling)
@@ -78,9 +63,7 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         this.workspaceChangeIndicator = workspaceChangeIndicator;
         this.treatWarningsAsErrorsCacheUpdater = treatWarningsAsErrorsCacheUpdater;
         this.treatWarningsAsErrorsChangeIndicator = treatWarningsAsErrorsChangeIndicator;
-        this.filesMissingFromSolution = filesMissingFromSolution;
         workspace.WorkspaceChanged += WorkspaceOnWorkspaceChanged;
-        filesMissingFromSolution.FilesAdded += OnMissingFilesAdded;
         quickFixApplicationLogger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynQuickFixLogContext);
         analysisLogger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext);
 
@@ -102,12 +85,12 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
 
         if (e.Kind is WorkspaceChangeKind.SolutionRemoved or WorkspaceChangeKind.SolutionCleared)
         {
-            filesMissingFromSolution.Clear();
+            workspaceChangeIndicator.ForgetMissingFiles();
         }
 
         var isTrivial = workspaceChangeIndicator.IsChangeKindTrivial(e.Kind);
         // A file analyzed before its project loaded can join through a trivial DocumentAdded too.
-        var checkMissingFiles = filesMissingFromSolution.HasAny && ChangesThatCanAddDocuments.Contains(e.Kind);
+        var checkMissingFiles = workspaceChangeIndicator.MayAddMissingFiles(e.Kind);
         if (isTrivial && !checkMissingFiles)
         {
             return;
@@ -115,30 +98,20 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
 
         threadHandling.RunOnBackgroundThread(() =>
         {
-            if ((checkMissingFiles && RemoveMissingFilesContainedIn(e.NewSolution)) || (!isTrivial && ChangedCritically(e)))
+            if ((checkMissingFiles && MissingFilesJoined(e.NewSolution)) || (!isTrivial && ChangedCritically(e)))
             {
                 analysisRequester.QueueAnalyzeOpenFiles();
             }
         }).Forget();
     }
 
-    // Closes the race where a missed file's project loads between the analysis's solution snapshot and Add.
-    private void OnMissingFilesAdded(object? sender, EventArgs e) =>
-        threadHandling.RunOnBackgroundThread(() =>
-        {
-            if (RemoveMissingFilesContainedIn(workspace.CurrentSolution))
-            {
-                analysisRequester.QueueAnalyzeOpenFiles();
-            }
-        }).Forget();
-
-    private bool RemoveMissingFilesContainedIn(Solution solution)
+    private bool MissingFilesJoined(Solution solution)
     {
-        if (!filesMissingFromSolution.HasAny || !filesMissingFromSolution.RemoveFilesContainedIn(new RoslynSolutionWrapper(solution)))
+        if (!workspaceChangeIndicator.MissingFilesJoined(new RoslynSolutionWrapper(solution)))
         {
             return false;
         }
-        analysisLogger.WriteLine(Resources.WorkspaceWrapper_MissingFilesNowInSolution);
+        analysisLogger.WriteLine(Resources.MissingFilesNowInSolution);
         return true;
     }
 
@@ -174,7 +147,6 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         }
 
         workspace.WorkspaceChanged -= WorkspaceOnWorkspaceChanged;
-        filesMissingFromSolution.FilesAdded -= OnMissingFilesAdded;
         disposed = true;
     }
 }

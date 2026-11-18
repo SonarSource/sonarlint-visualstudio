@@ -19,7 +19,9 @@
  */
 
 using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Wrappers;
 
@@ -47,5 +49,73 @@ public class WorkspaceChangeIndicatorTests
     [DataRow(WorkspaceChangeKind.ProjectRemoved, false)]
     [DataRow(WorkspaceChangeKind.ProjectChanged, false)]
     public void IsChangeKindTrivial_ReturnsExpectedResult(WorkspaceChangeKind kind, bool isTrivial) =>
-        new WorkspaceChangeIndicator().IsChangeKindTrivial(kind).Should().Be(isTrivial);
+        new WorkspaceChangeIndicator(Substitute.For<IFilesMissingFromRoslynSolution>()).IsChangeKindTrivial(kind).Should().Be(isTrivial);
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<WorkspaceChangeIndicator, IWorkspaceChangeIndicator>(
+            MefTestHelpers.CreateExport<IFilesMissingFromRoslynSolution>());
+
+    [TestMethod]
+    [DataRow(WorkspaceChangeKind.DocumentAdded, true)]
+    [DataRow(WorkspaceChangeKind.ProjectAdded, true)]
+    [DataRow(WorkspaceChangeKind.ProjectChanged, true)]
+    [DataRow(WorkspaceChangeKind.ProjectReloaded, true)]
+    [DataRow(WorkspaceChangeKind.SolutionAdded, true)]
+    [DataRow(WorkspaceChangeKind.SolutionChanged, true)]
+    [DataRow(WorkspaceChangeKind.SolutionReloaded, true)]
+    [DataRow(WorkspaceChangeKind.DocumentChanged, false)]
+    [DataRow(WorkspaceChangeKind.DocumentRemoved, false)]
+    [DataRow(WorkspaceChangeKind.ProjectRemoved, false)]
+    [DataRow(WorkspaceChangeKind.SolutionRemoved, false)]
+    public void MayAddMissingFiles_WithMissingFiles_DependsOnTheChangeKind(WorkspaceChangeKind kind, bool expected)
+    {
+        var missingFiles = Substitute.For<IFilesMissingFromRoslynSolution>();
+        missingFiles.HasAny.Returns(true);
+
+        new WorkspaceChangeIndicator(missingFiles).MayAddMissingFiles(kind).Should().Be(expected);
+    }
+
+    [TestMethod]
+    public void MayAddMissingFiles_NoMissingFiles_IsFalse()
+    {
+        var missingFiles = Substitute.For<IFilesMissingFromRoslynSolution>();
+        missingFiles.HasAny.Returns(false);
+
+        new WorkspaceChangeIndicator(missingFiles).MayAddMissingFiles(WorkspaceChangeKind.DocumentAdded).Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void MissingFilesJoined_ReturnsWhetherMissingFilesAreNowInTheSolution(bool joined)
+    {
+        var missingFiles = Substitute.For<IFilesMissingFromRoslynSolution>();
+        missingFiles.HasAny.Returns(true);
+        var solution = Substitute.For<IRoslynSolutionWrapper>();
+        missingFiles.RemoveFilesContainedIn(solution).Returns(joined);
+
+        new WorkspaceChangeIndicator(missingFiles).MissingFilesJoined(solution).Should().Be(joined);
+    }
+
+    [TestMethod]
+    public void MissingFilesJoined_NoMissingFiles_DoesNotLookThemUp()
+    {
+        var missingFiles = Substitute.For<IFilesMissingFromRoslynSolution>();
+        missingFiles.HasAny.Returns(false);
+
+        new WorkspaceChangeIndicator(missingFiles).MissingFilesJoined(Substitute.For<IRoslynSolutionWrapper>()).Should().BeFalse();
+
+        missingFiles.DidNotReceiveWithAnyArgs().RemoveFilesContainedIn(default!);
+    }
+
+    [TestMethod]
+    public void ForgetMissingFiles_ClearsThem()
+    {
+        var missingFiles = Substitute.For<IFilesMissingFromRoslynSolution>();
+
+        new WorkspaceChangeIndicator(missingFiles).ForgetMissingFiles();
+
+        missingFiles.Received(1).Clear();
+    }
 }

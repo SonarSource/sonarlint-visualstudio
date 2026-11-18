@@ -404,9 +404,9 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         /// <summary>
         ///   Looks up a localized string similar to Files analyzed before their project was loaded are now in the solution. Analyzing the open files again..
         /// </summary>
-        internal static string WorkspaceWrapper_MissingFilesNowInSolution {
+        internal static string MissingFilesNowInSolution {
             get {
-                return ResourceManager.GetString("WorkspaceWrapper_MissingFilesNowInSolution", resourceCulture);
+                return ResourceManager.GetString("MissingFilesNowInSolution", resourceCulture);
             }
         }
     }

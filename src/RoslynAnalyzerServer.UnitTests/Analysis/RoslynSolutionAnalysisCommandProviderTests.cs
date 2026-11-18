@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -44,6 +45,7 @@ public class RoslynSolutionAnalysisCommandProviderTests
     private TestLogger logger = null!;
     private IRoslynSolutionWrapper solutionWrapper = null!;
     private IFilesMissingFromRoslynSolution filesMissingFromSolution = null!;
+    private IAnalysisRequester analysisRequester = null!;
     private RoslynSolutionAnalysisCommandProvider testSubject = null!;
 
     [TestInitialize]
@@ -54,7 +56,8 @@ public class RoslynSolutionAnalysisCommandProviderTests
         solutionWrapper = Substitute.For<IRoslynSolutionWrapper>();
         workspaceWrapper.GetCurrentSolution().Returns(solutionWrapper);
         filesMissingFromSolution = Substitute.For<IFilesMissingFromRoslynSolution>();
-        testSubject = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, filesMissingFromSolution, logger);
+        analysisRequester = Substitute.For<IAnalysisRequester>();
+        testSubject = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, filesMissingFromSolution, analysisRequester, logger);
     }
 
     [TestMethod]
@@ -62,6 +65,7 @@ public class RoslynSolutionAnalysisCommandProviderTests
         MefTestHelpers.CheckTypeCanBeImported<RoslynSolutionAnalysisCommandProvider, IRoslynSolutionAnalysisCommandProvider>(
             MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>(),
             MefTestHelpers.CreateExport<IFilesMissingFromRoslynSolution>(),
+            MefTestHelpers.CreateExport<IAnalysisRequester>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
@@ -234,6 +238,34 @@ public class RoslynSolutionAnalysisCommandProviderTests
         testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs]);
 
         filesMissingFromSolution.Received(1).Add(Arg.Is<IEnumerable<string>>(x => !x.Any()));
+        filesMissingFromSolution.DidNotReceiveWithAnyArgs().RemoveFilesContainedIn(default!);
+        analysisRequester.DidNotReceive().QueueAnalyzeOpenFiles();
+    }
+
+    [TestMethod]
+    public void GetAnalysisCommandsForCurrentSolution_MissingFileJoinedDuringTheAnalysis_QueuesAnalysisOfOpenFiles()
+    {
+        solutionWrapper.Projects.Returns(new List<IRoslynProjectWrapper>());
+        var solutionAfterTheAnalysis = Substitute.For<IRoslynSolutionWrapper>();
+        workspaceWrapper.GetCurrentSolution().Returns(solutionWrapper, solutionAfterTheAnalysis);
+        filesMissingFromSolution.RemoveFilesContainedIn(solutionAfterTheAnalysis).Returns(true);
+
+        testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs]);
+
+        analysisRequester.Received(1).QueueAnalyzeOpenFiles();
+        logger.AssertPartialOutputStringExists(Resources.MissingFilesNowInSolution);
+    }
+
+    [TestMethod]
+    public void GetAnalysisCommandsForCurrentSolution_MissingFileStillMissing_DoesNotQueueAnalysis()
+    {
+        solutionWrapper.Projects.Returns(new List<IRoslynProjectWrapper>());
+        filesMissingFromSolution.RemoveFilesContainedIn(Arg.Any<IRoslynSolutionWrapper>()).Returns(false);
+
+        testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs]);
+
+        filesMissingFromSolution.Received(1).RemoveFilesContainedIn(solutionWrapper);
+        analysisRequester.DidNotReceive().QueueAnalyzeOpenFiles();
     }
 
     private static IRoslynProjectWrapper CreateProject(string projectName, bool supportsCompilation = true)
