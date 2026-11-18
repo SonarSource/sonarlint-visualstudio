@@ -63,12 +63,14 @@ public class SonarCloudRegionExtensionsTests
     public static IEnumerable<object[]> GetCoreToExpectedSlCoreRegion =>
     [
         [CloudServerRegion.Eu, SonarCloudRegion.EU],
-        [CloudServerRegion.Us, SonarCloudRegion.US]
+        [CloudServerRegion.Us, SonarCloudRegion.US],
+        [CloudServerRegion.Au, SonarCloudRegion.AU]
     ];
 
     public static IEnumerable<object[]> GetSlCoreToExpectedCoreRegion =>
     [
         [SonarCloudRegion.EU, CloudServerRegion.Eu],
-        [SonarCloudRegion.US, CloudServerRegion.Us]
+        [SonarCloudRegion.US, CloudServerRegion.Us],
+        [SonarCloudRegion.AU, CloudServerRegion.Au]
     ];
 }

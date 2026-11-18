@@ -75,6 +75,7 @@ public class ServerConnectionsProviderTests
     [TestMethod]
     [DataRow("eu", SonarCloudRegion.EU, "https://sonarcloud.io/organizations/org")]
     [DataRow("us", SonarCloudRegion.US, "https://sonarqube.us/organizations/org")]
+    [DataRow("au", SonarCloudRegion.AU, "https://sonarqube.au/organizations/org")]
     public void GetServerConnections_CorrectlyReturnsSonarCloudConnection(string regionName, SonarCloudRegion expectedRegion, string expectedId)
     {
         const string organizationKey = "org";

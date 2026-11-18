@@ -40,6 +40,27 @@ public class CloudServerRegionTests
     }
 
     [TestMethod]
+    public void AuRegion_ExpectedProperties()
+    {
+        CloudServerRegion.Au.Name.Should().Be("AU");
+        CloudServerRegion.Au.Url.Should().Be(new Uri("https://sonarqube.au/"));
+    }
+
+    [TestMethod]
+    [DataRow("Au")]
+    [DataRow("AU")]
+    [DataRow("aU")]
+    [DataRow("au")]
+    [DataRow("au  ")]
+    [DataRow("  au  ")]
+    public void GetRegionByName_AuName_ReturnsAuRegion(string name)
+    {
+        var result = CloudServerRegion.GetRegionByName(name);
+
+        result.Should().Be(CloudServerRegion.Au);
+    }
+
+    [TestMethod]
     [DataRow("Eu")]
     [DataRow("EU")]
     [DataRow("eU")]

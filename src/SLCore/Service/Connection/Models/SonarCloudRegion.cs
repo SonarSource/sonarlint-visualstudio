@@ -26,5 +26,5 @@ namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 [JsonConverter(typeof(StringEnumConverter))]
 public enum SonarCloudRegion
 {
-    EU, US
+    EU, US, AU
 }
