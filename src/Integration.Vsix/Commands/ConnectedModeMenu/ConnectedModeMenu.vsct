@@ -14,7 +14,7 @@
       </Button>
 
       <!-- Hidden commands for the end-to-end tests: no menu parent, invisible and disabled unless
-           SONARLINT_INTERNAL_E2E_COMMANDS=true (see ConnectedModeAutomationCommandBase). -->
+           SONARLINT_INTERNAL_E2E_COMMANDS=true in a /RootSuffix ExtensionE2E... instance (see ConnectedModeAutomationCommandBase). -->
       <Button guid="ConnectedModeMenuCmdSet" id="AddConnectionAutomationCommand">
         <CommandFlag>AllowParams</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>

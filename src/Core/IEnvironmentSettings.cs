@@ -43,7 +43,8 @@ namespace SonarLint.VisualStudio.Core
 
         /// <summary>
         /// Returns true if the hidden Connected Mode automation commands used by the end-to-end tests
-        /// are enabled for this process, otherwise false
+        /// are enabled for this process, otherwise false. They require both the environment variable
+        /// and an experimental instance started by the end-to-end tests (<c>/RootSuffix ExtensionE2E...</c>).
         /// </summary>
         bool AreConnectedModeAutomationCommandsEnabled();
 

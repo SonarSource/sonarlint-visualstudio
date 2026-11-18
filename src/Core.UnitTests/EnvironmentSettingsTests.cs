@@ -54,12 +54,42 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [DataRow("false", false)]
         [DataRow("1", false)]
         [DataRow("not a boolean", false)]
-        public void AreConnectedModeAutomationCommandsEnabled_CorrectlyMapped(string envVarValue, bool expected)
+        public void AreConnectedModeAutomationCommandsEnabled_InE2EInstance_FollowsTheEnvironmentVariable(string envVarValue, bool expected)
         {
             using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(EnvironmentSettings.ConnectedModeAutomationCommandsEnvVar, envVarValue);
-                new EnvironmentSettings().AreConnectedModeAutomationCommandsEnabled().Should().Be(expected);
+                new EnvironmentSettings(() => ["devenv.exe", "/RootSuffix", "ExtensionE2E1a2b3c4d", "/NoSplash"])
+                    .AreConnectedModeAutomationCommandsEnabled().Should().Be(expected);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("devenv.exe /RootSuffix ExtensionE2E1a2b3c4d /NoSplash", true)]
+        [DataRow("devenv.exe -rootsuffix ExtensionE2E", true)]
+        [DataRow("devenv.exe", false)]
+        [DataRow("devenv.exe /RootSuffix Exp", false)]
+        [DataRow("devenv.exe /RootSuffix extensione2e1a2b3c4d", false)]
+        [DataRow("devenv.exe /RootSuffix MyExtensionE2E", false)]
+        [DataRow("devenv.exe /RootSuffix", false)]
+        [DataRow("devenv.exe /Log ExtensionE2E", false)]
+        public void AreConnectedModeAutomationCommandsEnabled_VariableSet_RequiresAnE2ERootSuffix(string commandLine, bool expected)
+        {
+            using (var scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable(EnvironmentSettings.ConnectedModeAutomationCommandsEnvVar, "true");
+                new EnvironmentSettings(() => commandLine.Split(' ')).AreConnectedModeAutomationCommandsEnabled().Should().Be(expected);
+            }
+        }
+
+        [TestMethod]
+        public void AreConnectedModeAutomationCommandsEnabled_DefaultCtor_UsesTheProcessCommandLine()
+        {
+            using (var scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable(EnvironmentSettings.ConnectedModeAutomationCommandsEnvVar, "true");
+                // The test runner is not an E2E experimental instance.
+                new EnvironmentSettings().AreConnectedModeAutomationCommandsEnabled().Should().BeFalse();
             }
         }
 

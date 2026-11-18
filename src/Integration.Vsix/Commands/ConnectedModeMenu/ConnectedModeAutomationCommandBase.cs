@@ -26,7 +26,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
 
 /// <summary>
 /// Base for the hidden Connected Mode commands used by the end-to-end tests. They are in no menu, and they
-/// are unavailable unless the IDE process has SONARLINT_INTERNAL_E2E_COMMANDS=true.
+/// are unavailable unless the IDE process has SONARLINT_INTERNAL_E2E_COMMANDS=true and is an experimental instance started by
+/// the end-to-end tests (/RootSuffix ExtensionE2E...); see <see cref="IEnvironmentSettings.AreConnectedModeAutomationCommandsEnabled"/>.
 /// They take two space-separated arguments and run synchronously: the caller (DTE) returns only when the
 /// operation is done, and gets an error if it failed.
 /// </summary>
