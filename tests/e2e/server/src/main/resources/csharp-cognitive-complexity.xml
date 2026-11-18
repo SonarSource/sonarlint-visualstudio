@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Quality profile for the connected-mode E2E test, restored by ConnectedServer.
+     Only S3776 is active, with a threshold of 1 instead of the default 15, so the bound IDE reports
+     "...Cognitive Complexity from 3 to the 1 allowed." on the sample, and no standalone S1481. -->
+<profile>
+  <name>SonarQube for Visual Studio E2E C#</name>
+  <language>cs</language>
+  <rules>
+    <rule>
+      <repositoryKey>csharpsquid</repositoryKey>
+      <key>S3776</key>
+      <priority>CRITICAL</priority>
+      <parameters>
+        <parameter>
+          <key>threshold</key>
+          <value>1</value>
+        </parameter>
+      </parameters>
+    </rule>
+  </rules>
+</profile>

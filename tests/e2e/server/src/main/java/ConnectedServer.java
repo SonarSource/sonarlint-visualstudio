@@ -20,13 +20,23 @@
 
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.junit5.OrchestratorExtension;
+import com.sonar.orchestrator.locator.FileLocation;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 
-/** Starts a disposable real server on loopback; never exports credentials as evidence. */
+/**
+ * Starts a disposable real server on loopback with the connected-mode test's project and quality profile;
+ * never exports credentials as evidence.
+ */
 public final class ConnectedServer {
+  // The server serves a single test run, so a fixed project is enough.
+  private static final String PROJECT_KEY = "slvs-connected-mode-e2e";
+  // Must match the <name> in the profile file.
+  private static final String PROFILE_NAME = "SonarQube for Visual Studio E2E C#";
+  private static final String PROFILE_FILE = "/csharp-cognitive-complexity.xml";
+
   public static void main(String[] args) throws Exception {
     Path privateDirectory = Path.of(args[0]);
     Files.createDirectories(privateDirectory);
@@ -44,9 +54,14 @@ public final class ConnectedServer {
     Runtime.getRuntime().addShutdownHook(new Thread(stop));
     try {
       server.start();
+      var sonarQube = server.getServer();
+      sonarQube.provisionProject(PROJECT_KEY, PROJECT_KEY);
+      sonarQube.restoreProfile(FileLocation.ofClasspath(PROFILE_FILE));
+      sonarQube.associateProjectToQualityProfile(PROJECT_KEY, "cs", PROFILE_NAME);
       // getAppLogs() is <home>/logs/sonar.log; export its directory so web/ce/es logs are found too.
-      String logs = server.getServer().getAppLogs().getParentFile().getAbsolutePath();
-      String info = "{\"url\":\"" + server.getServer().getUrl() + "\",\"token\":\"" + server.getDefaultAdminToken()
+      String logs = sonarQube.getAppLogs().getParentFile().getAbsolutePath();
+      String info = "{\"url\":\"" + sonarQube.getUrl() + "\",\"token\":\"" + server.getDefaultAdminToken()
+        + "\",\"projectKey\":\"" + PROJECT_KEY
         + "\",\"logs\":\"" + logs.replace("\\", "\\\\") + "\"}";
       // Publish atomically: the launcher script treats the file's existence as readiness.
       Path pending = privateDirectory.resolve("server.json.tmp");

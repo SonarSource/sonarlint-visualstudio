@@ -36,6 +36,10 @@ namespace SonarLint.VisualStudio.E2E
         private const int NestedBranchesLine = 7;
         private const int MethodLine = 3;
 
+        // What the server's quality profile (server/src/main/resources/csharp-cognitive-complexity.xml,
+        // S3776 with threshold 1) raises on Run(); the default threshold of 15 would raise nothing.
+        private const string ServerFinding = "Refactor this method to reduce its Cognitive Complexity from 3 to the 1 allowed.";
+
         // The extension's hidden E2E commands (ConnectedModeMenu.vsct), enabled by VisualStudioSession.
         private const string ConnectedModeCommandSet = "{E5D50D82-248A-4300-A2B2-B640FCC4D4FD}";
         private const int AddConnectionCommandId = 0x103;
@@ -51,7 +55,6 @@ namespace SonarLint.VisualStudio.E2E
             // Started first so a server problem fails before any IDE work, and disposed last.
             using var sonarQube = new SonarQubeServer(Path.Combine(settings.ResultsDirectory, "server-diagnostics"));
             using var ide = new VisualStudioSession(settings, TestContext);
-            using var server = new ConnectedServerFixture(sonarQube, settings.ResultsDirectory);
             try
             {
                 ide.InstallAndLaunch();
@@ -61,7 +64,7 @@ namespace SonarLint.VisualStudio.E2E
                 File.Move(Path.Combine(fixture, "Sample.sln"), solution);
                 ide.OpenSolution(solution, Path.Combine(fixture, "Sample.cs"));
                 var unused = AnyUnusedVariable(ide.DocumentPath);
-                var serverFinding = SampleFindings.WithMessage(ide.DocumentPath, ConnectedServerFixture.ExpectedFinding);
+                var serverFinding = SampleFindings.WithMessage(ide.DocumentPath, ServerFinding);
 
                 // Before binding: the default rules raise both S1481 findings and no S3776.
                 var standalone = ide.WaitForErrorList("standalone-analysis",
@@ -71,7 +74,7 @@ namespace SonarLint.VisualStudio.E2E
                 // Bind like a user does: create the connection with a token, then bind the open solution.
                 var serverUrl = sonarQube.Url.AbsoluteUri;
                 ide.RunCommand("add-connection", ConnectedModeCommandSet, AddConnectionCommandId, $"{serverUrl} {sonarQube.Token}");
-                ide.RunCommand("bind", ConnectedModeCommandSet, BindCommandId, $"{serverUrl} {server.ProjectKey}");
+                ide.RunCommand("bind", ConnectedModeCommandSet, BindCommandId, $"{serverUrl} {sonarQube.ProjectKey}");
 
                 // Bound: the server profile enables only S3776 with threshold 1 and disables S1481.
                 var bound = ide.WaitForErrorList("server-profile-applied",
@@ -89,7 +92,6 @@ namespace SonarLint.VisualStudio.E2E
                     rows => !rows.Any(serverFinding) && !rows.Any(unused),
                     TimeSpan.FromSeconds(5));
                 ide.SaveErrorList("after-connected-edit.json", after);
-                server.SaveEvidence();
                 ide.MarkPassed();
             }
             catch (Exception exception)

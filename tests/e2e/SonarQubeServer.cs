@@ -47,6 +47,9 @@ namespace SonarLint.VisualStudio.E2E
         public Uri Url { get; }
         public string Token { get; }
 
+        /// <summary>The project the launcher created, with the E2E quality profile assigned.</summary>
+        public string ProjectKey { get; }
+
         public SonarQubeServer(string diagnosticsDirectory)
         {
             this.diagnosticsDirectory = diagnosticsDirectory;
@@ -88,6 +91,7 @@ namespace SonarLint.VisualStudio.E2E
                 var info = WaitForServerInfo();
                 Url = new Uri((string)info["url"]);
                 Token = (string)info["token"] ?? throw new InvalidDataException("The launcher did not provide a token.");
+                ProjectKey = (string)info["projectKey"] ?? throw new InvalidDataException("The launcher did not provide a project key.");
                 logsDirectory = (string)info["logs"];
                 AddSecrets(Token, Base64(Token + ":"));
             }

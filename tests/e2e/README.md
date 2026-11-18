@@ -46,8 +46,10 @@ The test starts a disposable SonarQube Community Build 25.11 on loopback, using 
 6.4.4.4797, JDK 21). `SonarQubeServer` starts the launcher the same way the product
 starts SLCore (`java -classpath … MainClass`) and stops it when the test ends.
 
-1. **Server fixture:** a unique project and C# quality profile that activates only
-   `csharpsquid:S3776` with `threshold=1`. The profile is queried to confirm S1481 is off.
+1. **Server setup:** the launcher creates a project and restores the C# quality profile
+   [`csharp-cognitive-complexity.xml`](server/src/main/resources/csharp-cognitive-complexity.xml)
+   for it, with Orchestrator's helpers, as sonarlint-core's ITs do. The profile activates only
+   `csharpsquid:S3776`, with `threshold=1`; S1481 is off. Change the rules there, not in code.
 2. **Before binding:** the `Fixture/ConnectedMode` sample (the standalone sample plus
    two nested `if`s) shows both S1481 findings and no S3776 finding.
 3. **Binding:** the test runs the extension's hidden E2E commands through DTE. One adds
@@ -127,8 +129,7 @@ report plus `run-1/evidence`, including:
 - IDE activity, installer, cache/configuration and MEF diagnostic logs.
 
 The connected-mode job uploads `extension-e2e-connected-vs<expected-IDE-build>`, with
-the same session evidence under `evidence`, the server's assigned profile, and redacted
-logs in `evidence/server-diagnostics`.
+the same session evidence under `evidence`, and redacted logs in `evidence/server-diagnostics`.
 
 TRX attachments may duplicate canonical evidence. Installer success alone does
 not prove deployment into the intended profile; manifest verification must pass
@@ -181,8 +182,8 @@ Use a new results directory for every execution.
   holds the connected-mode test's source variant.
 - `ConnectedModeE2ETests.cs`: the connected-mode scenario.
 - `SonarQubeServer.cs`: starts and stops the launcher, and exports redacted server logs.
-- `ConnectedServerFixture.cs`: the server project and quality profile.
-- `server/`: the Orchestrator launcher (`pom.xml`, `ConnectedServer.java`) and the Maven
+- `server/`: the Orchestrator launcher (`pom.xml`, `ConnectedServer.java`), which also creates
+  the test's project and restores its quality profile (`src/main/resources`), and the Maven
   settings, which read the repox credentials from the environment.
 
 The VSIX installer targets the discovered instance and unique profile. No loose
