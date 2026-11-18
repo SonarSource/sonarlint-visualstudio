@@ -100,7 +100,7 @@ jobs:
           dotnet restore "SonarQube.VisualStudio.sln" --locked-mode
           msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=false -p:DeployExtension=false -p:AsmRefUpdateBaseline=true -p:Configuration=Release
 
-      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      - uses: step-security/create-pull-request@50c103da2b9ca12cd5bc013fc6931051a5aa872b # v8.1.1
         with:
           commit-message: Bump version to ${{ steps.next-version.outputs.full-version }}
           title: Bump version to ${{ steps.next-version.outputs.full-version }}
