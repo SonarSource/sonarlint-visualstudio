@@ -262,9 +262,10 @@ namespace SonarLint.VisualStudio.E2E
                 var codeModel = dte.Solution.FindProjectItem(documentPath)?.FileCodeModel;
                 return codeModel != null && codeModel.CodeElements.Count > 0;
             }
-            catch (COMException)
+            catch (COMException exception) when (exception.HResult != RpcCallRejected && exception.HResult != RpcServerCallRetryLater)
             {
-                // Not available yet while the project loads.
+                // The code model is not available yet while the project loads. Busy errors go to WaitUntil, which retries them
+                // and reports the last one if it times out.
                 return false;
             }
         }
