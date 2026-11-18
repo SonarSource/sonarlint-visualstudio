@@ -67,6 +67,7 @@ internal class RoslynSolutionAnalysisCommandProvider(
             logger.WriteLine(Resources.AnalysisCommandProvider_NoProjects);
         }
 
+        filesMissingFromSolution.MarkFound(filePaths.Where(filePath => !missingFilePaths.Contains(filePath)));
         // These files get no issues from this analysis; they are analyzed again once their project loads.
         filesMissingFromSolution.Add(missingFilePaths);
         // Their project may have loaded after this analysis took its snapshot, in which case the workspace change

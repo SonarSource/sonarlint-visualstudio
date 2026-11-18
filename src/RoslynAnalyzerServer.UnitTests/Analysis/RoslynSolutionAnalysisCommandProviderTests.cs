@@ -211,6 +211,7 @@ public class RoslynSolutionAnalysisCommandProviderTests
         testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs, File2Cs]);
 
         filesMissingFromSolution.Received(1).Add(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[] { File1Cs, File2Cs })));
+        filesMissingFromSolution.Received(1).MarkFound(Arg.Is<IEnumerable<string>>(x => !x.Any()));
     }
 
     [TestMethod]
@@ -226,6 +227,7 @@ public class RoslynSolutionAnalysisCommandProviderTests
         testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs, File2Cs]);
 
         filesMissingFromSolution.Received(1).Add(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[] { File2Cs })));
+        filesMissingFromSolution.Received(1).MarkFound(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[] { File1Cs })));
     }
 
     [TestMethod]
@@ -238,6 +240,7 @@ public class RoslynSolutionAnalysisCommandProviderTests
         testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs]);
 
         filesMissingFromSolution.Received(1).Add(Arg.Is<IEnumerable<string>>(x => !x.Any()));
+        filesMissingFromSolution.Received(1).MarkFound(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[] { File1Cs })));
         filesMissingFromSolution.DidNotReceiveWithAnyArgs().RemoveFilesContainedIn(default!);
         analysisRequester.DidNotReceive().QueueAnalyzeOpenFiles();
     }

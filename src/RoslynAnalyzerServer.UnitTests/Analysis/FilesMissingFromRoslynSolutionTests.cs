@@ -101,6 +101,33 @@ public class FilesMissingFromRoslynSolutionTests
     }
 
     [TestMethod]
+    public void MarkFound_FileOutOfRetries_StartsItsBudgetOver()
+    {
+        var solution = CreateSolution(containing: File1);
+        for (var i = 0; i < FilesMissingFromRoslynSolution.MaxRetriesPerFile; i++)
+        {
+            testSubject.Add([File1]);
+            testSubject.RemoveFilesContainedIn(solution);
+        }
+
+        testSubject.MarkFound([File1]);
+        testSubject.Add([File1]);
+
+        testSubject.HasAny.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void MarkFound_MissingFile_IsNoLongerMissing()
+    {
+        testSubject.Add([File1, File2]);
+
+        testSubject.MarkFound([File1.ToUpperInvariant()]);
+
+        testSubject.RemoveFilesContainedIn(CreateSolution(containing: File1)).Should().BeFalse();
+        testSubject.HasAny.Should().BeTrue();
+    }
+
+    [TestMethod]
     public void Clear_ForgetsFilesAndRetries()
     {
         var solution = CreateSolution(containing: File1);

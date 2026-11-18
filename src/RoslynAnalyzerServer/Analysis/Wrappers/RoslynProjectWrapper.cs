@@ -57,6 +57,15 @@ internal class RoslynProjectWrapper(Project project, IRoslynSolutionWrapper solu
 
     }
 
+    /// <summary>
+    /// Whether <see cref="ContainsDocument"/> may find this file through a generated document with another path
+    /// (Razor views), which an exact-path lookup can't see.
+    /// </summary>
+    internal static bool CanBeFoundThroughGeneratedDocument(string filePath) =>
+        filePath.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase)
+        || filePath.EndsWith(".vbhtml", StringComparison.OrdinalIgnoreCase)
+        || filePath.EndsWith(".razor", StringComparison.OrdinalIgnoreCase);
+
     // cshtml razor files are converted into .\file.cshtml.<random chars>.g.cs OR .\file.vbhtml.<random chars>.g.vb files when included in the compilation
     private static bool IsAssociatedGeneratedFile(string razorFilePath, string candidateDocumentPath) =>
         candidateDocumentPath.StartsWith(razorFilePath) && (candidateDocumentPath.EndsWith(".g.cs") || candidateDocumentPath.EndsWith(".g.vb"));

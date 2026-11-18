@@ -34,8 +34,17 @@ internal interface IFilesMissingFromRoslynSolution
 
     void Add(IEnumerable<string> filePaths);
 
+    /// <summary>
+    /// Records that an analysis found these files in a project: they are no longer missing, and their retry
+    /// budget starts over for the next time they go missing.
+    /// </summary>
+    void MarkFound(IEnumerable<string> filePaths);
+
     /// <summary>Forgets the files that <paramref name="solution"/> now contains, and returns whether there were any.</summary>
-    /// <remarks>Each file is retried at most a few times per solution, so a file that keeps being missed can't loop.</remarks>
+    /// <remarks>
+    /// A file is retried at most a few times until an analysis finds it, so a file that this lookup sees but the
+    /// analysis keeps missing can't loop.
+    /// </remarks>
     bool RemoveFilesContainedIn(IRoslynSolutionWrapper solution);
 
     void Clear();
@@ -59,6 +68,15 @@ internal class FilesMissingFromRoslynSolution : IFilesMissingFromRoslynSolution
             {
                 this.filePaths.TryAdd(filePath, 0);
             }
+        }
+    }
+
+    public void MarkFound(IEnumerable<string> filePaths)
+    {
+        foreach (var filePath in filePaths)
+        {
+            this.filePaths.TryRemove(filePath, out _);
+            retries.TryRemove(filePath, out _);
         }
     }
 
