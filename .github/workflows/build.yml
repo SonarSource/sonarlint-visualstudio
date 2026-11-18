@@ -31,8 +31,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      actions: read
     uses: ./.github/workflows/extension-e2e.yml
+    with:
+      project-version: ${{ needs.build.outputs.project-version }}
 
   build:
     runs-on: warp-custom-sonarlint-visualstudio
@@ -40,6 +41,7 @@ jobs:
     environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release-ready-build' || '' }}
     outputs:
       extension-e2e-changed: ${{ steps.extension-e2e-changes.outputs.changed }}
+      project-version: ${{ steps.prepare.outputs.project-version }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -138,6 +140,7 @@ jobs:
           fi
 
       - name: Prepare Build
+        id: prepare
         shell: bash
         env:
           ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
@@ -148,6 +151,7 @@ jobs:
           PROJECT_VERSION="${sonarProjectVersion}.${BUILD_NUMBER}"
           PROJECT_VERSION_WITHOUT_BUILD_NUMBER="${sonarProjectVersion}"
           echo "PROJECT_VERSION=${PROJECT_VERSION}" >> $GITHUB_ENV
+          echo "project-version=${PROJECT_VERSION}" >> "$GITHUB_OUTPUT"
           echo "PROJECT_VERSION_WITHOUT_BUILD_NUMBER=${PROJECT_VERSION_WITHOUT_BUILD_NUMBER}" >> $GITHUB_ENV
           echo "PROJECT_VERSION: ${PROJECT_VERSION}"
           echo "PROJECT_VERSION_WITHOUT_BUILD_NUMBER: $PROJECT_VERSION_WITHOUT_BUILD_NUMBER"
