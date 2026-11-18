@@ -240,12 +240,33 @@ namespace SonarLint.VisualStudio.E2E
                 if (!dte.Solution.IsOpen) { dte.Solution.Open(solutionPath); }
                 return dte.Solution.IsOpen;
             });
+            // Stopgap for SLVS-3127: a file analyzed before Roslyn has its project gets no issues until it is
+            // edited. Open the document only once Roslyn knows it, so the extension's first analysis finds it.
+            WaitUntil("the document's project to load", () => IsKnownToRoslyn(DocumentPath));
             WaitUntil("the document to open", () =>
             {
                 dte.ItemOperations.OpenFile(DocumentPath);
                 return dte.ActiveDocument?.FullName == DocumentPath;
             });
             dte.ExecuteCommand("View.ErrorList");
+        }
+
+        /// <summary>
+        /// True once Visual Studio has a code model with elements for the file. For C# it comes from Roslyn's own
+        /// project, so the file is then part of the solution the extension analyzes.
+        /// </summary>
+        private bool IsKnownToRoslyn(string documentPath)
+        {
+            try
+            {
+                var codeModel = dte.Solution.FindProjectItem(documentPath)?.FileCodeModel;
+                return codeModel != null && codeModel.CodeElements.Count > 0;
+            }
+            catch (COMException)
+            {
+                // Not available yet while the project loads.
+                return false;
+            }
         }
 
         /// <summary>Waits until a snapshot of the real Error List satisfies <paramref name="condition"/> and returns it.</summary>
