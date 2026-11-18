@@ -31,10 +31,13 @@ internal interface IRoslynSolutionWrapper
     IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree);
 
     /// <summary>
-    /// Whether a project that supports compilation contains this file, matched as
-    /// <see cref="IRoslynProjectWrapper.ContainsDocument"/> does: an indexed exact-path lookup, plus the generated
-    /// documents of Razor views.
+    /// Indexed lookup: whether a project that supports compilation contains a document with exactly this path
+    /// (the same comparison as <see cref="IRoslynProjectWrapper.ContainsDocument"/>).
     /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="IRoslynProjectWrapper.ContainsDocument"/>, it doesn't find Razor views through their
+    /// generated documents: that would need a scan of every document, too slow for how often it runs.
+    /// </remarks>
     bool ContainsCompilableDocument(string filePath);
 }
 

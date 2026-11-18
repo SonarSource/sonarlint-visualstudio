@@ -40,8 +40,5 @@ internal class RoslynSolutionWrapper : IRoslynSolutionWrapper
     public bool ContainsCompilableDocument(string filePath) =>
         RoslynSolution.GetDocumentIdsWithFilePath(filePath)
             .Select(RoslynSolution.GetDocument)
-            .Any(document => document?.FilePath != null && document.FilePath.Equals(filePath) && document.Project.SupportsCompilation)
-        // Razor views are analyzed through their generated document, whose path differs: use the analysis's own matching.
-        || (RoslynProjectWrapper.CanBeFoundThroughGeneratedDocument(filePath)
-            && Projects.Any(project => project.SupportsCompilation && project.ContainsDocument(filePath, out _)));
+            .Any(document => document?.FilePath != null && document.FilePath.Equals(filePath) && document.Project.SupportsCompilation);
 }
