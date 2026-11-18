@@ -21,10 +21,12 @@
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.ConnectedMode.Automation;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -63,6 +65,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IList<CommandID> missingCommands = allCommands.Except(menuService.Commands.Select(x => x.Key)).ToList();
             IEnumerable<string> missingCommandNames = missingCommands.Select(x => Enum.GetName(typeof(PackageCommandId), x));
             (!missingCommands.Any()).Should().BeTrue($"Missing commands: {string.Join(", ", missingCommandNames)}");
+        }
+
+        [TestMethod]
+        [DataRow(AddConnectionAutomationCommand.Id)]
+        [DataRow(BindAutomationCommand.Id)]
+        public async Task PackageCommandManager_InitializeAsync_RegistersAutomationCommandsThatTakeArguments(int commandId)
+        {
+            var testSubject = CreateTestSubject(out var menuService);
+
+            await testSubject.InitializeAsync(GetMockedServiceProvider(), Substitute.For<PackageCommandManager.ShowOptionsPage>());
+
+            var command = menuService.Commands[new CommandID(new Guid(CommonGuids.ConnectedModeMenuCommandSet), commandId)];
+            command.Should().BeOfType<OleMenuCommand>().Which.ParametersDescription.Should().Be("$");
         }
 
         [TestMethod]
@@ -124,6 +139,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             componentModel.GetExtensions<IShowInBrowserService>().Returns([Substitute.For<IShowInBrowserService>()]);
             componentModel.GetExtensions<IOutputWindowService>().Returns([Substitute.For<IOutputWindowService>()]);
             componentModel.GetExtensions<IProjectPropertyManager>().Returns([Substitute.For<IProjectPropertyManager>()]);
+            componentModel.GetExtensions<IConnectedModeAutomation>().Returns([Substitute.For<IConnectedModeAutomation>()]);
+            componentModel.GetExtensions<IThreadHandling>().Returns([Substitute.For<IThreadHandling>()]);
+            componentModel.GetExtensions<ILogger>().Returns([Substitute.For<ILogger>()]);
             return serviceProvider;
         }
     }

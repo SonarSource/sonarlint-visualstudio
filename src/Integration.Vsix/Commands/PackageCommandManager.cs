@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.ConnectedMode.Automation;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -51,6 +52,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var outputWindowService = await asyncServiceProvider.GetMefServiceAsync<IOutputWindowService>();
             var projectPropertyManager = await asyncServiceProvider.GetMefServiceAsync<IProjectPropertyManager>();
             var supportedLanguagesWindowService = await asyncServiceProvider.GetMefServiceAsync<ISupportedLanguagesWindowService>();
+            var connectedModeAutomation = await asyncServiceProvider.GetMefServiceAsync<IConnectedModeAutomation>();
+            var threadHandling = await asyncServiceProvider.GetMefServiceAsync<IThreadHandling>();
+            var logger = await asyncServiceProvider.GetMefServiceAsync<ILogger>();
+            var environmentSettings = new EnvironmentSettings();
 
             RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager));
             RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, null));
@@ -73,6 +78,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Connected mode buttons
             RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(activeSolutionBoundTracker, connectedModeManager));
+
+            // Hidden end-to-end test commands; "$" passes everything after the command name as the argument
+            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, AddConnectionAutomationCommand.Id,
+                new AddConnectionAutomationCommand(connectedModeAutomation, environmentSettings, threadHandling, logger)).ParametersDescription = "$";
+            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, BindAutomationCommand.Id,
+                new BindAutomationCommand(connectedModeAutomation, environmentSettings, threadHandling, logger)).ParametersDescription = "$";
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)

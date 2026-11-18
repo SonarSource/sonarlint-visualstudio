@@ -27,6 +27,25 @@ namespace SonarLint.VisualStudio.Core
         internal const string TreatBlockerAsErrorEnvVar = "SONAR_INTERNAL_TREAT_BLOCKER_AS_ERROR";
         internal const string AnalysisTimeoutEnvVar = "SONARLINT_INTERNAL_ANALYSIS_TIMEOUT_MS";
         internal const string PchGenerationTimeoutEnvVar = "SONARLINT_INTERNAL_PCH_GENERATION_TIMEOUT_MS";
+        internal const string ConnectedModeAutomationCommandsEnvVar = "SONARLINT_INTERNAL_E2E_COMMANDS";
+        internal const string TelemetryDisabledEnvVar = "SONARLINT_INTERNAL_TELEMETRY_DISABLED";
+
+        /// <summary>
+        /// The end-to-end tests start each Visual Studio instance with <c>/RootSuffix ExtensionE2E&lt;id&gt;</c>, an isolated
+        /// experimental instance. The automation commands are only enabled in such an instance.
+        /// </summary>
+        internal const string ConnectedModeAutomationRootSuffixPrefix = "ExtensionE2E";
+
+        private readonly Func<string[]> getCommandLineArgs;
+
+        public EnvironmentSettings() : this(Environment.GetCommandLineArgs)
+        {
+        }
+
+        internal /* for testing */ EnvironmentSettings(Func<string[]> getCommandLineArgs)
+        {
+            this.getCommandLineArgs = getCommandLineArgs;
+        }
 
         public bool TreatBlockerSeverityAsError()
             => ParseBool(TreatBlockerAsErrorEnvVar);
@@ -39,6 +58,29 @@ namespace SonarLint.VisualStudio.Core
             var userValue = ParseInt(Environment.GetEnvironmentVariable(PchGenerationTimeoutEnvVar));
 
             return userValue > 0 ? userValue : defaultValue;
+        }
+
+        public bool AreConnectedModeAutomationCommandsEnabled()
+            => ParseBool(ConnectedModeAutomationCommandsEnvVar) && IsRootSuffix(ConnectedModeAutomationRootSuffixPrefix);
+
+        public bool IsTelemetryDisabled()
+            => ParseBool(TelemetryDisabledEnvVar);
+
+        /// <summary>
+        /// True if the process was started with <c>/RootSuffix</c> (or <c>-RootSuffix</c>) followed by a value starting with <paramref name="prefix"/>.
+        /// </summary>
+        private bool IsRootSuffix(string prefix)
+        {
+            var args = getCommandLineArgs() ?? Array.Empty<string>();
+            for (var i = 0; i < args.Length - 1; i++)
+            {
+                if (string.Equals(args[i], "/RootSuffix", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(args[i], "-RootSuffix", StringComparison.OrdinalIgnoreCase))
+                {
+                    return args[i + 1].StartsWith(prefix, StringComparison.Ordinal);
+                }
+            }
+            return false;
         }
 
         private static int ParseInt(string setting)

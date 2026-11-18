@@ -12,12 +12,35 @@
           <ButtonText>Connected Mode: Bind to SonarQube (Server, Cloud)...</ButtonText>
         </Strings>
       </Button>
+
+      <!-- Hidden commands for the end-to-end tests: no menu parent, invisible and disabled unless
+           SONARLINT_INTERNAL_E2E_COMMANDS=true in a /RootSuffix ExtensionE2E... instance (see ConnectedModeAutomationCommandBase). -->
+      <Button guid="ConnectedModeMenuCmdSet" id="AddConnectionAutomationCommand">
+        <CommandFlag>AllowParams</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>SonarQube E2E: Add Connection</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="ConnectedModeMenuCmdSet" id="BindAutomationCommand">
+        <CommandFlag>AllowParams</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>SonarQube E2E: Bind</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
   </Commands>
 
   <Symbols>
     <GuidSymbol name="ConnectedModeMenuCmdSet" value="{E5D50D82-248A-4300-A2B2-B640FCC4D4FD}">
       <IDSymbol name="ManageServerConnectionsCommand" value="0x102" />
+      <IDSymbol name="AddConnectionAutomationCommand" value="0x103" />
+      <IDSymbol name="BindAutomationCommand" value="0x104" />
     </GuidSymbol>
 
     <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
