@@ -186,5 +186,6 @@ Use a new results directory for every execution.
   the test's project and restores its quality profile (`src/main/resources`), and the Maven
   settings, which read the repox credentials from the environment.
 
-The VSIX installer targets the discovered instance and unique profile. No loose
+The VSIX installer targets the discovered instance (VS 17.0 by application path and SKU,
+because its installer ignores `/rootSuffix` with `/instanceIds`) and unique profile. No loose
 extension binaries or analysis responses are injected.
