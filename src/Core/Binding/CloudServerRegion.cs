@@ -24,9 +24,11 @@ public sealed class CloudServerRegion
 {
     public const string EuRegionName = "EU";
     public const string UsRegionName = "US";
+    public const string AuRegionName = "AU";
 
     public static readonly CloudServerRegion Eu = new(EuRegionName, new("https://sonarcloud.io/"));
     public static readonly CloudServerRegion Us = new(UsRegionName, new("https://sonarqube.us/"));
+    public static readonly CloudServerRegion Au = new(AuRegionName, new("https://sonarqube.au/"));
 
     private CloudServerRegion(string name, Uri url)
     {
@@ -50,6 +52,7 @@ public sealed class CloudServerRegion
         {
             EuRegionName => Eu,
             UsRegionName => Us,
+            AuRegionName => Au,
             null or "" => Eu,
             _ => throw new ArgumentOutOfRangeException(name)
         };

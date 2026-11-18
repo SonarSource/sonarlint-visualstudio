@@ -90,6 +90,28 @@ public class ServerConnectionTests
     }
 
     [TestMethod]
+    public void Ctor_SonarCloud_AuRegion_SetsAuIdAndUri()
+    {
+        var sonarCloud = new ServerConnection.SonarCloud(Org, CloudServerRegion.Au);
+
+        sonarCloud.Id.Should().Be("https://sonarqube.au/organizations/myOrg");
+        sonarCloud.Region.Should().BeSameAs(CloudServerRegion.Au);
+        sonarCloud.ServerUri.Should().Be(CloudServerRegion.Au.Url);
+    }
+
+    [TestMethod]
+    public void Ctor_SonarCloud_SameOrganizationDifferentRegions_HaveDifferentIds()
+    {
+        var eu = new ServerConnection.SonarCloud(Org, CloudServerRegion.Eu);
+        var us = new ServerConnection.SonarCloud(Org, CloudServerRegion.Us);
+        var au = new ServerConnection.SonarCloud(Org, CloudServerRegion.Au);
+
+        new[] { eu.Id, us.Id, au.Id }.Should().OnlyHaveUniqueItems();
+        eu.Id.Should().Be("https://sonarcloud.io/organizations/myOrg");
+        us.Id.Should().Be("https://sonarqube.us/organizations/myOrg");
+    }
+
+    [TestMethod]
     public void Ctor_SonarCloud_NoRegion_SetsEu()
     {
         var sonarCloud = new ServerConnection.SonarCloud(Org);

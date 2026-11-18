@@ -26,7 +26,7 @@ public static class SonarCloudRegionExtensions
 {
     private static readonly IReadOnlyDictionary<CloudServerRegion, SonarCloudRegion> CoreToSlCoreLanguageMap = new Dictionary<CloudServerRegion, SonarCloudRegion>()
     {
-        { CloudServerRegion.Eu, SonarCloudRegion.EU }, { CloudServerRegion.Us, SonarCloudRegion.US },
+        { CloudServerRegion.Eu, SonarCloudRegion.EU }, { CloudServerRegion.Us, SonarCloudRegion.US }, { CloudServerRegion.Au, SonarCloudRegion.AU },
     };
 
     public static SonarCloudRegion ToSlCoreRegion(this CloudServerRegion region)

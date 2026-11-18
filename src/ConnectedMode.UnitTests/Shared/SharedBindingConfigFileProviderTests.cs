@@ -67,6 +67,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         [DataRow("""{"sonarCloudOrganization":"Some Organisation","region": "EU","projectKey":"projectKey"}""", "EU")]
         [DataRow("""{"SonarCloudOrganization":"Some Organisation","Region": "US","ProjectKey":"projectKey"}""", "US")]
         [DataRow("""{"sonarCloudOrganization":"Some Organisation","region": "US","projectKey":"projectKey"}""", "US")]
+        [DataRow("""{"SonarCloudOrganization":"Some Organisation","Region": "AU","ProjectKey":"projectKey"}""", "AU")]
+        [DataRow("""{"sonarCloudOrganization":"Some Organisation","region": "au","projectKey":"projectKey"}""", "AU")]
         [TestMethod]
         public void Read_SCConfig_Reads(string configFileContent, string region)
         {
