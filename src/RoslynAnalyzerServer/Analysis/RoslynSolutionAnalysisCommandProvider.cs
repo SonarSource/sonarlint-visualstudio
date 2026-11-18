@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [method: ImportingConstructor]
 internal class RoslynSolutionAnalysisCommandProvider(
     IRoslynWorkspaceWrapper roslynWorkspaceWrapper,
+    IFilesMissingFromRoslynSolution filesMissingFromSolution,
     ILogger logger) : IRoslynSolutionAnalysisCommandProvider
 {
     private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
@@ -37,6 +38,7 @@ internal class RoslynSolutionAnalysisCommandProvider(
     public List<RoslynProjectAnalysisRequest> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
     {
         var result = new List<RoslynProjectAnalysisRequest>();
+        var missingFilePaths = new HashSet<string>(filePaths, StringComparer.OrdinalIgnoreCase);
 
         var solution = roslynWorkspaceWrapper.GetCurrentSolution();
 
@@ -48,7 +50,7 @@ internal class RoslynSolutionAnalysisCommandProvider(
                 continue;
             }
 
-            var targetFilePaths = GetTargetFilePathsForProject(filePaths, project).ToImmutableHashSet();
+            var targetFilePaths = GetTargetFilePathsForProject(filePaths, project, missingFilePaths).ToImmutableHashSet();
 
             if (targetFilePaths.Count > 0)
             {
@@ -63,17 +65,23 @@ internal class RoslynSolutionAnalysisCommandProvider(
             logger.WriteLine(Resources.AnalysisCommandProvider_NoProjects);
         }
 
+        // These files get no issues from this analysis; they are analyzed again once their project loads.
+        filesMissingFromSolution.Add(missingFilePaths);
+
         return result;
     }
 
-    private static IEnumerable<string> GetTargetFilePathsForProject(string[] filePaths, IRoslynProjectWrapper project)
+    private static List<string> GetTargetFilePathsForProject(string[] filePaths, IRoslynProjectWrapper project, HashSet<string> missingFilePaths)
     {
+        var targetFilePaths = new List<string>();
         foreach (var filePath in filePaths)
         {
             if (project.ContainsDocument(filePath, out var document))
             {
-                yield return document.FilePath!;
+                targetFilePaths.Add(document.FilePath!);
+                missingFilePaths.Remove(filePath);
             }
         }
+        return targetFilePaths;
     }
 }

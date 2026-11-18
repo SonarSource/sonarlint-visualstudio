@@ -37,6 +37,8 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
 {
     private readonly ILogger quickFixApplicationLogger;
+    private readonly ILogger analysisLogger;
+    private readonly IFilesMissingFromRoslynSolution filesMissingFromSolution;
     private readonly Workspace workspace;
     private readonly IAnalysisRequester analysisRequester;
     private readonly IThreadHandling threadHandling;
@@ -52,6 +54,7 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         IWorkspaceChangeIndicator workspaceChangeIndicator,
         ITreatWarningsAsErrorsCacheUpdater treatWarningsAsErrorsCacheUpdater,
         ITreatWarningsAsErrorsChangeIndicator treatWarningsAsErrorsChangeIndicator,
+        IFilesMissingFromRoslynSolution filesMissingFromSolution,
         IAnalysisRequester analysisRequester,
         ILogger logger,
         IThreadHandling threadHandling)
@@ -62,8 +65,11 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         this.workspaceChangeIndicator = workspaceChangeIndicator;
         this.treatWarningsAsErrorsCacheUpdater = treatWarningsAsErrorsCacheUpdater;
         this.treatWarningsAsErrorsChangeIndicator = treatWarningsAsErrorsChangeIndicator;
+        this.filesMissingFromSolution = filesMissingFromSolution;
         workspace.WorkspaceChanged += WorkspaceOnWorkspaceChanged;
+        filesMissingFromSolution.FilesAdded += OnMissingFilesAdded;
         quickFixApplicationLogger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynQuickFixLogContext);
+        analysisLogger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext);
 
         // Initialize the cache from the current solution
         treatWarningsAsErrorsCacheUpdater.UpdateFromSolution(GetCurrentSolution());
@@ -81,21 +87,53 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
     {
         UpdateTreatWarningsAsErrorsCache(e);
 
-        if (workspaceChangeIndicator.IsChangeKindTrivial(e.Kind))
+        if (e.Kind is WorkspaceChangeKind.SolutionRemoved or WorkspaceChangeKind.SolutionCleared)
+        {
+            filesMissingFromSolution.Clear();
+        }
+
+        var isTrivial = workspaceChangeIndicator.IsChangeKindTrivial(e.Kind);
+        // A file analyzed before its project loaded can join the solution through any change, including a trivial
+        // DocumentAdded, so those are checked too while such files exist.
+        if (isTrivial && !filesMissingFromSolution.HasAny)
         {
             return;
         }
 
         threadHandling.RunOnBackgroundThread(() =>
         {
-            var solutionChanges = e.NewSolution.GetChanges(e.OldSolution);
-
-            if (workspaceChangeIndicator.SolutionChangedCritically(solutionChanges)
-                || solutionChanges.GetProjectChanges().Any(changedProject => workspaceChangeIndicator.ProjectChangedCritically(changedProject)))
+            if (RemoveMissingFilesContainedIn(e.NewSolution) || (!isTrivial && ChangedCritically(e)))
             {
                 analysisRequester.QueueAnalyzeOpenFiles();
             }
         }).Forget();
+    }
+
+    // Closes the race where a missed file's project loads between the analysis's solution snapshot and Add.
+    private void OnMissingFilesAdded(object? sender, EventArgs e) =>
+        threadHandling.RunOnBackgroundThread(() =>
+        {
+            if (RemoveMissingFilesContainedIn(workspace.CurrentSolution))
+            {
+                analysisRequester.QueueAnalyzeOpenFiles();
+            }
+        }).Forget();
+
+    private bool RemoveMissingFilesContainedIn(Solution solution)
+    {
+        if (!filesMissingFromSolution.HasAny || !filesMissingFromSolution.RemoveFilesContainedIn(new RoslynSolutionWrapper(solution)))
+        {
+            return false;
+        }
+        analysisLogger.WriteLine(Resources.WorkspaceWrapper_MissingFilesNowInSolution);
+        return true;
+    }
+
+    private bool ChangedCritically(WorkspaceChangeEventArgs e)
+    {
+        var solutionChanges = e.NewSolution.GetChanges(e.OldSolution);
+        return workspaceChangeIndicator.SolutionChangedCritically(solutionChanges)
+            || solutionChanges.GetProjectChanges().Any(changedProject => workspaceChangeIndicator.ProjectChangedCritically(changedProject));
     }
 
     private void UpdateTreatWarningsAsErrorsCache(WorkspaceChangeEventArgs e)
@@ -123,6 +161,7 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         }
 
         workspace.WorkspaceChanged -= WorkspaceOnWorkspaceChanged;
+        filesMissingFromSolution.FilesAdded -= OnMissingFilesAdded;
         disposed = true;
     }
 }

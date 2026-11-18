@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -56,7 +56,7 @@ public class RoslynAnalysisServiceIntegrationTests
         sonarLintSettings.PragmaRuleSeverity.Returns(PragmaRuleSeverity.None);
 
         var pragmaSuppressionAnalysisConfigurationFactory = new PragmaSuppressionAnalysisConfigurationFactory(sonarLintSettings);
-        var analysisCommandProvider = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, logger);
+        var analysisCommandProvider = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, new FilesMissingFromRoslynSolution(), logger);
 
         var quickFixFactory = Substitute.For<IRoslynQuickFixFactory>();
         quickFixFactory.CreateQuickFixesAsync(

@@ -231,4 +231,7 @@
   <data name="PragmaWarningGenerateCodeFixTitle" xml:space="preserve">
     <value>Suppress {0} with #pragma</value>
   </data>
+  <data name="WorkspaceWrapper_MissingFilesNowInSolution" xml:space="preserve">
+    <value>Files analyzed before their project was loaded are now in the solution. Analyzing the open files again.</value>
+  </data>
 </root>

@@ -400,5 +400,14 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
                 return ResourceManager.GetString("SuppressionExclusionConfigGenerator_WritingFile", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Files analyzed before their project was loaded are now in the solution. Analyzing the open files again..
+        /// </summary>
+        internal static string WorkspaceWrapper_MissingFilesNowInSolution {
+            get {
+                return ResourceManager.GetString("WorkspaceWrapper_MissingFilesNowInSolution", resourceCulture);
+            }
+        }
     }
 }

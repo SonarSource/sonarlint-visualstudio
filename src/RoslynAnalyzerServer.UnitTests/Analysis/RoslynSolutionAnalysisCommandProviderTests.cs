@@ -43,6 +43,7 @@ public class RoslynSolutionAnalysisCommandProviderTests
     private IRoslynWorkspaceWrapper workspaceWrapper = null!;
     private TestLogger logger = null!;
     private IRoslynSolutionWrapper solutionWrapper = null!;
+    private IFilesMissingFromRoslynSolution filesMissingFromSolution = null!;
     private RoslynSolutionAnalysisCommandProvider testSubject = null!;
 
     [TestInitialize]
@@ -52,13 +53,15 @@ public class RoslynSolutionAnalysisCommandProviderTests
         logger = Substitute.ForPartsOf<TestLogger>();
         solutionWrapper = Substitute.For<IRoslynSolutionWrapper>();
         workspaceWrapper.GetCurrentSolution().Returns(solutionWrapper);
-        testSubject = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, logger);
+        filesMissingFromSolution = Substitute.For<IFilesMissingFromRoslynSolution>();
+        testSubject = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, filesMissingFromSolution, logger);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RoslynSolutionAnalysisCommandProvider, IRoslynSolutionAnalysisCommandProvider>(
             MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>(),
+            MefTestHelpers.CreateExport<IFilesMissingFromRoslynSolution>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
@@ -194,6 +197,43 @@ public class RoslynSolutionAnalysisCommandProviderTests
         var additionalCommands = result.Single().AdditionalCommands;
         additionalCommands.Should().HaveCount(2);
         additionalCommands.Should().AllBeOfType<RoslynFileSyntaxAnalysisCommand>();
+    }
+
+    [TestMethod]
+    public void GetAnalysisCommandsForCurrentSolution_NoProjectContainsTheFiles_RecordsThemAsMissing()
+    {
+        solutionWrapper.Projects.Returns(new List<IRoslynProjectWrapper>());
+
+        testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs, File2Cs]);
+
+        filesMissingFromSolution.Received(1).Add(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[] { File1Cs, File2Cs })));
+    }
+
+    [TestMethod]
+    public void GetAnalysisCommandsForCurrentSolution_SomeFilesInNoProject_RecordsOnlyThoseAsMissing()
+    {
+        var projectWithNoCompilation = CreateProject(Project1, false);
+        SetupContainsDocument(projectWithNoCompilation, File2Cs, AnalyzedFile2Cs);
+        var project = CreateProject(Project2);
+        SetupContainsDocument(project, File1Cs, AnalyzedFile1Cs);
+        project.ContainsDocument(File2Cs, out _).Returns(false);
+        solutionWrapper.Projects.Returns([projectWithNoCompilation, project]);
+
+        testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs, File2Cs]);
+
+        filesMissingFromSolution.Received(1).Add(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[] { File2Cs })));
+    }
+
+    [TestMethod]
+    public void GetAnalysisCommandsForCurrentSolution_AllFilesInProjects_RecordsNothing()
+    {
+        var project = CreateProject(Project1);
+        SetupContainsDocument(project, File1Cs, AnalyzedFile1Cs);
+        solutionWrapper.Projects.Returns([project]);
+
+        testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs]);
+
+        filesMissingFromSolution.Received(1).Add(Arg.Is<IEnumerable<string>>(x => !x.Any()));
     }
 
     private static IRoslynProjectWrapper CreateProject(string projectName, bool supportsCompilation = true)
