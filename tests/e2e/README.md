@@ -21,7 +21,8 @@ extension.
 2. Install the VSIX and verify its installed manifest in the requested profile.
 3. Open the C# fixture through DTE and wait for the Sonar S1481 messages for
    both `e2eUnused` and `e2eRemaining` in the sample file, then check they are
-   reported on lines 5 and 6.
+   reported on lines 5 and 6. The file is opened only once Roslyn has loaded its
+   project, because a file analyzed earlier gets no issues until edited (SLVS-3127).
 4. Delete line 5 (`e2eUnused`) through the IDE editor and save the document.
 5. Check that its declaration is gone from disk and its finding stays absent
    for five continuous seconds while exactly one `e2eRemaining` finding stays
