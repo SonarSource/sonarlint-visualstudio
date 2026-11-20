@@ -231,7 +231,7 @@ jobs:
           dotnet-coverage merge -o "coverage.xml" -f xml "**/*.coverage"
 
       - name: Report Test Results
-        uses: dorny/test-reporter@v2
+        uses: step-security/test-reporter@033644e32639f3077b48dc7c3a692b15fb929c8d # v3.0.0
         if: success() || failure()
         with:
           name: Test Results
