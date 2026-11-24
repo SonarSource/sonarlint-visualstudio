@@ -375,6 +375,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to AU.
+        /// </summary>
+        public static string AuRegionName {
+            get {
+                return ResourceManager.GetString("AuRegionName", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to EU.
         /// </summary>
         public static string EuRegionName {
@@ -1230,15 +1239,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to (invite-only).
-        /// </summary>
-        public static string UsRegionInviteOnlyLabel {
-            get {
-                return ResourceManager.GetString("UsRegionInviteOnlyLabel", resourceCulture);
-            }
-        }
-
         /// <summary>
         ///   Looks up a localized string similar to US.
         /// </summary>

@@ -417,8 +417,8 @@
   <data name="UsRegionName" xml:space="preserve">
     <value>US</value>
   </data>
-  <data name="UsRegionInviteOnlyLabel" xml:space="preserve">
-    <value>(invite-only)</value>
+  <data name="AuRegionName" xml:space="preserve">
+    <value>AU</value>
   </data>
   <data name="GenerateTokenButton" xml:space="preserve">
     <value>Generate Token</value>

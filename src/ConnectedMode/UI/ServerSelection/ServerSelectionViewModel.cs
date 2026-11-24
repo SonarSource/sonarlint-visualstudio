@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
         private bool isSonarQubeSelected;
         private bool isEuRegionSelected = true;
         private bool isUsRegionSelected;
+        private bool isAuRegionSelected;
         private string sonarQubeUrl;
 
         public bool IsSonarCloudSelected
@@ -91,19 +92,47 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             }
         }
 
+        public bool IsAuRegionSelected
+        {
+            get => isAuRegionSelected;
+            set
+            {
+                isAuRegionSelected = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(IsNextButtonEnabled));
+            }
+        }
+
         public bool IsNextButtonEnabled => (IsSonarCloudSelected && IsSonarCloudRegionSelected) || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
         public bool ShouldSonarQubeUrlBeFilled => IsSonarQubeSelected && !IsSonarQubeUrlProvided;
         public static string SonarCloudForEuRegion => CloudServerRegion.Eu.Url.Host;
         public static string SonarCloudForUsRegion => CloudServerRegion.Us.Url.Host;
+        public static string SonarCloudForAuRegion => CloudServerRegion.Au.Url.Host;
         private bool IsSonarQubeUrlProvided => !string.IsNullOrWhiteSpace(SonarQubeUrl);
         public bool ShowSecurityWarning => Uri.TryCreate(SonarQubeUrl, UriKind.Absolute, out Uri uriResult) && uriResult.Scheme != Uri.UriSchemeHttps;
-        private bool IsSonarCloudRegionSelected => IsEuRegionSelected || IsUsRegionSelected;
+        private bool IsSonarCloudRegionSelected => IsEuRegionSelected || IsUsRegionSelected || IsAuRegionSelected;
+
+        public CloudServerRegion SelectedCloudServerRegion
+        {
+            get
+            {
+                if (IsUsRegionSelected)
+                {
+                    return CloudServerRegion.Us;
+                }
+                if (IsAuRegionSelected)
+                {
+                    return CloudServerRegion.Au;
+                }
+                return CloudServerRegion.Eu;
+            }
+        }
 
         public ConnectionInfo CreateTransientConnectionInfo()
         {
             var url = IsSonarQubeSelected ? SonarQubeUrl : null;
             var serverType = IsSonarCloudSelected ? ConnectionServerType.SonarCloud : ConnectionServerType.SonarQube;
-            var region = IsSonarCloudSelected ? CloudServerRegion.GetRegion(IsUsRegionSelected) : null;
+            var region = IsSonarCloudSelected ? SelectedCloudServerRegion : null;
             return new ConnectionInfo(url, serverType, region);
         }
     }

@@ -67,6 +67,14 @@ public class SonarCloudConnectionConfigurationDtoTests
                                                        "disableNotification": true
                                                      }
                                                      """)]
+    [DataRow("id", true, "org", SonarCloudRegion.AU, """
+                                                     {
+                                                       "organization": "org",
+                                                       "region": "AU",
+                                                       "connectionId": "id",
+                                                       "disableNotification": true
+                                                     }
+                                                     """)]
     [TestMethod]
     public void Serialize_AsExpected(string id, bool notificationEnabled, string organization, SonarCloudRegion region, string expected) =>
         JsonConvert.SerializeObject(new SonarCloudConnectionConfigurationDto(id, notificationEnabled, organization, region), Formatting.Indented).Should().Be(expected);
