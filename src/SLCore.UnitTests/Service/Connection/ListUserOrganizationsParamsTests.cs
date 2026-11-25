@@ -48,6 +48,15 @@ public class ListUserOrganizationsParamsTests
                                     "region": "US"
                                   }
                                   """)]
+    [DataRow(SonarCloudRegion.AU, """
+                                  {
+                                    "credentials": {
+                                      "username": "myUser",
+                                      "password": "password"
+                                    },
+                                    "region": "AU"
+                                  }
+                                  """)]
     [TestMethod]
     public void Ctor_UsernamePasswordIsUsed_SerializeAsExpected(SonarCloudRegion region, string expectedString)
     {
@@ -72,6 +81,14 @@ public class ListUserOrganizationsParamsTests
                                       "token": "mytoken"
                                     },
                                     "region": "US"
+                                  }
+                                  """)]
+    [DataRow(SonarCloudRegion.AU, """
+                                  {
+                                    "credentials": {
+                                      "token": "mytoken"
+                                    },
+                                    "region": "AU"
                                   }
                                   """)]
     [TestMethod]

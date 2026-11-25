@@ -56,6 +56,4 @@ public sealed class CloudServerRegion
             null or "" => Eu,
             _ => throw new ArgumentOutOfRangeException(name)
         };
-
-    public static CloudServerRegion GetRegion(bool isUsRegion) => isUsRegion ? Us : Eu;
 }

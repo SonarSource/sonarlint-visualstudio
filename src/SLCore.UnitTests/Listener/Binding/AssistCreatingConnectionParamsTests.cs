@@ -51,6 +51,7 @@ public class AssistCreatingConnectionParamsTests
     [TestMethod]
     [DataRow(SonarCloudRegion.EU)]
     [DataRow(SonarCloudRegion.US)]
+    [DataRow(SonarCloudRegion.AU)]
     public void SonarCloudConnection_EuRegion_DeserializesCorrectly(SonarCloudRegion region)
     {
         var sonarCloudConnection = new SonarCloudConnectionParams("myOrganization", "myToken2", "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B", region);
@@ -96,6 +97,7 @@ public class AssistCreatingConnectionParamsTests
     [TestMethod]
     [DataRow(SonarCloudRegion.EU)]
     [DataRow(SonarCloudRegion.US)]
+    [DataRow(SonarCloudRegion.AU)]
     public void SonarCloudConnection_SerializesCorrectly(SonarCloudRegion region)
     {
         var sonarCloudConnection = new SonarCloudConnectionParams("myOrganization", "myToken2", "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B", region);

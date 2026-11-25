@@ -101,6 +101,7 @@ public class ConnectedModeSuggestionListenerTests
     [TestMethod]
     [DataRow(SonarCloudRegion.US)]
     [DataRow(SonarCloudRegion.EU)]
+    [DataRow(SonarCloudRegion.AU)]
     public async Task AssistCreatingConnectionAsync_SonarCloud_ShowsDialogWithCorrectParameters(SonarCloudRegion expectedRegion)
     {
         MockTrustConnectionDialogSucceeds();
@@ -141,6 +142,7 @@ public class ConnectedModeSuggestionListenerTests
     [TestMethod]
     [DataRow(SonarCloudRegion.US)]
     [DataRow(SonarCloudRegion.EU)]
+    [DataRow(SonarCloudRegion.AU)]
     public async Task AssistCreatingConnectionAsync_SonarCloud_TrustConnectionDialogSucceeds_ReturnsNewConnectionIdAndLogs(SonarCloudRegion expectedRegion)
     {
         MockTrustConnectionDialogSucceeds();
