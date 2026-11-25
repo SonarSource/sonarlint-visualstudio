@@ -25,7 +25,7 @@ jobs:
             vs-version: '18.12.12405.243'
           # Earliest supported: ci-ami-images #520 PR image (temporary, DO NOT MERGE).
           - label: VS 17.0
-            runner: warp-custom-pr-520-sonarlint-visualstudio-vs17-0-0-v20261118103244
+            runner: warp-custom-pr-520-sonarlint-visualstudio-vs17-0-0-v20261125130404
             vs-version: '17.0.31903.59'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
@@ -125,7 +125,7 @@ jobs:
             vs-version: '18.12.12405.243'
           # Earliest supported: ci-ami-images #520 PR image (temporary, DO NOT MERGE).
           - label: VS 17.0
-            runner: warp-custom-pr-520-sonarlint-visualstudio-vs17-0-0-v20261118103244
+            runner: warp-custom-pr-520-sonarlint-visualstudio-vs17-0-0-v20261125130404
             vs-version: '17.0.31903.59'
     runs-on: ${{ matrix.runner }}
     # Includes starting a disposable SonarQube server (bounded to 10 minutes).
