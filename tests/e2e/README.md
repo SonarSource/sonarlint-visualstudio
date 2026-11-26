@@ -1,13 +1,18 @@
 # Extension E2E test
 
-This test runs once after every successful push build on `master`, using Visual
-Studio Community installed by the `sonarlint-visualstudio` image
-([ci-ami-images #513](https://github.com/SonarSource/ci-ami-images/pull/513))
-on the `warp-custom-sonarlint-visualstudio` runner, the same one used by Build.
-PR builds run it automatically only when the PR changes
-`.github/workflows/extension-e2e.yml` or anything under `tests/e2e/`. It can
-also be enabled explicitly when manually dispatching Build on a PR branch. Earliest-supported-version coverage
-is deferred to a separate PR.
+The standalone and connected-mode E2E jobs each run on two Visual Studio Community
+versions, using images built from `ci-ami-images` master and promoted to these stable runners:
+
+| Target | Visual Studio Community | Runner |
+| --- | --- | --- |
+| Current product-build version | 18.12.12405.243 | `warp-custom-sonarlint-visualstudio` |
+| Earliest supported version | 17.0.31903.59 | `warp-custom-sonarlint-visualstudio-vs17-0-0` |
+
+Both jobs use a version matrix with `fail-fast: false`, so a failure on one target
+does not cancel validation on the other. Each job and target runs once after every
+successful push build on `master`. PR builds run them automatically only when the
+PR changes `.github/workflows/extension-e2e.yml` or anything under `tests/e2e/`.
+They can also be enabled explicitly when manually dispatching Build on a PR branch.
 
 ## Scenario
 
@@ -28,8 +33,8 @@ extension.
    visible, now on line 5. A failed or rejected Error List read restarts that
    stability window.
 
-There is one installation and one test execution, with no repetition loop or
-version matrix. `TreatNoTestsAsError=true` fails the job if no tests are selected.
+Each matrix target performs one installation and one test execution, with no
+repetition loop. `TreatNoTestsAsError=true` fails the job if no tests are selected.
 The five-second absence check is part of that single execution.
 Compiler unused-variable warnings cannot satisfy the Sonar-message assertion.
 Other unrelated diagnostics may remain. This exercises native IDE/DTE behavior;
@@ -92,9 +97,10 @@ publication conditions are unchanged. E2E failures fail the workflow, but the
 E2E job runs after publication and does not gate promotion or dogfood delivery.
 
 The runner requires the Visual Studio Community build pinned in the E2E workflow, MSBuild/VSTest,
-the .NET SDK and .NET Framework targeting packs. The expected full build is declared once as `E2E_EXPECTED_VS_VERSION` in the
-workflow. The workflow discovers the IDE once, using a minor-version range derived
-from that setting, and passes its path to the test as `E2E_VS_INSTALL_PATH`.
+the .NET SDK and .NET Framework targeting packs. Each matrix entry declares its expected full build
+as `vs-version`, which is passed to the harness as `E2E_EXPECTED_VS_VERSION`. The product is declared as
+`E2E_EXPECTED_VS_PRODUCT`. Each job discovers the IDE once, using a minor-version range derived
+from its expected version, and passes its path to the test as `E2E_VS_INSTALL_PATH`.
 The harness independently checks that installation's exact build and product. Update it together with
 the image's Visual Studio version when changing releases.
 The test project targets .NET Framework 4.8; the fixture targets 4.7.2.
@@ -103,9 +109,9 @@ NuGet restoration is locked and IDE interop assemblies come from the target IDE.
 ## Run manually on a PR
 
 In Actions, select **Build → Run workflow**, choose the PR's source branch,
-and enable **extension-e2e**. This builds the selected branch and runs one E2E
-test against that run's signed VSIX. The branch must contain these workflow
-changes. Manual dispatch is available once the workflow exists on the default
+and enable **extension-e2e**. This builds the selected branch and runs both E2E
+scenarios on both Visual Studio versions against that run's signed VSIX. The branch
+must contain these workflow changes. Manual dispatch is available once the workflow exists on the default
 branch; it is not a rerun of the existing `pull_request` event.
 
 Or use the CLI, replacing the branch name:
