@@ -13,7 +13,13 @@
 
 # SonarQube for Visual Studio
 
-SonarQube for IDE is a Visual Studio 2017, 2019, 2022 and 2026 extension that provides on-the-fly feedback to developers on new bugs and quality issues in C#, VB.NET, C/C++, TypeScript and JavaScript to help produce [integrated code quality and security](https://www.sonarsource.com/solutions/for-developers/).
+SonarQube for IDE by [Sonar](https://www.sonarsource.com/) is a free, sophisticated static analysis tool that enhances your code quality and security. Analyze your code early—as you write or generate it. Local analysis automatically identifies quality and security issues in real-time, even with AI-generated code. Fix issues found using QuickFix or the AI CodeFix feature, before pushing to your SCM. This ensures your code meets your quality standards and is safe for running in production.
+
+Understand the "why" behind issues with detailed contextual information, turning SonarQube for IDE into your personal coding tutor, and levelling up your coding skills.
+
+Connect to [SonarQube Server](https://www.sonarsource.com/products/sonarqube/) or [SonarQube Cloud](https://www.sonarsource.com/products/sonarcloud/) (you can create a [free SonarQube Cloud account](https://www.sonarsource.com/products/sonarcloud/signup/) to get started), to create a powerful, unified code quality platform for your team, throughout the software development lifecycle. This connection enables sharing of consistent language rulesets and project settings, and unlocks analysis of deeply hidden security issues, fostering collaboration and code uniformity. Additionally, Connected Mode unlocks analysis of T-SQL.
+
+SonarQube for IDE is the only extension you need in Visual Studio (2022 and 2026) for ensuring both code quality and security. It supports C#, VB.NET, C/C++, JavaScript, TypeScript, HTML and CSS. Refer to our [documentation](https://docs.sonarsource.com/) for the complete list of supported languages, rules, and secret detection capabilities.
 
 Choose the supported extension below, or learn more about [SonarQube for IDE](https://www.sonarsource.com/products/sonarqube/ide/).
 
