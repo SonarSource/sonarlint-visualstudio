@@ -94,7 +94,7 @@ jobs:
 
       - name: Upload E2E test evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: extension-e2e-vs${{ env.E2E_EXPECTED_VS_VERSION }}
           path: ${{ runner.temp }}/extension-e2e/
@@ -197,7 +197,7 @@ jobs:
 
       - name: Upload connected-mode E2E evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: extension-e2e-connected-vs${{ env.E2E_EXPECTED_VS_VERSION }}
           path: ${{ runner.temp }}/extension-e2e-connected/
