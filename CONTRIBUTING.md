@@ -21,3 +21,9 @@ feedback on this idea.
 
 To submit a contribution, create a pull request for this repository. Please make sure that you follow our
 [code style](https://github.com/SonarSource/sonar-developer-toolset#code-style)
+
+## Packaging integration tests
+
+[`Integration.Vsix.PackageTests`](src/Integration.Vsix.PackageTests) opens the built VSIX archive to verify its packaged
+assembly identities and signing. The [extension E2E suite](tests/e2e/README.md) installs the VSIX and exercises it in
+Visual Studio.
