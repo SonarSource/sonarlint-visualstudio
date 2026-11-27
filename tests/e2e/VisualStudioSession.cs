@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.E2E
             ResetProfile(devenv, ideDirectory, "initialize-profile.log");
             Phase("install-vsix");
             RunProcess(Path.Combine(ideDirectory, "VSIXInstaller.exe"),
-                $"/quiet /instanceIds:{instance.InstanceId} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(settings.ResultsDirectory, "vsix-installer.log"))} {Quote(settings.VsixPath)}", "vsix-process.log");
+                $"/quiet {GetVsixInstallationTarget(instance, devenv)} /rootSuffix:{rootSuffix} /logFile:{Quote(Path.Combine(settings.ResultsDirectory, "vsix-installer.log"))} {Quote(settings.VsixPath)}", "vsix-process.log");
             Phase("verify-vsix-installation");
             WaitUntil("the signed VSIX in the requested experimental profile", VerifyInstalledExtension);
 
@@ -174,6 +174,28 @@ namespace SonarLint.VisualStudio.E2E
                 throw new InvalidOperationException($"{instance.InstallationPath} is not a full Visual Studio IDE.");
             }
             return instance;
+        }
+
+        /// <summary>
+        /// The VSIXInstaller arguments that select the target IDE. VS 17.0's installer sends <c>/instanceIds</c>
+        /// installs to the normal profile even with <c>/rootSuffix</c>; its application/SKU route respects the
+        /// experimental profile, so it is used for that release.
+        /// </summary>
+        private string GetVsixInstallationTarget(Installation instance, string devenv)
+        {
+            var version = settings.ExpectedVisualStudioVersion;
+            if (version.Major != 17 || version.Minor != 0)
+            {
+                return $"/instanceIds:{instance.InstanceId}";
+            }
+            var sku = instance.ProductId switch
+            {
+                "Microsoft.VisualStudio.Product.Community" => "Community",
+                "Microsoft.VisualStudio.Product.Professional" => "Pro",
+                "Microsoft.VisualStudio.Product.Enterprise" => "Enterprise",
+                _ => throw new InvalidOperationException("Unsupported IDE product: " + instance.ProductId)
+            };
+            return $"/appidinstallpath:{Quote(devenv)} /appidname:{Quote(instance.DisplayName)} /skuName:{sku} /skuVersion:{instance.InstallationVersion}";
         }
 
         private void ResetProfile(string devenv, string ideDirectory, string logName) =>
@@ -489,6 +511,8 @@ namespace SonarLint.VisualStudio.E2E
             public string InstanceId { get; set; }
             [JsonProperty("productId")]
             public string ProductId { get; set; }
+            [JsonProperty("displayName")]
+            public string DisplayName { get; set; }
         }
     }
 }
